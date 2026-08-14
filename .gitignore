@@ -1,0 +1,9 @@
+vibeboard/dist/
+vibeboard/node_modules/
+
+# app
+node_modules/
+/dist/
+/dev-dist/
+*.local
+
