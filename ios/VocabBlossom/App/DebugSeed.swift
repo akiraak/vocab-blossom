@@ -11,12 +11,16 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=session`: 起動直後にセッションを開く（復習から始まる）
 /// - `VOCAB_DEMO_SCREEN=session-new`: 復習は無く、新規学習の提示カードから始まる
 /// - `VOCAB_DEMO_SCREEN=session-summary`: 出題が無い状態（締め画面）
+/// - `VOCAB_DEMO_SCREEN=words|stats|settings`: そのタブを開いた状態で起動する
 enum DebugSeed {
     enum Variant: String {
         case none
         case session
         case sessionNew = "session-new"
         case sessionSummary = "session-summary"
+        case words
+        case stats
+        case settings
 
         /// 期限切れの復習を作るか
         var hasDueReviews: Bool { self == .none || self == .session }
@@ -33,7 +37,22 @@ enum DebugSeed {
     }
 
     /// 起動直後にセッションを開く
-    static var autoStartSession: Bool { variant != .none }
+    static var autoStartSession: Bool {
+        switch variant {
+        case .session, .sessionNew, .sessionSummary: true
+        default: false
+        }
+    }
+
+    /// 起動直後に開くタブ
+    static var initialTab: MainTabView.TabId? {
+        switch variant {
+        case .words: .words
+        case .stats: .stats
+        case .settings: .settings
+        default: nil
+        }
+    }
 
     /// 学習途中の状態（庭に花が咲き、復習も溜まっている）を作る。
     static func apply(context: ModelContext, settings: AppSettings, now: Date = .now) {

@@ -17,20 +17,31 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    enum TabId: String {
+        case home, words, stats, settings
+    }
+
+    @State private var selection: TabId = .home
+
     var body: some View {
-        TabView {
-            Tab("ホーム", systemImage: "leaf.fill") {
+        TabView(selection: $selection) {
+            Tab("ホーム", systemImage: "leaf.fill", value: TabId.home) {
                 HomeView()
             }
-            Tab("単語帳", systemImage: "book.fill") {
+            Tab("単語帳", systemImage: "book.fill", value: TabId.words) {
                 WordListView()
             }
-            Tab("統計", systemImage: "chart.bar.fill") {
+            Tab("統計", systemImage: "chart.bar.fill", value: TabId.stats) {
                 StatsView()
             }
-            Tab("設定", systemImage: "gearshape.fill") {
+            Tab("設定", systemImage: "gearshape.fill", value: TabId.settings) {
                 SettingsView()
             }
         }
+        #if DEBUG
+        .onAppear {
+            if let tab = DebugSeed.initialTab { selection = tab }
+        }
+        #endif
     }
 }
