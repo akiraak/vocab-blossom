@@ -45,6 +45,11 @@ struct HomeView: View {
             .fullScreenCover(isPresented: $isSessionPresented) {
                 SessionView(plan: summary.plan)
             }
+            #if DEBUG
+            .onAppear {
+                if DebugSeed.autoStartSession { isSessionPresented = true }
+            }
+            #endif
         }
     }
 
