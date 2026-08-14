@@ -55,9 +55,27 @@ struct LearningEngine {
 
     /// 「もう知ってる」。既知語を早く畑から片付ける
     func markKnown(wordId: String, now: Date = .now) {
-        let existing = progress(for: wordId)
+        markKnown(wordIds: [wordId], now: now)
+    }
+
+    /// 既知語をまとめて登録する。
+    ///
+    /// 数百語を一度に入れるので、既存レコードは 1 回のフェッチでまとめて引き、保存も最後の 1 回だけ行う。
+    func markKnown(wordIds: [String], now: Date = .now) {
+        let targets = Set(wordIds)
+        guard !targets.isEmpty else { return }
+
+        let existing = (try? context.fetch(
+            FetchDescriptor<WordProgress>(predicate: #Predicate { targets.contains($0.wordId) })
+        )) ?? []
+        let existingByWordId = Dictionary(
+            existing.map { ($0.wordId, $0) }, uniquingKeysWith: { first, _ in first }
+        )
+
         let result = SRS.applyKnown(now: now)
-        apply(result, to: existing, wordId: wordId, now: now, known: true)
+        for wordId in targets {
+            apply(result, to: existingByWordId[wordId], wordId: wordId, now: now, known: true)
+        }
         save()
     }
 

@@ -8,8 +8,8 @@ enum SRS {
     static let maxStage = 5
     /// 一度学習した単語はここより下がらない（芽）
     static let minLearnedStage = 1
-    /// 「もう知ってる」で押し上げるステージ
-    static let knownStage = 4
+    /// 「もう知ってる」で押し上げるステージ。既知語で席を埋めないよう、いきなり開花にする
+    static let knownStage = maxStage
     /// 同一カードをセッション末尾で再出題する上限
     static let maxRequeue = 2
 
@@ -41,9 +41,12 @@ enum SRS {
         return Result(stage: stage, dueAt: DateUtil.startOfDay(DateUtil.addDays(now, days)))
     }
 
-    /// 「もう知ってる」を押されたとき。既知語を早く畑から片付けるための近道
+    /// 「もう知ってる」を押されたとき。
+    ///
+    /// 既知語で席を埋めないことが目的なので、開花済みと同じ扱いにして次回は
+    /// 維持復習（約 3 ヶ月後）まで出さない。数百語まとめて登録しても復習が雪崩れない。
     static func applyKnown(now: Date) -> Result {
-        let days = intervalDays(from: knownStage - 1, to: knownStage)
+        let days = intervalDays(from: knownStage, to: knownStage)
         return Result(stage: knownStage, dueAt: DateUtil.startOfDay(DateUtil.addDays(now, days)))
     }
 

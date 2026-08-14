@@ -157,8 +157,8 @@ enum BackupService {
 
         settings.level = archive.settings.level
         settings.newWordsPerDay = archive.settings.newWordsPerDay
-        settings.reviewLimitPerDay = archive.settings.reviewLimitPerDay
         settings.soundEnabled = archive.settings.soundEnabled
+        // reviewLimitPerDay は新規語数からの算出値なので、書き出すだけで復元はしない
         return archive
     }
 }

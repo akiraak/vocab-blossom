@@ -41,7 +41,12 @@ struct SettingsView: View {
                 } header: {
                     Text("学習")
                 } footer: {
-                    Text("レベルを変えても、覚えた単語と復習の予定はそのまま残ります。")
+                    Text(
+                        """
+                        レベルを変えても、覚えた単語と復習の予定はそのまま残ります。
+                        復習は 1 日最大 \(settings.reviewLimitPerDay) 語まで自動で調整します。
+                        """
+                    )
                 }
 
                 Section {

@@ -75,6 +75,8 @@ struct BackupTests {
 
         #expect(otherSettings.level == .a2)
         #expect(otherSettings.newWordsPerDay == 20)
+        // 復習上限は新規語数からの算出値なので、復元後も自動で追従する
+        #expect(otherSettings.reviewLimitPerDay == 120)
         #expect(otherSettings.soundEnabled == false)
     }
 

@@ -7,14 +7,24 @@ final class AppSettings {
     enum Key {
         static let level = "settings.level"
         static let newWordsPerDay = "settings.newWordsPerDay"
-        static let reviewLimitPerDay = "settings.reviewLimitPerDay"
         static let soundEnabled = "settings.soundEnabled"
         static let hasOnboarded = "settings.hasOnboarded"
     }
 
-    static let newWordsPerDayChoices = [5, 10, 15, 20, 30]
+    static let newWordsPerDayChoices = [5, 10, 15, 20, 30, 50, 100]
     static let defaultNewWordsPerDay = 10
-    static let defaultReviewLimitPerDay = 60
+    static let minReviewLimitPerDay = 60
+    /// 1 語は開花までに 5 回戻ってくるので、定常状態の復習数は新規語 × 5 になる。
+    /// 余裕を持たせて 6 倍を上限にする
+    static let reviewLimitFactor = 6
+
+    /// 復習の 1 日上限。設定項目にはせず、新規語数から決める。
+    ///
+    /// 別々に設定できるようにすると「復習上限 < 新規語 × 5」に設定してしまい、
+    /// `SessionBuilder` の抑制ルールで新規語が出なくなる事故が起きるため。
+    static func reviewLimit(forNewWordsPerDay count: Int) -> Int {
+        max(minReviewLimitPerDay, count * reviewLimitFactor)
+    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -23,8 +33,6 @@ final class AppSettings {
         level = CefrLevel(rawValue: defaults.string(forKey: Key.level) ?? "") ?? .a1
         newWordsPerDay = defaults.object(forKey: Key.newWordsPerDay) as? Int
             ?? Self.defaultNewWordsPerDay
-        reviewLimitPerDay = defaults.object(forKey: Key.reviewLimitPerDay) as? Int
-            ?? Self.defaultReviewLimitPerDay
         soundEnabled = defaults.object(forKey: Key.soundEnabled) as? Bool ?? true
         hasOnboarded = defaults.bool(forKey: Key.hasOnboarded)
     }
@@ -40,7 +48,7 @@ final class AppSettings {
 
     /// 復習の 1 日上限。サボって溜まっても圧殺されないための調整弁
     var reviewLimitPerDay: Int {
-        didSet { defaults.set(reviewLimitPerDay, forKey: Key.reviewLimitPerDay) }
+        Self.reviewLimit(forNewWordsPerDay: newWordsPerDay)
     }
 
     var soundEnabled: Bool {

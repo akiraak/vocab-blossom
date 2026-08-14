@@ -91,14 +91,40 @@ struct LearningEngineTests {
         #expect(try logs().count == 1)
     }
 
-    @Test("「もう知ってる」はつぼみ（4）扱いで、ログは残さない")
+    @Test("「もう知ってる」は開花（5）扱いで、ログは残さない")
     func markKnownSkipsAhead() throws {
         engine.markKnown(wordId: "a1-0006", now: now)
         let progress = try #require(engine.progress(for: "a1-0006"))
-        #expect(progress.stage == SRS.knownStage)
+        #expect(progress.stage == SRS.maxStage)
         #expect(progress.known)
-        #expect(DateUtil.daysBetween(now, progress.dueAt) == 14)
+        #expect(DateUtil.daysBetween(now, progress.dueAt) == 90)
         #expect(try logs().isEmpty)
+    }
+
+    @Test("既知語をまとめて登録できる（保存は 1 回、ログは残さない）")
+    func markKnownInBulk() throws {
+        let wordIds = (1...5).map { String(format: "a1-%04d", $0 + 100) }
+        engine.markKnown(wordIds: wordIds, now: now)
+
+        for wordId in wordIds {
+            let progress = try #require(engine.progress(for: wordId))
+            #expect(progress.stage == SRS.maxStage)
+            #expect(progress.known)
+            #expect(DateUtil.daysBetween(now, progress.dueAt) == 90)
+        }
+        #expect(try context.fetch(FetchDescriptor<WordProgress>()).count == wordIds.count)
+        #expect(try logs().isEmpty)
+    }
+
+    @Test("すでに学習済みの語を既知登録しても重複しない")
+    func markKnownOnLearnedWord() throws {
+        engine.record(wordId: "a1-0200", correct: true, quizType: .enToJa, kind: .new, now: now)
+        engine.markKnown(wordIds: ["a1-0200"], now: now)
+
+        let all = try context.fetch(FetchDescriptor<WordProgress>())
+        #expect(all.count == 1)
+        #expect(all[0].stage == SRS.maxStage)
+        #expect(all[0].known)
     }
 
     @Test("同じ単語の進捗は 1 レコードだけ")

@@ -52,11 +52,11 @@ struct SRSTests {
         #expect(result.dueAt == DateUtil.startOfDay(result.dueAt))
     }
 
-    @Test("「もう知ってる」はつぼみ（4）・2 週間後")
-    func knownJumpsToBud() {
+    @Test("「もう知ってる」は開花（5）・約 3 ヶ月後の維持復習のみ")
+    func knownJumpsToBlossom() {
         let result = SRS.applyKnown(now: now)
-        #expect(result.stage == SRS.knownStage)
-        #expect(daysUntil(result) == 14)
+        #expect(result.stage == SRS.maxStage)
+        #expect(daysUntil(result) == 90)
     }
 
     @Test(

@@ -119,6 +119,26 @@ struct SessionBuilderTests {
         #expect(plan.totalCount == 0)
     }
 
+    @Test("新規 50 語/日でも、自動追従した復習上限なら定常状態で新規語が止まらない")
+    func newWordsSurviveSteadyStateAtFiftyPerDay() {
+        let newWordsPerDay = 50
+        let reviewLimit = AppSettings.reviewLimit(forNewWordsPerDay: newWordsPerDay)
+        // 定常状態では 1 語が開花までに 5 回戻ってくるので、期限到来は約 新規語 × 5
+        let steadyStateDue = newWordsPerDay * 5
+        let items = progress(dueOffsets: Array(repeating: -1, count: steadyStateDue))
+
+        let plan = SessionBuilder.build(
+            input(
+                progress: items,
+                newWordsPerDay: newWordsPerDay,
+                reviewLimitPerDay: reviewLimit
+            )
+        )
+        #expect(plan.reviewWordIds.count == steadyStateDue)
+        #expect(plan.deferredReviewCount == 0)
+        #expect(plan.newWordIds.count == newWordsPerDay)
+    }
+
     @Test("新規語は 5 語ずつのミニバッチに割れる")
     func newWordsSplitIntoBatches() {
         let plan = SessionBuilder.build(input(newWordsPerDay: 12))
