@@ -8,7 +8,7 @@ node_modules/
 # Xcode
 ios/VocabBlossom.xcodeproj/
 ios/VocabBlossom/Info.plist
-ios/build/
+ios/build*/
 DerivedData/
 *.xcuserstate
 .DS_Store

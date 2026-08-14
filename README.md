@@ -53,11 +53,19 @@ xcodebuild -project VocabBlossom.xcodeproj -scheme VocabBlossom \
 swiftlint                  # ios/ で実行（警告 0 を維持する）
 ```
 
-実機ビルドは Apple Developer のチーム ID を渡してプロジェクトを生成する。
+### 実機で動かす
+
+リポジトリ直下の `run-ios-device.sh` が「プロジェクト生成 → ビルド → インストール → 起動」まで行う。
 
 ```bash
-DEVELOPMENT_TEAM=XXXXXXXXXX xcodegen generate
+./run-ios-device.sh
+IOS_DEVICE="AkiraのiPhone" ./run-ios-device.sh   # 端末を指定する
+IOS_CONSOLE=1 ./run-ios-device.sh                # 起動後にログを流す
 ```
+
+- iPhone のロックを解除しておく（ロック中は起動できない）
+- 署名チームは `DEVELOPMENT_TEAM` 環境変数で差し替えられる（既定は手元の Apple Development 証明書のチーム）
+- Xcode がプロビジョニングの更新を求めるときは Xcode > Settings > Accounts でのログインが必要
 
 ### 画面確認用のダミーデータ（DEBUG ビルドのみ）
 
