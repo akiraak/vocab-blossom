@@ -20,6 +20,13 @@ struct VocabBlossomApp: App {
             RootView()
                 .environment(settings)
                 .tint(Theme.accent)
+                .task {
+                    #if DEBUG
+                    if DebugSeed.isEnabled {
+                        DebugSeed.apply(context: container.mainContext, settings: settings)
+                    }
+                    #endif
+                }
         }
         .modelContainer(container)
     }
