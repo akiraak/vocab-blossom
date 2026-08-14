@@ -13,6 +13,7 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=session-summary`: 出題が無い状態（締め画面）
 /// - `VOCAB_DEMO_SCREEN=words|stats|settings`: そのタブを開いた状態で起動する
 /// - `VOCAB_DEMO_SCREEN=fresh`: オンボーディング済み・学習記録なしの状態
+/// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面
 enum DebugSeed {
     enum Variant: String {
         case none
@@ -24,9 +25,11 @@ enum DebugSeed {
         case settings
         /// オンボーディング済み・学習記録なし（空の庭）
         case fresh
+        /// 既知語の一括登録画面
+        case knownWords = "known-words"
 
         /// 学習済みの単語を作るか
-        var hasProgress: Bool { self != .fresh }
+        var hasProgress: Bool { self != .fresh && self != .knownWords }
         /// 期限切れの復習を作るか
         var hasDueReviews: Bool { self == .none || self == .session }
         /// 今日の新規語をすでに消化済みにするか
@@ -48,6 +51,9 @@ enum DebugSeed {
         default: false
         }
     }
+
+    /// 既知語の一括登録画面を最初から出す
+    static var showsKnownWordsPicker: Bool { variant == .knownWords }
 
     /// 起動直後に開くタブ
     static var initialTab: MainTabView.TabId? {

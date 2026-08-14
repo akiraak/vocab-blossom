@@ -5,6 +5,7 @@ import SwiftUI
 struct WordDetailView: View {
     let word: WordEntry
 
+    @Environment(\.modelContext) private var context
     @Query private var progresses: [WordProgress]
     @Query private var logs: [AnswerLog]
 
@@ -27,6 +28,7 @@ struct WordDetailView: View {
                 WordCardView(word: word)
                     .cardStyle()
                 statusCard
+                knownButton
                 if !logs.isEmpty {
                     historyCard
                 }
@@ -68,6 +70,30 @@ struct WordDetailView: View {
             }
         }
         .cardStyle()
+    }
+
+    /// 学習をとばす / とばすのをやめる。1 日の枠と関係なく個別に切り替えられる
+    @ViewBuilder
+    private var knownButton: some View {
+        if progress?.known == true {
+            Button(role: .destructive) {
+                LearningEngine(context: context).forget(wordId: word.id)
+            } label: {
+                Label("「知ってる」を取り消して学習し直す", systemImage: "arrow.uturn.left")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+            }
+            .buttonStyle(.bordered)
+        } else if progress == nil {
+            Button {
+                LearningEngine(context: context).markKnown(wordId: word.id)
+            } label: {
+                Label("もう知ってる（学習をとばす）", systemImage: "checkmark.seal")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+            }
+            .buttonStyle(.bordered)
+        }
     }
 
     private var historyCard: some View {

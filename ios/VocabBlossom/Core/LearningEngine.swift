@@ -79,6 +79,13 @@ struct LearningEngine {
         save()
     }
 
+    /// 進捗を消して未学習（種）に戻す。「もう知ってる」の取り消しに使う
+    func forget(wordId: String) {
+        guard let existing = progress(for: wordId) else { return }
+        context.delete(existing)
+        save()
+    }
+
     private func apply(
         _ result: SRS.Result,
         to existing: WordProgress?,

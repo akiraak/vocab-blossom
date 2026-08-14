@@ -38,6 +38,11 @@ struct SettingsView: View {
                             Text("\(count) 語").tag(count)
                         }
                     }
+                    NavigationLink {
+                        KnownWordsPickerView()
+                    } label: {
+                        Label("知っている単語をまとめて登録", systemImage: "checklist")
+                    }
                 } header: {
                     Text("学習")
                 } footer: {

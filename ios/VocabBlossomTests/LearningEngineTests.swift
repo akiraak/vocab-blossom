@@ -127,6 +127,17 @@ struct LearningEngineTests {
         #expect(all[0].known)
     }
 
+    @Test("進捗を消すと未学習（種）に戻る")
+    func forgetRemovesProgress() throws {
+        engine.markKnown(wordId: "a1-0300", now: now)
+        #expect(engine.progress(for: "a1-0300") != nil)
+
+        engine.forget(wordId: "a1-0300")
+        #expect(engine.progress(for: "a1-0300") == nil)
+        // 存在しない語を消しても落ちない
+        engine.forget(wordId: "a1-0301")
+    }
+
     @Test("同じ単語の進捗は 1 レコードだけ")
     func progressIsUniquePerWord() throws {
         for _ in 0..<3 {

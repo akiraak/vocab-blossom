@@ -1,20 +1,31 @@
 import SwiftUI
 
-/// 初回のみ表示する学習レベルの選択。
+/// 初回のみ表示する。レベルを選び、続けて知っている単語をまとめて片付ける。
 ///
 /// 設定はいつでも変えられるので、ここでは「とりあえず選んで始められる」ことを優先する。
 struct OnboardingView: View {
     @Environment(AppSettings.self) private var settings
+
     @State private var selected: CefrLevel = .a1
+    @State private var showsKnownWords = false
 
     var body: some View {
+        NavigationStack {
+            levelStep
+                .navigationDestination(isPresented: $showsKnownWords) {
+                    KnownWordsPickerView(onFinish: finish)
+                }
+        }
+    }
+
+    private var levelStep: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 24)
             header
             Spacer(minLength: 24)
             levelPicker
             Spacer(minLength: 24)
-            startButton
+            actions
         }
         .padding(24)
         .gardenBackground()
@@ -82,17 +93,34 @@ struct OnboardingView: View {
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
-    private var startButton: some View {
-        Button {
-            settings.level = selected
-            settings.hasOnboarded = true
-        } label: {
-            Text("はじめる")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+    private var actions: some View {
+        VStack(spacing: 10) {
+            Button {
+                settings.level = selected
+                showsKnownWords = true
+            } label: {
+                Text("次へ")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.borderedProminent)
+
+            Button("すぐに始める") {
+                settings.level = selected
+                finish()
+            }
+            .font(.subheadline)
+
+            Text("次の画面で、すでに知っている単語をまとめてとばせます。")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
-        .buttonStyle(.borderedProminent)
+    }
+
+    private func finish() {
+        settings.hasOnboarded = true
     }
 }
 
