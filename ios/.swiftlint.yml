@@ -9,8 +9,9 @@ disabled_rules:
   # SwiftUI の View は宣言的に長くなるため、行数系は緩める
   - type_body_length
   - file_length
-  # 日本語ラベルを扱うので、英語前提の命名規則は外す
   - todo
+  # 複数行のコレクションリテラルは末尾カンマを付ける（差分が読みやすい）
+  - trailing_comma
 
 line_length:
   warning: 110

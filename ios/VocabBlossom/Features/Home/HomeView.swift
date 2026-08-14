@@ -100,7 +100,12 @@ struct HomeView: View {
         HStack(spacing: 12) {
             metric(title: "ストリーク", value: "\(summary.streak)", unit: "日", symbol: "flame.fill")
             metric(title: "覚えた語", value: "\(summary.learnedCount)", unit: "語", symbol: "leaf.fill")
-            metric(title: "今日の回答", value: "\(summary.answeredToday)", unit: "問", symbol: "checkmark.circle.fill")
+            metric(
+                title: "今日の回答",
+                value: "\(summary.answeredToday)",
+                unit: "問",
+                symbol: "checkmark.circle.fill"
+            )
         }
     }
 

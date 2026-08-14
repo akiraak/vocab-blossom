@@ -73,7 +73,7 @@ struct QuizCardView: View {
             switch quiz.type {
             case .enToJa:
                 Text(quiz.word.word)
-                    .font(.system(size: 40, weight: .bold))
+                    .font(.system(.largeTitle, weight: .bold))
                     .minimumScaleFactor(0.5)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -95,7 +95,7 @@ struct QuizCardView: View {
                 } label: {
                     VStack(spacing: 8) {
                         Image(systemName: "speaker.wave.3.fill")
-                            .font(.system(size: 44))
+                            .font(.system(.largeTitle))
                         Text("もう一度聞く")
                             .font(.caption)
                     }

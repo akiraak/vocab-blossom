@@ -84,7 +84,7 @@ struct StatsView: View {
                 }
                 .frame(height: 140)
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: 3)) { value in
+                    AxisMarks(values: .stride(by: .day, count: 3)) { _ in
                         AxisValueLabel(format: .dateTime.month(.defaultDigits).day())
                         AxisTick()
                     }
