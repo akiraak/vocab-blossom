@@ -1,0 +1,1806 @@
+{
+  "id": "phrases",
+  "name": "基礎熟語",
+  "words": [
+    {
+      "id": "ph-0001",
+      "word": "get up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "起きる",
+      "example": "I get up at six every morning.",
+      "exampleJa": "私は毎朝6時に起きます。"
+    },
+    {
+      "id": "ph-0002",
+      "word": "go to bed",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "寝る",
+      "example": "I go to bed at ten.",
+      "exampleJa": "私は10時に寝ます。"
+    },
+    {
+      "id": "ph-0003",
+      "word": "take a bath",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "風呂に入る",
+      "example": "I take a bath before bed.",
+      "exampleJa": "私は寝る前にお風呂に入ります。"
+    },
+    {
+      "id": "ph-0004",
+      "word": "take a shower",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "シャワーを浴びる",
+      "example": "He takes a shower every morning.",
+      "exampleJa": "彼は毎朝シャワーを浴びます。"
+    },
+    {
+      "id": "ph-0005",
+      "word": "wake up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "目を覚ます",
+      "example": "I woke up late this morning.",
+      "exampleJa": "私は今朝寝坊しました。"
+    },
+    {
+      "id": "ph-0006",
+      "word": "go to school",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "学校へ行く",
+      "example": "We go to school together.",
+      "exampleJa": "私たちは一緒に学校へ行きます。"
+    },
+    {
+      "id": "ph-0007",
+      "word": "come back",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "戻ってくる",
+      "example": "Please come back before dark.",
+      "exampleJa": "暗くなる前に戻ってきなさい。"
+    },
+    {
+      "id": "ph-0008",
+      "word": "go home",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "家に帰る",
+      "example": "Let's go home. It's late.",
+      "exampleJa": "家に帰りましょう。もう遅いです。"
+    },
+    {
+      "id": "ph-0009",
+      "word": "get home",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "家に着く",
+      "example": "I got home at seven yesterday.",
+      "exampleJa": "私は昨日7時に家に着きました。"
+    },
+    {
+      "id": "ph-0010",
+      "word": "go out",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "外出する",
+      "example": "My parents went out for dinner.",
+      "exampleJa": "両親は夕食に出かけました。"
+    },
+    {
+      "id": "ph-0011",
+      "word": "come in",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "中に入る",
+      "example": "May I come in?",
+      "exampleJa": "入ってもいいですか。"
+    },
+    {
+      "id": "ph-0012",
+      "word": "sit down",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "座る",
+      "example": "Please sit down here.",
+      "exampleJa": "ここに座ってください。"
+    },
+    {
+      "id": "ph-0013",
+      "word": "stand up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "立ち上がる",
+      "example": "Stand up and say your name.",
+      "exampleJa": "立って名前を言ってください。"
+    },
+    {
+      "id": "ph-0014",
+      "word": "look at",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を見る",
+      "example": "Look at the blackboard.",
+      "exampleJa": "黒板を見なさい。"
+    },
+    {
+      "id": "ph-0015",
+      "word": "look for",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を探す",
+      "example": "I am looking for my key.",
+      "exampleJa": "私は鍵を探しています。"
+    },
+    {
+      "id": "ph-0016",
+      "word": "listen to",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を聞く",
+      "example": "I listen to music on the bus.",
+      "exampleJa": "私はバスで音楽を聞きます。"
+    },
+    {
+      "id": "ph-0017",
+      "word": "wait for",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を待つ",
+      "example": "I waited for the bus for ten minutes.",
+      "exampleJa": "私はバスを10分待ちました。"
+    },
+    {
+      "id": "ph-0018",
+      "word": "ask for",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を求める",
+      "example": "He asked for some water.",
+      "exampleJa": "彼は水を求めました。"
+    },
+    {
+      "id": "ph-0019",
+      "word": "come from",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜の出身である",
+      "example": "She comes from Canada.",
+      "exampleJa": "彼女はカナダの出身です。"
+    },
+    {
+      "id": "ph-0020",
+      "word": "get to",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に着く",
+      "example": "How can I get to the station?",
+      "exampleJa": "駅へはどう行けばいいですか。"
+    },
+    {
+      "id": "ph-0021",
+      "word": "arrive at",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に到着する",
+      "example": "We arrived at the hotel at noon.",
+      "exampleJa": "私たちは正午にホテルに到着しました。"
+    },
+    {
+      "id": "ph-0022",
+      "word": "leave for",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜へ出発する",
+      "example": "He left for Tokyo this morning.",
+      "exampleJa": "彼は今朝東京へ出発しました。"
+    },
+    {
+      "id": "ph-0023",
+      "word": "get on",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "（バスなどに）乗る",
+      "example": "We got on the bus at the corner.",
+      "exampleJa": "私たちは角でバスに乗りました。"
+    },
+    {
+      "id": "ph-0024",
+      "word": "get off",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "（バスなどを）降りる",
+      "example": "Get off at the next stop.",
+      "exampleJa": "次の停留所で降りてください。"
+    },
+    {
+      "id": "ph-0025",
+      "word": "put on",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を身につける",
+      "example": "Put on your coat. It's cold.",
+      "exampleJa": "コートを着なさい。寒いですよ。"
+    },
+    {
+      "id": "ph-0026",
+      "word": "take off",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を脱ぐ／離陸する",
+      "example": "Take off your shoes here.",
+      "exampleJa": "ここで靴を脱いでください。"
+    },
+    {
+      "id": "ph-0027",
+      "word": "turn on",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "（明かりなどを）つける",
+      "example": "Turn on the light, please.",
+      "exampleJa": "明かりをつけてください。"
+    },
+    {
+      "id": "ph-0028",
+      "word": "turn off",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "（明かりなどを）消す",
+      "example": "Turn off the TV before bed.",
+      "exampleJa": "寝る前にテレビを消しなさい。"
+    },
+    {
+      "id": "ph-0029",
+      "word": "pick up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を拾う／迎えに行く",
+      "example": "He picked up the pen from the floor.",
+      "exampleJa": "彼は床からペンを拾いました。"
+    },
+    {
+      "id": "ph-0030",
+      "word": "give up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "あきらめる",
+      "example": "Don't give up. You can do it.",
+      "exampleJa": "あきらめないで。あなたならできます。"
+    },
+    {
+      "id": "ph-0031",
+      "word": "find out",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を知る／見つけ出す",
+      "example": "I found out the answer at last.",
+      "exampleJa": "私はついに答えを見つけました。"
+    },
+    {
+      "id": "ph-0032",
+      "word": "write down",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を書き留める",
+      "example": "Write down the new words.",
+      "exampleJa": "新しい単語を書き留めなさい。"
+    },
+    {
+      "id": "ph-0033",
+      "word": "look up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "（辞書などで）調べる",
+      "example": "Look up the word in your dictionary.",
+      "exampleJa": "その単語を辞書で調べなさい。"
+    },
+    {
+      "id": "ph-0034",
+      "word": "try on",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を試着する",
+      "example": "Can I try on this jacket?",
+      "exampleJa": "このジャケットを試着してもいいですか。"
+    },
+    {
+      "id": "ph-0035",
+      "word": "throw away",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を捨てる",
+      "example": "Don't throw away old books.",
+      "exampleJa": "古い本を捨てないで。"
+    },
+    {
+      "id": "ph-0036",
+      "word": "hurry up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "急ぐ",
+      "example": "Hurry up! The train is coming.",
+      "exampleJa": "急いで。電車が来ますよ。"
+    },
+    {
+      "id": "ph-0037",
+      "word": "slow down",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "速度を落とす",
+      "example": "Slow down. You walk too fast.",
+      "exampleJa": "ゆっくり歩いて。速すぎます。"
+    },
+    {
+      "id": "ph-0038",
+      "word": "stay up late",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "夜ふかしする",
+      "example": "Don't stay up late tonight.",
+      "exampleJa": "今夜は夜ふかししないで。"
+    },
+    {
+      "id": "ph-0039",
+      "word": "grow up",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "成長する／大人になる",
+      "example": "I grew up in a small town.",
+      "exampleJa": "私は小さな町で育ちました。"
+    },
+    {
+      "id": "ph-0040",
+      "word": "run away",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "逃げる",
+      "example": "The cat ran away from the dog.",
+      "exampleJa": "猫は犬から逃げました。"
+    },
+    {
+      "id": "ph-0041",
+      "word": "walk around",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "歩き回る",
+      "example": "We walked around the town.",
+      "exampleJa": "私たちは町を歩き回りました。"
+    },
+    {
+      "id": "ph-0042",
+      "word": "look around",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "あたりを見回す",
+      "example": "We looked around the shop.",
+      "exampleJa": "私たちは店の中を見て回りました。"
+    },
+    {
+      "id": "ph-0043",
+      "word": "go shopping",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "買い物に行く",
+      "example": "Let's go shopping this weekend.",
+      "exampleJa": "今週末に買い物に行きましょう。"
+    },
+    {
+      "id": "ph-0044",
+      "word": "go fishing",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "釣りに行く",
+      "example": "We went fishing in the river.",
+      "exampleJa": "私たちは川へ釣りに行きました。"
+    },
+    {
+      "id": "ph-0045",
+      "word": "go swimming",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "泳ぎに行く",
+      "example": "They went swimming in the sea.",
+      "exampleJa": "彼らは海へ泳ぎに行きました。"
+    },
+    {
+      "id": "ph-0046",
+      "word": "take a picture",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "写真を撮る",
+      "example": "Can you take a picture of us?",
+      "exampleJa": "私たちの写真を撮ってもらえますか。"
+    },
+    {
+      "id": "ph-0047",
+      "word": "take a walk",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "散歩する",
+      "example": "I take a walk after dinner.",
+      "exampleJa": "私は夕食後に散歩します。"
+    },
+    {
+      "id": "ph-0048",
+      "word": "take care of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜の世話をする",
+      "example": "I take care of my little sister.",
+      "exampleJa": "私は妹の世話をします。"
+    },
+    {
+      "id": "ph-0049",
+      "word": "take part in",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に参加する",
+      "example": "She took part in the contest.",
+      "exampleJa": "彼女はコンテストに参加しました。"
+    },
+    {
+      "id": "ph-0050",
+      "word": "make friends",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "友達になる",
+      "example": "I made friends with a new student.",
+      "exampleJa": "私は新入生と友達になりました。"
+    },
+    {
+      "id": "ph-0051",
+      "word": "make a mistake",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "間違える",
+      "example": "Everyone makes mistakes.",
+      "exampleJa": "だれでも間違えることはあります。"
+    },
+    {
+      "id": "ph-0052",
+      "word": "make a speech",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "スピーチをする",
+      "example": "He made a speech in English.",
+      "exampleJa": "彼は英語でスピーチをしました。"
+    },
+    {
+      "id": "ph-0053",
+      "word": "do my best",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "全力を尽くす",
+      "example": "I will do my best in the game.",
+      "exampleJa": "私は試合で全力を尽くします。"
+    },
+    {
+      "id": "ph-0054",
+      "word": "do the dishes",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "皿を洗う",
+      "example": "I do the dishes after dinner.",
+      "exampleJa": "私は夕食後に皿を洗います。"
+    },
+    {
+      "id": "ph-0055",
+      "word": "have fun",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "楽しむ",
+      "example": "Have fun at the party!",
+      "exampleJa": "パーティーを楽しんでね。"
+    },
+    {
+      "id": "ph-0056",
+      "word": "have a good time",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "楽しい時を過ごす",
+      "example": "We had a good time at the beach.",
+      "exampleJa": "私たちは浜辺で楽しい時を過ごしました。"
+    },
+    {
+      "id": "ph-0057",
+      "word": "have a cold",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "かぜをひいている",
+      "example": "I have a cold and a fever.",
+      "exampleJa": "私はかぜをひいて熱があります。"
+    },
+    {
+      "id": "ph-0058",
+      "word": "catch a cold",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "かぜをひく",
+      "example": "Don't catch a cold this winter.",
+      "exampleJa": "この冬はかぜをひかないようにね。"
+    },
+    {
+      "id": "ph-0059",
+      "word": "take medicine",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "薬を飲む",
+      "example": "Take medicine after meals.",
+      "exampleJa": "食後に薬を飲みなさい。"
+    },
+    {
+      "id": "ph-0060",
+      "word": "go on a trip",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "旅行に出かける",
+      "example": "We went on a trip to Hokkaido.",
+      "exampleJa": "私たちは北海道へ旅行に出かけました。"
+    },
+    {
+      "id": "ph-0061",
+      "word": "be late for",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に遅れる",
+      "example": "Don't be late for school.",
+      "exampleJa": "学校に遅れないようにしなさい。"
+    },
+    {
+      "id": "ph-0062",
+      "word": "be good at",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜が得意である",
+      "example": "She is good at singing.",
+      "exampleJa": "彼女は歌が得意です。"
+    },
+    {
+      "id": "ph-0063",
+      "word": "be interested in",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に興味がある",
+      "example": "I am interested in space.",
+      "exampleJa": "私は宇宙に興味があります。"
+    },
+    {
+      "id": "ph-0064",
+      "word": "be afraid of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜をこわがる",
+      "example": "My brother is afraid of dogs.",
+      "exampleJa": "弟は犬をこわがります。"
+    },
+    {
+      "id": "ph-0065",
+      "word": "be famous for",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜で有名である",
+      "example": "Nara is famous for its deer.",
+      "exampleJa": "奈良は鹿で有名です。"
+    },
+    {
+      "id": "ph-0066",
+      "word": "be full of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜でいっぱいである",
+      "example": "The box is full of toys.",
+      "exampleJa": "箱はおもちゃでいっぱいです。"
+    },
+    {
+      "id": "ph-0067",
+      "word": "be different from",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜と異なる",
+      "example": "My idea is different from his.",
+      "exampleJa": "私の考えは彼のとは違います。"
+    },
+    {
+      "id": "ph-0068",
+      "word": "be kind to",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に親切である",
+      "example": "Be kind to old people.",
+      "exampleJa": "お年寄りに親切にしなさい。"
+    },
+    {
+      "id": "ph-0069",
+      "word": "be proud of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を誇りに思う",
+      "example": "I am proud of my team.",
+      "exampleJa": "私は自分のチームを誇りに思います。"
+    },
+    {
+      "id": "ph-0070",
+      "word": "be born",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "生まれる",
+      "example": "I was born in Osaka.",
+      "exampleJa": "私は大阪で生まれました。"
+    },
+    {
+      "id": "ph-0071",
+      "word": "be able to",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜することができる",
+      "example": "She is able to swim fast.",
+      "exampleJa": "彼女は速く泳ぐことができます。"
+    },
+    {
+      "id": "ph-0072",
+      "word": "be going to",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜するつもりである",
+      "example": "I am going to study tonight.",
+      "exampleJa": "私は今夜勉強するつもりです。"
+    },
+    {
+      "id": "ph-0073",
+      "word": "would like to",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜したいのですが",
+      "example": "I would like to ask a question.",
+      "exampleJa": "質問をしたいのですが。"
+    },
+    {
+      "id": "ph-0074",
+      "word": "look like",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜のように見える",
+      "example": "That cloud looks like a fish.",
+      "exampleJa": "あの雲は魚のように見えます。"
+    },
+    {
+      "id": "ph-0075",
+      "word": "sound like",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜のように聞こえる",
+      "example": "That sounds like a good plan.",
+      "exampleJa": "それはよい計画のようですね。"
+    },
+    {
+      "id": "ph-0076",
+      "word": "think about",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜について考える",
+      "example": "Think about your future.",
+      "exampleJa": "自分の将来について考えなさい。"
+    },
+    {
+      "id": "ph-0077",
+      "word": "think of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を思いつく",
+      "example": "I thought of a good idea.",
+      "exampleJa": "私はよい考えを思いつきました。"
+    },
+    {
+      "id": "ph-0078",
+      "word": "talk about",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜について話す",
+      "example": "We talked about our dreams.",
+      "exampleJa": "私たちは夢について話しました。"
+    },
+    {
+      "id": "ph-0079",
+      "word": "worry about",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜を心配する",
+      "example": "Don't worry about the test.",
+      "exampleJa": "テストのことは心配しないで。"
+    },
+    {
+      "id": "ph-0080",
+      "word": "hear about",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜について聞く",
+      "example": "Did you hear about the news?",
+      "exampleJa": "そのニュースについて聞きましたか。"
+    },
+    {
+      "id": "ph-0081",
+      "word": "hear from",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜から連絡がある",
+      "example": "I heard from my old friend.",
+      "exampleJa": "私は昔の友達から連絡をもらいました。"
+    },
+    {
+      "id": "ph-0082",
+      "word": "agree with",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜に賛成する",
+      "example": "I agree with your opinion.",
+      "exampleJa": "私はあなたの意見に賛成です。"
+    },
+    {
+      "id": "ph-0083",
+      "word": "a lot of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "たくさんの",
+      "example": "I have a lot of homework today.",
+      "exampleJa": "私は今日宿題がたくさんあります。"
+    },
+    {
+      "id": "ph-0084",
+      "word": "a cup of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "カップ1杯の",
+      "example": "I drink a cup of tea every morning.",
+      "exampleJa": "私は毎朝紅茶を1杯飲みます。"
+    },
+    {
+      "id": "ph-0085",
+      "word": "a glass of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "コップ1杯の",
+      "example": "Can I have a glass of water?",
+      "exampleJa": "水を1杯もらえますか。"
+    },
+    {
+      "id": "ph-0086",
+      "word": "a piece of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "1切れの",
+      "example": "She ate a piece of cake.",
+      "exampleJa": "彼女はケーキを1切れ食べました。"
+    },
+    {
+      "id": "ph-0087",
+      "word": "a pair of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "1組の",
+      "example": "I bought a pair of shoes.",
+      "exampleJa": "私は靴を1足買いました。"
+    },
+    {
+      "id": "ph-0088",
+      "word": "for example",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "例えば",
+      "example": "I like fruit, for example, apples.",
+      "exampleJa": "私は果物、例えばリンゴが好きです。"
+    },
+    {
+      "id": "ph-0089",
+      "word": "of course",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "もちろん",
+      "example": "Of course you can join us.",
+      "exampleJa": "もちろん参加していいですよ。"
+    },
+    {
+      "id": "ph-0090",
+      "word": "at first",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "最初は",
+      "example": "At first, English was difficult for me.",
+      "exampleJa": "最初、英語は私には難しかったです。"
+    },
+    {
+      "id": "ph-0091",
+      "word": "at last",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "ついに",
+      "example": "At last, we reached the top.",
+      "exampleJa": "ついに私たちは頂上に着きました。"
+    },
+    {
+      "id": "ph-0092",
+      "word": "at home",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "家で",
+      "example": "I stayed at home all day.",
+      "exampleJa": "私は一日中家にいました。"
+    },
+    {
+      "id": "ph-0093",
+      "word": "at night",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "夜に",
+      "example": "Stars are beautiful at night.",
+      "exampleJa": "夜は星が美しいです。"
+    },
+    {
+      "id": "ph-0094",
+      "word": "in the morning",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "朝に",
+      "example": "I run in the morning.",
+      "exampleJa": "私は朝に走ります。"
+    },
+    {
+      "id": "ph-0095",
+      "word": "in front of",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "〜の前で",
+      "example": "Let's meet in front of the station.",
+      "exampleJa": "駅の前で会いましょう。"
+    },
+    {
+      "id": "ph-0096",
+      "word": "over there",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "あそこに",
+      "example": "The bus stop is over there.",
+      "exampleJa": "バス停はあそこにあります。"
+    },
+    {
+      "id": "ph-0097",
+      "word": "right now",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "今すぐ",
+      "example": "Come here right now.",
+      "exampleJa": "今すぐここに来なさい。"
+    },
+    {
+      "id": "ph-0098",
+      "word": "after school",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "放課後に",
+      "example": "We play soccer after school.",
+      "exampleJa": "私たちは放課後にサッカーをします。"
+    },
+    {
+      "id": "ph-0099",
+      "word": "on foot",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "徒歩で",
+      "example": "I go to school on foot.",
+      "exampleJa": "私は歩いて学校に行きます。"
+    },
+    {
+      "id": "ph-0100",
+      "word": "by bus",
+      "pos": "phrase",
+      "level": "A1",
+      "meaning": "バスで",
+      "example": "She goes to work by bus.",
+      "exampleJa": "彼女はバスで仕事に行きます。"
+    },
+    {
+      "id": "ph-0101",
+      "word": "on time",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "時間どおりに",
+      "example": "The train arrived on time.",
+      "exampleJa": "電車は時間どおりに到着しました。"
+    },
+    {
+      "id": "ph-0102",
+      "word": "in time",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "間に合って",
+      "example": "We got there in time for the movie.",
+      "exampleJa": "私たちは映画に間に合って着きました。"
+    },
+    {
+      "id": "ph-0103",
+      "word": "on TV",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "テレビで",
+      "example": "I watched the game on TV.",
+      "exampleJa": "私はテレビでその試合を見ました。"
+    },
+    {
+      "id": "ph-0104",
+      "word": "on the phone",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "電話で",
+      "example": "She is talking on the phone now.",
+      "exampleJa": "彼女は今電話で話しています。"
+    },
+    {
+      "id": "ph-0105",
+      "word": "on the Internet",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "インターネットで",
+      "example": "I found the recipe on the Internet.",
+      "exampleJa": "私はインターネットでそのレシピを見つけました。"
+    },
+    {
+      "id": "ph-0106",
+      "word": "for the first time",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "初めて",
+      "example": "I saw snow for the first time.",
+      "exampleJa": "私は初めて雪を見ました。"
+    },
+    {
+      "id": "ph-0107",
+      "word": "for a long time",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "長い間",
+      "example": "We talked for a long time.",
+      "exampleJa": "私たちは長い間話しました。"
+    },
+    {
+      "id": "ph-0108",
+      "word": "for a while",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "しばらくの間",
+      "example": "Let's rest here for a while.",
+      "exampleJa": "しばらくここで休みましょう。"
+    },
+    {
+      "id": "ph-0109",
+      "word": "at the same time",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "同時に",
+      "example": "They laughed at the same time.",
+      "exampleJa": "彼らは同時に笑いました。"
+    },
+    {
+      "id": "ph-0110",
+      "word": "in the future",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "将来",
+      "example": "I want to be a nurse in the future.",
+      "exampleJa": "私は将来看護師になりたいです。"
+    },
+    {
+      "id": "ph-0111",
+      "word": "one day",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ある日／いつか",
+      "example": "One day, I want to see the world.",
+      "exampleJa": "いつか世界を見てみたいです。"
+    },
+    {
+      "id": "ph-0112",
+      "word": "these days",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "近ごろ",
+      "example": "These days, I walk to the station.",
+      "exampleJa": "近ごろ、私は駅まで歩いています。"
+    },
+    {
+      "id": "ph-0113",
+      "word": "from now on",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "今後は",
+      "example": "From now on, I will get up early.",
+      "exampleJa": "今後は早起きします。"
+    },
+    {
+      "id": "ph-0114",
+      "word": "long ago",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ずっと昔に",
+      "example": "Long ago, a castle stood here.",
+      "exampleJa": "ずっと昔、ここに城が建っていました。"
+    },
+    {
+      "id": "ph-0115",
+      "word": "all day",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "一日中",
+      "example": "It rained all day yesterday.",
+      "exampleJa": "昨日は一日中雨が降りました。"
+    },
+    {
+      "id": "ph-0116",
+      "word": "all over the world",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "世界中で",
+      "example": "The song is loved all over the world.",
+      "exampleJa": "その歌は世界中で愛されています。"
+    },
+    {
+      "id": "ph-0117",
+      "word": "around the world",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "世界中を",
+      "example": "He traveled around the world.",
+      "exampleJa": "彼は世界中を旅しました。"
+    },
+    {
+      "id": "ph-0118",
+      "word": "by the way",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ところで",
+      "example": "By the way, how is your family?",
+      "exampleJa": "ところで、ご家族はお元気ですか。"
+    },
+    {
+      "id": "ph-0119",
+      "word": "in fact",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "実は",
+      "example": "In fact, I have never been there.",
+      "exampleJa": "実は、私はそこへ行ったことがありません。"
+    },
+    {
+      "id": "ph-0120",
+      "word": "first of all",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "まず第一に",
+      "example": "First of all, wash your hands.",
+      "exampleJa": "まず第一に、手を洗いなさい。"
+    },
+    {
+      "id": "ph-0121",
+      "word": "after all",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "結局",
+      "example": "After all, he didn't come.",
+      "exampleJa": "結局、彼は来ませんでした。"
+    },
+    {
+      "id": "ph-0122",
+      "word": "in the end",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "最後には",
+      "example": "In the end, we won the game.",
+      "exampleJa": "最後には私たちが試合に勝ちました。"
+    },
+    {
+      "id": "ph-0123",
+      "word": "at the end of",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜の終わりに",
+      "example": "The test is at the end of the month.",
+      "exampleJa": "テストは月末にあります。"
+    },
+    {
+      "id": "ph-0124",
+      "word": "in the middle of",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜の真ん中に",
+      "example": "The phone rang in the middle of the night.",
+      "exampleJa": "真夜中に電話が鳴りました。"
+    },
+    {
+      "id": "ph-0125",
+      "word": "on my way to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜へ行く途中で",
+      "example": "I saw a rainbow on my way to school.",
+      "exampleJa": "学校へ行く途中で虹を見ました。"
+    },
+    {
+      "id": "ph-0126",
+      "word": "far from",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜から遠い",
+      "example": "My house is far from the station.",
+      "exampleJa": "私の家は駅から遠いです。"
+    },
+    {
+      "id": "ph-0127",
+      "word": "thanks to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜のおかげで",
+      "example": "Thanks to you, I passed the test.",
+      "exampleJa": "あなたのおかげでテストに合格しました。"
+    },
+    {
+      "id": "ph-0128",
+      "word": "because of",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜のために（原因）",
+      "example": "The game stopped because of the rain.",
+      "exampleJa": "雨のために試合は中断しました。"
+    },
+    {
+      "id": "ph-0129",
+      "word": "instead of",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜の代わりに",
+      "example": "I drank tea instead of coffee.",
+      "exampleJa": "私はコーヒーの代わりに紅茶を飲みました。"
+    },
+    {
+      "id": "ph-0130",
+      "word": "such as",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜のような",
+      "example": "I like sports such as tennis and soccer.",
+      "exampleJa": "私はテニスやサッカーのようなスポーツが好きです。"
+    },
+    {
+      "id": "ph-0131",
+      "word": "more than",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜より多く",
+      "example": "He has more than 100 books.",
+      "exampleJa": "彼は100冊以上の本を持っています。"
+    },
+    {
+      "id": "ph-0132",
+      "word": "at least",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "少なくとも",
+      "example": "Sleep at least seven hours.",
+      "exampleJa": "少なくとも7時間は眠りなさい。"
+    },
+    {
+      "id": "ph-0133",
+      "word": "more and more",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ますます多くの",
+      "example": "More and more people use this app.",
+      "exampleJa": "ますます多くの人がこのアプリを使っています。"
+    },
+    {
+      "id": "ph-0134",
+      "word": "one by one",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "一つずつ",
+      "example": "Answer the questions one by one.",
+      "exampleJa": "質問に一つずつ答えなさい。"
+    },
+    {
+      "id": "ph-0135",
+      "word": "little by little",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "少しずつ",
+      "example": "My English is improving little by little.",
+      "exampleJa": "私の英語は少しずつ上達しています。"
+    },
+    {
+      "id": "ph-0136",
+      "word": "step by step",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "一歩ずつ",
+      "example": "Learn the basics step by step.",
+      "exampleJa": "基礎を一歩ずつ学びなさい。"
+    },
+    {
+      "id": "ph-0137",
+      "word": "day by day",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "日ごとに",
+      "example": "It is getting warmer day by day.",
+      "exampleJa": "日ごとに暖かくなっています。"
+    },
+    {
+      "id": "ph-0138",
+      "word": "in trouble",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "困って",
+      "example": "He helped me when I was in trouble.",
+      "exampleJa": "困っていたとき、彼が助けてくれました。"
+    },
+    {
+      "id": "ph-0139",
+      "word": "in danger",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "危険で",
+      "example": "Many animals are in danger now.",
+      "exampleJa": "多くの動物が今、危機にあります。"
+    },
+    {
+      "id": "ph-0140",
+      "word": "for free",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "無料で",
+      "example": "You can use this app for free.",
+      "exampleJa": "このアプリは無料で使えます。"
+    },
+    {
+      "id": "ph-0141",
+      "word": "by mistake",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "間違って",
+      "example": "I took your umbrella by mistake.",
+      "exampleJa": "間違ってあなたの傘を持って行きました。"
+    },
+    {
+      "id": "ph-0142",
+      "word": "come true",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "実現する",
+      "example": "My dream came true at last.",
+      "exampleJa": "私の夢はついに実現しました。"
+    },
+    {
+      "id": "ph-0143",
+      "word": "take place",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "行われる",
+      "example": "The festival takes place in August.",
+      "exampleJa": "その祭りは8月に行われます。"
+    },
+    {
+      "id": "ph-0144",
+      "word": "take out",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を取り出す",
+      "example": "Take out your textbooks.",
+      "exampleJa": "教科書を出しなさい。"
+    },
+    {
+      "id": "ph-0145",
+      "word": "bring back",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を返す／持ち帰る",
+      "example": "Bring back the book by Monday.",
+      "exampleJa": "月曜日までに本を返してください。"
+    },
+    {
+      "id": "ph-0146",
+      "word": "hand in",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を提出する",
+      "example": "Hand in your homework tomorrow.",
+      "exampleJa": "明日宿題を提出しなさい。"
+    },
+    {
+      "id": "ph-0147",
+      "word": "put away",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を片づける",
+      "example": "Put away your toys before dinner.",
+      "exampleJa": "夕食の前におもちゃを片づけなさい。"
+    },
+    {
+      "id": "ph-0148",
+      "word": "turn around",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "振り返る",
+      "example": "He turned around and smiled.",
+      "exampleJa": "彼は振り返ってほほえみました。"
+    },
+    {
+      "id": "ph-0149",
+      "word": "turn up",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "（音量を）上げる",
+      "example": "Turn up the radio, please.",
+      "exampleJa": "ラジオの音量を上げてください。"
+    },
+    {
+      "id": "ph-0150",
+      "word": "turn down",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "（音量を）下げる／断る",
+      "example": "Turn down the TV. It's too loud.",
+      "exampleJa": "テレビの音を下げて。うるさすぎます。"
+    },
+    {
+      "id": "ph-0151",
+      "word": "get along with",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜と仲よくやる",
+      "example": "I get along with my classmates.",
+      "exampleJa": "私はクラスメートと仲よくやっています。"
+    },
+    {
+      "id": "ph-0152",
+      "word": "run after",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を追いかける",
+      "example": "The dog ran after the ball.",
+      "exampleJa": "犬はボールを追いかけました。"
+    },
+    {
+      "id": "ph-0153",
+      "word": "get angry",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "怒る",
+      "example": "Don't get angry over small things.",
+      "exampleJa": "小さなことで怒らないで。"
+    },
+    {
+      "id": "ph-0154",
+      "word": "get tired",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "疲れる",
+      "example": "I got tired after the long walk.",
+      "exampleJa": "長い散歩のあとで疲れました。"
+    },
+    {
+      "id": "ph-0155",
+      "word": "get well",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "（病気が）よくなる",
+      "example": "Get well soon!",
+      "exampleJa": "早くよくなってね。"
+    },
+    {
+      "id": "ph-0156",
+      "word": "get lost",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "道に迷う",
+      "example": "We got lost in the old town.",
+      "exampleJa": "私たちは旧市街で道に迷いました。"
+    },
+    {
+      "id": "ph-0157",
+      "word": "get better",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "よくなる",
+      "example": "The weather will get better soon.",
+      "exampleJa": "天気はすぐによくなるでしょう。"
+    },
+    {
+      "id": "ph-0158",
+      "word": "get worse",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "悪くなる",
+      "example": "His cold got worse at night.",
+      "exampleJa": "彼のかぜは夜に悪化しました。"
+    },
+    {
+      "id": "ph-0159",
+      "word": "get married",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "結婚する",
+      "example": "They got married last spring.",
+      "exampleJa": "彼らは去年の春に結婚しました。"
+    },
+    {
+      "id": "ph-0160",
+      "word": "get back",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "戻る",
+      "example": "I got back from the trip yesterday.",
+      "exampleJa": "私は昨日旅行から戻りました。"
+    },
+    {
+      "id": "ph-0161",
+      "word": "go back",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "帰る／戻る",
+      "example": "Let's go back to the hotel.",
+      "exampleJa": "ホテルに戻りましょう。"
+    },
+    {
+      "id": "ph-0162",
+      "word": "call back",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "電話をかけ直す",
+      "example": "I will call you back later.",
+      "exampleJa": "あとでかけ直します。"
+    },
+    {
+      "id": "ph-0163",
+      "word": "show around",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を案内する",
+      "example": "I showed my friend around the town.",
+      "exampleJa": "私は友達に町を案内しました。"
+    },
+    {
+      "id": "ph-0164",
+      "word": "move to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜へ引っ越す",
+      "example": "They moved to a new city.",
+      "exampleJa": "彼らは新しい街へ引っ越しました。"
+    },
+    {
+      "id": "ph-0165",
+      "word": "graduate from",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を卒業する",
+      "example": "She graduated from high school in March.",
+      "exampleJa": "彼女は3月に高校を卒業しました。"
+    },
+    {
+      "id": "ph-0166",
+      "word": "belong to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜に所属する",
+      "example": "I belong to the music club.",
+      "exampleJa": "私は音楽部に所属しています。"
+    },
+    {
+      "id": "ph-0167",
+      "word": "depend on",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜に頼る／〜次第である",
+      "example": "The plan depends on the weather.",
+      "exampleJa": "計画は天気次第です。"
+    },
+    {
+      "id": "ph-0168",
+      "word": "laugh at",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を笑う",
+      "example": "Don't laugh at his mistake.",
+      "exampleJa": "彼の間違いを笑ってはいけません。"
+    },
+    {
+      "id": "ph-0169",
+      "word": "smile at",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜にほほえむ",
+      "example": "The baby smiled at me.",
+      "exampleJa": "赤ちゃんが私にほほえみました。"
+    },
+    {
+      "id": "ph-0170",
+      "word": "say hello to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜によろしくと言う",
+      "example": "Say hello to your family.",
+      "exampleJa": "ご家族によろしくお伝えください。"
+    },
+    {
+      "id": "ph-0171",
+      "word": "say goodbye to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜に別れを告げる",
+      "example": "We said goodbye to our teacher.",
+      "exampleJa": "私たちは先生に別れを告げました。"
+    },
+    {
+      "id": "ph-0172",
+      "word": "shake hands",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "握手する",
+      "example": "The two players shook hands.",
+      "exampleJa": "2人の選手は握手しました。"
+    },
+    {
+      "id": "ph-0173",
+      "word": "make money",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "お金を稼ぐ",
+      "example": "He makes money by selling vegetables.",
+      "exampleJa": "彼は野菜を売ってお金を稼いでいます。"
+    },
+    {
+      "id": "ph-0174",
+      "word": "save money",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "お金をためる",
+      "example": "I am saving money for a guitar.",
+      "exampleJa": "私はギターのためにお金をためています。"
+    },
+    {
+      "id": "ph-0175",
+      "word": "spend time",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "時間を過ごす",
+      "example": "I spend time with my family on Sundays.",
+      "exampleJa": "私は日曜日に家族と時間を過ごします。"
+    },
+    {
+      "id": "ph-0176",
+      "word": "make a plan",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "計画を立てる",
+      "example": "Let's make a plan for the trip.",
+      "exampleJa": "旅行の計画を立てましょう。"
+    },
+    {
+      "id": "ph-0177",
+      "word": "make a decision",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "決定する",
+      "example": "It's time to make a decision.",
+      "exampleJa": "決断のときです。"
+    },
+    {
+      "id": "ph-0178",
+      "word": "keep a diary",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "日記をつける",
+      "example": "I keep a diary in English.",
+      "exampleJa": "私は英語で日記をつけています。"
+    },
+    {
+      "id": "ph-0179",
+      "word": "keep in touch",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "連絡を取り合う",
+      "example": "Let's keep in touch after graduation.",
+      "exampleJa": "卒業後も連絡を取り合いましょう。"
+    },
+    {
+      "id": "ph-0180",
+      "word": "look forward to",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を楽しみに待つ",
+      "example": "I look forward to seeing you.",
+      "exampleJa": "お会いできるのを楽しみにしています。"
+    },
+    {
+      "id": "ph-0181",
+      "word": "look after",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜の世話をする",
+      "example": "Can you look after my cat this weekend?",
+      "exampleJa": "今週末、私の猫の世話をしてくれますか。"
+    },
+    {
+      "id": "ph-0182",
+      "word": "come up with",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を思いつく",
+      "example": "She came up with a great idea.",
+      "exampleJa": "彼女はすばらしいアイデアを思いつきました。"
+    },
+    {
+      "id": "ph-0183",
+      "word": "put off",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を延期する",
+      "example": "The game was put off until Sunday.",
+      "exampleJa": "試合は日曜日に延期されました。"
+    },
+    {
+      "id": "ph-0184",
+      "word": "give back",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜を返す",
+      "example": "Give back my pen, please.",
+      "exampleJa": "私のペンを返してください。"
+    },
+    {
+      "id": "ph-0185",
+      "word": "pay for",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜の代金を払う",
+      "example": "I paid for the tickets online.",
+      "exampleJa": "私はチケット代をオンラインで払いました。"
+    },
+    {
+      "id": "ph-0186",
+      "word": "wait a minute",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ちょっと待って",
+      "example": "Wait a minute. I'm almost ready.",
+      "exampleJa": "ちょっと待って。もうすぐ準備ができます。"
+    },
+    {
+      "id": "ph-0187",
+      "word": "take it easy",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "気楽にやる",
+      "example": "Take it easy. You did your best.",
+      "exampleJa": "気楽にね。あなたは全力を尽くしました。"
+    },
+    {
+      "id": "ph-0188",
+      "word": "come on",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "さあ／がんばれ",
+      "example": "Come on! We can win this game.",
+      "exampleJa": "がんばれ。この試合は勝てるよ。"
+    },
+    {
+      "id": "ph-0189",
+      "word": "go ahead",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "どうぞ／先に進む",
+      "example": "May I use this seat? — Sure, go ahead.",
+      "exampleJa": "この席を使ってもいいですか。—どうぞ。"
+    },
+    {
+      "id": "ph-0190",
+      "word": "be covered with",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜で覆われている",
+      "example": "The mountain is covered with snow.",
+      "exampleJa": "山は雪で覆われています。"
+    },
+    {
+      "id": "ph-0191",
+      "word": "be filled with",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜で満たされている",
+      "example": "The hall was filled with people.",
+      "exampleJa": "ホールは人でいっぱいでした。"
+    },
+    {
+      "id": "ph-0192",
+      "word": "be made of",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜でできている（材料）",
+      "example": "This chair is made of wood.",
+      "exampleJa": "このいすは木でできています。"
+    },
+    {
+      "id": "ph-0193",
+      "word": "be made from",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜から作られる（原料）",
+      "example": "Cheese is made from milk.",
+      "exampleJa": "チーズは牛乳から作られます。"
+    },
+    {
+      "id": "ph-0194",
+      "word": "be surprised at",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "〜に驚く",
+      "example": "I was surprised at the price.",
+      "exampleJa": "私はその値段に驚きました。"
+    },
+    {
+      "id": "ph-0195",
+      "word": "be sick in bed",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "病気で寝ている",
+      "example": "He was sick in bed all week.",
+      "exampleJa": "彼は1週間ずっと病気で寝ていました。"
+    },
+    {
+      "id": "ph-0196",
+      "word": "as soon as possible",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "できるだけ早く",
+      "example": "Please reply as soon as possible.",
+      "exampleJa": "できるだけ早く返事をください。"
+    },
+    {
+      "id": "ph-0197",
+      "word": "in a hurry",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "急いで",
+      "example": "He left the house in a hurry.",
+      "exampleJa": "彼は急いで家を出ました。"
+    },
+    {
+      "id": "ph-0198",
+      "word": "on sale",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "セール中で／発売中で",
+      "example": "These shoes are on sale this week.",
+      "exampleJa": "この靴は今週セール中です。"
+    },
+    {
+      "id": "ph-0199",
+      "word": "take a rest",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ひと休みする",
+      "example": "Let's take a rest under the tree.",
+      "exampleJa": "木の下でひと休みしましょう。"
+    },
+    {
+      "id": "ph-0200",
+      "word": "help yourself",
+      "pos": "phrase",
+      "level": "A2",
+      "meaning": "ご自由にどうぞ",
+      "example": "Help yourself to the cookies.",
+      "exampleJa": "クッキーをご自由にどうぞ。"
+    }
+  ]
+}

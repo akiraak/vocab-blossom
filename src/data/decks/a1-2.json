@@ -1,0 +1,4560 @@
+{
+  "id": "a1-2",
+  "name": "A1 後半",
+  "words": [
+    {
+      "id": "a1-0507",
+      "word": "lesson",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "授業／レッスン",
+      "example": "I have a piano lesson today.",
+      "exampleJa": "私は今日ピアノのレッスンがあります。"
+    },
+    {
+      "id": "a1-0508",
+      "word": "let",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "〜させる",
+      "example": "Let me try it.",
+      "exampleJa": "私にやらせてください。"
+    },
+    {
+      "id": "a1-0509",
+      "word": "letter",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "手紙／文字",
+      "example": "I wrote a letter to my friend.",
+      "exampleJa": "私は友達に手紙を書きました。"
+    },
+    {
+      "id": "a1-0510",
+      "word": "library",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "図書館",
+      "example": "I borrowed three books from the library.",
+      "exampleJa": "私は図書館で本を3冊借りました。"
+    },
+    {
+      "id": "a1-0511",
+      "word": "life",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "生活／人生",
+      "example": "School life is fun.",
+      "exampleJa": "学校生活は楽しいです。"
+    },
+    {
+      "id": "a1-0512",
+      "word": "light",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "軽い／明るい",
+      "example": "This bag is small and light.",
+      "exampleJa": "このかばんは小さくて軽いです。"
+    },
+    {
+      "id": "a1-0513",
+      "word": "like",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜のような",
+      "example": "She sings like a bird.",
+      "exampleJa": "彼女は鳥のように歌います。"
+    },
+    {
+      "id": "a1-0514",
+      "word": "lily",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ユリ",
+      "example": "White lilies are in the vase.",
+      "exampleJa": "白いユリが花びんに入っています。"
+    },
+    {
+      "id": "a1-0515",
+      "word": "line",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "線／列",
+      "example": "Draw a line under the word.",
+      "exampleJa": "その単語の下に線を引きなさい。"
+    },
+    {
+      "id": "a1-0516",
+      "word": "lion",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ライオン",
+      "example": "The lion is the king of animals.",
+      "exampleJa": "ライオンは動物の王です。"
+    },
+    {
+      "id": "a1-0517",
+      "word": "list",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "リスト／一覧",
+      "example": "Make a list of things to buy.",
+      "exampleJa": "買う物のリストを作りなさい。"
+    },
+    {
+      "id": "a1-0518",
+      "word": "listen",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "聞く",
+      "example": "I listen to music every day.",
+      "exampleJa": "私は毎日音楽を聞きます。"
+    },
+    {
+      "id": "a1-0519",
+      "word": "little",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "小さい／少しの",
+      "example": "A little bird is on the tree.",
+      "exampleJa": "小さな鳥が木にとまっています。"
+    },
+    {
+      "id": "a1-0520",
+      "word": "live",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "住む／生きる",
+      "example": "I live in Tokyo.",
+      "exampleJa": "私は東京に住んでいます。"
+    },
+    {
+      "id": "a1-0521",
+      "word": "living",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "生きている",
+      "example": "All living things need water.",
+      "exampleJa": "すべての生き物は水を必要とします。"
+    },
+    {
+      "id": "a1-0522",
+      "word": "living room",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "リビング／居間",
+      "example": "We watch TV in the living room.",
+      "exampleJa": "私たちはリビングでテレビを見ます。"
+    },
+    {
+      "id": "a1-0523",
+      "word": "lonely",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "さびしい",
+      "example": "I felt lonely without my family.",
+      "exampleJa": "家族がいなくてさびしかったです。"
+    },
+    {
+      "id": "a1-0524",
+      "word": "long",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "長い",
+      "example": "This river is very long.",
+      "exampleJa": "この川はとても長いです。"
+    },
+    {
+      "id": "a1-0525",
+      "word": "look",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "見る",
+      "example": "Look at that beautiful bird!",
+      "exampleJa": "あの美しい鳥を見て。"
+    },
+    {
+      "id": "a1-0526",
+      "word": "lot",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "たくさん（a lot で）",
+      "example": "Thanks a lot for your help.",
+      "exampleJa": "手伝ってくれて本当にありがとう。"
+    },
+    {
+      "id": "a1-0527",
+      "word": "love",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "大好きである／愛する",
+      "example": "I love watching movies.",
+      "exampleJa": "私は映画を見るのが大好きです。"
+    },
+    {
+      "id": "a1-0528",
+      "word": "lovely",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "すてきな／かわいらしい",
+      "example": "What a lovely day!",
+      "exampleJa": "なんてすてきな日でしょう。"
+    },
+    {
+      "id": "a1-0529",
+      "word": "luck",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "運",
+      "example": "Good luck on your test!",
+      "exampleJa": "テスト、がんばってね。"
+    },
+    {
+      "id": "a1-0530",
+      "word": "lucky",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "幸運な",
+      "example": "You are lucky to have good friends.",
+      "exampleJa": "よい友達がいてあなたは幸運です。"
+    },
+    {
+      "id": "a1-0531",
+      "word": "lunch",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "昼食",
+      "example": "We eat lunch at noon.",
+      "exampleJa": "私たちは正午に昼食を食べます。"
+    },
+    {
+      "id": "a1-0532",
+      "word": "machine",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "機械",
+      "example": "This machine makes coffee.",
+      "exampleJa": "この機械はコーヒーをいれます。"
+    },
+    {
+      "id": "a1-0533",
+      "word": "magazine",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "雑誌",
+      "example": "She reads a fashion magazine.",
+      "exampleJa": "彼女はファッション雑誌を読みます。"
+    },
+    {
+      "id": "a1-0534",
+      "word": "mail",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "郵便／メール",
+      "example": "Is there any mail for me?",
+      "exampleJa": "私あての郵便はありますか。"
+    },
+    {
+      "id": "a1-0535",
+      "word": "make",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "作る",
+      "example": "Let's make a cake together.",
+      "exampleJa": "一緒にケーキを作りましょう。"
+    },
+    {
+      "id": "a1-0536",
+      "word": "man",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "男の人",
+      "example": "That man is our new teacher.",
+      "exampleJa": "あの男の人が私たちの新しい先生です。"
+    },
+    {
+      "id": "a1-0537",
+      "word": "many",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "多くの",
+      "example": "Many people visit this park.",
+      "exampleJa": "多くの人がこの公園を訪れます。"
+    },
+    {
+      "id": "a1-0538",
+      "word": "map",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "地図",
+      "example": "Look at the map of Japan.",
+      "exampleJa": "日本の地図を見てください。"
+    },
+    {
+      "id": "a1-0539",
+      "word": "March",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "3月",
+      "example": "School ends in March in Japan.",
+      "exampleJa": "日本では学校は3月に終わります。"
+    },
+    {
+      "id": "a1-0540",
+      "word": "match",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "試合",
+      "example": "We won the tennis match.",
+      "exampleJa": "私たちはテニスの試合に勝ちました。"
+    },
+    {
+      "id": "a1-0541",
+      "word": "math",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "数学",
+      "example": "Math is my favorite subject.",
+      "exampleJa": "数学は私の好きな教科です。"
+    },
+    {
+      "id": "a1-0542",
+      "word": "matter",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "問題／こと",
+      "example": "What's the matter with you?",
+      "exampleJa": "どうしたのですか。"
+    },
+    {
+      "id": "a1-0543",
+      "word": "may",
+      "pos": "modal",
+      "level": "A1",
+      "meaning": "〜してもよい／〜かもしれない",
+      "example": "May I come in?",
+      "exampleJa": "入ってもいいですか。"
+    },
+    {
+      "id": "a1-0544",
+      "word": "maybe",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "たぶん",
+      "example": "Maybe it will rain tomorrow.",
+      "exampleJa": "たぶん明日は雨が降るでしょう。"
+    },
+    {
+      "id": "a1-0545",
+      "word": "meal",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "食事",
+      "example": "Wash your hands before meals.",
+      "exampleJa": "食事の前に手を洗いなさい。"
+    },
+    {
+      "id": "a1-0546",
+      "word": "mean",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "意味する",
+      "example": "What does this word mean?",
+      "exampleJa": "この単語はどういう意味ですか。"
+    },
+    {
+      "id": "a1-0547",
+      "word": "meat",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "肉",
+      "example": "I don't eat much meat.",
+      "exampleJa": "私は肉をあまり食べません。"
+    },
+    {
+      "id": "a1-0548",
+      "word": "medicine",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "薬",
+      "example": "Take this medicine after dinner.",
+      "exampleJa": "夕食後にこの薬を飲みなさい。"
+    },
+    {
+      "id": "a1-0549",
+      "word": "meet",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "会う",
+      "example": "Nice to meet you.",
+      "exampleJa": "はじめまして。"
+    },
+    {
+      "id": "a1-0550",
+      "word": "meeting",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "会議／集まり",
+      "example": "The meeting starts at ten.",
+      "exampleJa": "会議は10時に始まります。"
+    },
+    {
+      "id": "a1-0551",
+      "word": "memory",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "思い出／記憶",
+      "example": "I have good memories of the trip.",
+      "exampleJa": "私はその旅行のよい思い出があります。"
+    },
+    {
+      "id": "a1-0552",
+      "word": "merry",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "陽気な",
+      "example": "Merry Christmas, everyone!",
+      "exampleJa": "みなさん、メリークリスマス。"
+    },
+    {
+      "id": "a1-0553",
+      "word": "message",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "メッセージ／伝言",
+      "example": "I sent a message to my friend.",
+      "exampleJa": "私は友達にメッセージを送りました。"
+    },
+    {
+      "id": "a1-0554",
+      "word": "middle",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "真ん中の",
+      "example": "He is a middle school student.",
+      "exampleJa": "彼は中学生です。"
+    },
+    {
+      "id": "a1-0555",
+      "word": "milk",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "牛乳",
+      "example": "I drink milk every morning.",
+      "exampleJa": "私は毎朝牛乳を飲みます。"
+    },
+    {
+      "id": "a1-0556",
+      "word": "mind",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "心／考え",
+      "example": "I changed my mind.",
+      "exampleJa": "私は考えを変えました。"
+    },
+    {
+      "id": "a1-0557",
+      "word": "minute",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "分",
+      "example": "Wait a minute, please.",
+      "exampleJa": "ちょっと待ってください。"
+    },
+    {
+      "id": "a1-0558",
+      "word": "miss",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "〜がいなくてさびしい／逃す",
+      "example": "I miss my old friends.",
+      "exampleJa": "私は昔の友達がいなくてさびしいです。"
+    },
+    {
+      "id": "a1-0559",
+      "word": "mobile",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "携帯電話",
+      "example": "Call me on my mobile.",
+      "exampleJa": "私の携帯に電話してください。"
+    },
+    {
+      "id": "a1-0560",
+      "word": "mobile phone",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "携帯電話",
+      "example": "Turn off your mobile phone in class.",
+      "exampleJa": "授業中は携帯電話の電源を切りなさい。"
+    },
+    {
+      "id": "a1-0561",
+      "word": "mom",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "お母さん",
+      "example": "Mom, I'm home!",
+      "exampleJa": "お母さん、ただいま。"
+    },
+    {
+      "id": "a1-0562",
+      "word": "moment",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "瞬間／ちょっとの間",
+      "example": "Just a moment, please.",
+      "exampleJa": "少々お待ちください。"
+    },
+    {
+      "id": "a1-0563",
+      "word": "mommy",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ママ",
+      "example": "Mommy, look at this!",
+      "exampleJa": "ママ、これ見て。"
+    },
+    {
+      "id": "a1-0564",
+      "word": "Monday",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "月曜日",
+      "example": "I don't like Mondays.",
+      "exampleJa": "私は月曜日が好きではありません。"
+    },
+    {
+      "id": "a1-0565",
+      "word": "money",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "お金",
+      "example": "I don't have much money now.",
+      "exampleJa": "私は今あまりお金を持っていません。"
+    },
+    {
+      "id": "a1-0566",
+      "word": "monkey",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "サル",
+      "example": "Monkeys live in this mountain.",
+      "exampleJa": "この山にはサルが住んでいます。"
+    },
+    {
+      "id": "a1-0567",
+      "word": "month",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "月（1か月）",
+      "example": "February is the shortest month.",
+      "exampleJa": "2月は一番短い月です。"
+    },
+    {
+      "id": "a1-0568",
+      "word": "moon",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "月（空の）",
+      "example": "The moon is beautiful tonight.",
+      "exampleJa": "今夜は月がきれいです。"
+    },
+    {
+      "id": "a1-0569",
+      "word": "more",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "もっと多くの",
+      "example": "I need more time.",
+      "exampleJa": "私はもっと時間が必要です。"
+    },
+    {
+      "id": "a1-0570",
+      "word": "morning",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "朝",
+      "example": "I run every morning.",
+      "exampleJa": "私は毎朝走ります。"
+    },
+    {
+      "id": "a1-0571",
+      "word": "most",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "ほとんどの／最も多くの",
+      "example": "Most students come to school by bike.",
+      "exampleJa": "ほとんどの生徒は自転車で学校に来ます。"
+    },
+    {
+      "id": "a1-0572",
+      "word": "mother",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "母",
+      "example": "My mother is a teacher.",
+      "exampleJa": "母は教師です。"
+    },
+    {
+      "id": "a1-0573",
+      "word": "mountain",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "山",
+      "example": "We climbed the mountain yesterday.",
+      "exampleJa": "私たちは昨日山に登りました。"
+    },
+    {
+      "id": "a1-0574",
+      "word": "mouse",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ネズミ",
+      "example": "A small mouse ran into the hole.",
+      "exampleJa": "小さなネズミが穴に走りこみました。"
+    },
+    {
+      "id": "a1-0575",
+      "word": "mouth",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "口",
+      "example": "Open your mouth, please.",
+      "exampleJa": "口を開けてください。"
+    },
+    {
+      "id": "a1-0576",
+      "word": "move",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "動く／引っ越す",
+      "example": "Don't move. A bee is on your head.",
+      "exampleJa": "動かないで。頭にハチがとまっています。"
+    },
+    {
+      "id": "a1-0577",
+      "word": "movie",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "映画",
+      "example": "Let's see a movie this weekend.",
+      "exampleJa": "今週末に映画を見ましょう。"
+    },
+    {
+      "id": "a1-0578",
+      "word": "Mr.",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "〜さん／〜先生（男性）",
+      "example": "Mr. Smith teaches us English.",
+      "exampleJa": "スミス先生は私たちに英語を教えています。"
+    },
+    {
+      "id": "a1-0579",
+      "word": "Mrs.",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "〜さん／〜夫人（既婚女性）",
+      "example": "Mrs. Brown has two children.",
+      "exampleJa": "ブラウンさんには子どもが2人います。"
+    },
+    {
+      "id": "a1-0580",
+      "word": "much",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "多くの／とても",
+      "example": "Thank you very much.",
+      "exampleJa": "どうもありがとうございます。"
+    },
+    {
+      "id": "a1-0581",
+      "word": "mum",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "お母さん（英）",
+      "example": "My mum makes great pies.",
+      "exampleJa": "お母さんはおいしいパイを作ります。"
+    },
+    {
+      "id": "a1-0582",
+      "word": "music",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "音楽",
+      "example": "She listens to music on the train.",
+      "exampleJa": "彼女は電車で音楽を聞きます。"
+    },
+    {
+      "id": "a1-0583",
+      "word": "musician",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "音楽家／ミュージシャン",
+      "example": "He wants to be a musician.",
+      "exampleJa": "彼はミュージシャンになりたいです。"
+    },
+    {
+      "id": "a1-0584",
+      "word": "must",
+      "pos": "modal",
+      "level": "A1",
+      "meaning": "〜しなければならない",
+      "example": "You must do your homework first.",
+      "exampleJa": "まず宿題をしなければなりません。"
+    },
+    {
+      "id": "a1-0585",
+      "word": "name",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "名前",
+      "example": "My name is Yuki.",
+      "exampleJa": "私の名前はユキです。"
+    },
+    {
+      "id": "a1-0586",
+      "word": "nationality",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "国籍",
+      "example": "What is your nationality?",
+      "exampleJa": "あなたの国籍はどこですか。"
+    },
+    {
+      "id": "a1-0587",
+      "word": "near",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜の近くに",
+      "example": "I live near the station.",
+      "exampleJa": "私は駅の近くに住んでいます。"
+    },
+    {
+      "id": "a1-0588",
+      "word": "neck",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "首",
+      "example": "A giraffe has a long neck.",
+      "exampleJa": "キリンは首が長いです。"
+    },
+    {
+      "id": "a1-0589",
+      "word": "need",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "必要とする",
+      "example": "I need your help.",
+      "exampleJa": "私はあなたの助けが必要です。"
+    },
+    {
+      "id": "a1-0590",
+      "word": "neighbor",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "隣人／近所の人",
+      "example": "Our neighbors are very kind.",
+      "exampleJa": "私たちの近所の人はとても親切です。"
+    },
+    {
+      "id": "a1-0591",
+      "word": "never",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "決して〜ない",
+      "example": "I never eat natto.",
+      "exampleJa": "私は納豆を決して食べません。"
+    },
+    {
+      "id": "a1-0592",
+      "word": "new",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "新しい",
+      "example": "I bought a new bike.",
+      "exampleJa": "私は新しい自転車を買いました。"
+    },
+    {
+      "id": "a1-0593",
+      "word": "news",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ニュース／知らせ",
+      "example": "I have good news for you.",
+      "exampleJa": "あなたによい知らせがあります。"
+    },
+    {
+      "id": "a1-0594",
+      "word": "newspaper",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "新聞",
+      "example": "My father reads the newspaper every morning.",
+      "exampleJa": "父は毎朝新聞を読みます。"
+    },
+    {
+      "id": "a1-0595",
+      "word": "nice",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "すてきな／親切な",
+      "example": "You have a nice smile.",
+      "exampleJa": "あなたは笑顔がすてきですね。"
+    },
+    {
+      "id": "a1-0596",
+      "word": "night",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "夜",
+      "example": "I read books at night.",
+      "exampleJa": "私は夜に本を読みます。"
+    },
+    {
+      "id": "a1-0597",
+      "word": "nine",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "9",
+      "example": "The store opens at nine.",
+      "exampleJa": "その店は9時に開きます。"
+    },
+    {
+      "id": "a1-0598",
+      "word": "nineteen",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "19",
+      "example": "My cousin is nineteen years old.",
+      "exampleJa": "いとこは19歳です。"
+    },
+    {
+      "id": "a1-0599",
+      "word": "ninety",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "90",
+      "example": "My great-grandmother is ninety.",
+      "exampleJa": "ひいおばあちゃんは90歳です。"
+    },
+    {
+      "id": "a1-0600",
+      "word": "no",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "いいえ／少しも〜ない",
+      "example": "No, thank you. I'm full.",
+      "exampleJa": "いいえ、結構です。おなかがいっぱいです。"
+    },
+    {
+      "id": "a1-0601",
+      "word": "noise",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "騒音／物音",
+      "example": "Don't make noise in the library.",
+      "exampleJa": "図書館で音を立ててはいけません。"
+    },
+    {
+      "id": "a1-0602",
+      "word": "nose",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "鼻",
+      "example": "An elephant has a long nose.",
+      "exampleJa": "ゾウは鼻が長いです。"
+    },
+    {
+      "id": "a1-0603",
+      "word": "note",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "メモ／注",
+      "example": "I left a note on your desk.",
+      "exampleJa": "あなたの机にメモを置きました。"
+    },
+    {
+      "id": "a1-0604",
+      "word": "notebook",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ノート",
+      "example": "Write the words in your notebook.",
+      "exampleJa": "ノートに単語を書きなさい。"
+    },
+    {
+      "id": "a1-0605",
+      "word": "nothing",
+      "pos": "pronoun",
+      "level": "A1",
+      "meaning": "何も〜ない",
+      "example": "There is nothing in the box.",
+      "exampleJa": "箱の中には何もありません。"
+    },
+    {
+      "id": "a1-0606",
+      "word": "November",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "11月",
+      "example": "The leaves fall in November.",
+      "exampleJa": "11月には葉が落ちます。"
+    },
+    {
+      "id": "a1-0607",
+      "word": "now",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "今",
+      "example": "I am busy now.",
+      "exampleJa": "私は今忙しいです。"
+    },
+    {
+      "id": "a1-0608",
+      "word": "number",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "数／番号",
+      "example": "What is your phone number?",
+      "exampleJa": "あなたの電話番号は何番ですか。"
+    },
+    {
+      "id": "a1-0609",
+      "word": "nurse",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "看護師",
+      "example": "The nurse was very kind to me.",
+      "exampleJa": "その看護師は私にとても親切でした。"
+    },
+    {
+      "id": "a1-0610",
+      "word": "o'clock",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "〜時",
+      "example": "It is three o'clock now.",
+      "exampleJa": "今3時です。"
+    },
+    {
+      "id": "a1-0611",
+      "word": "October",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "10月",
+      "example": "We have a sports day in October.",
+      "exampleJa": "10月に運動会があります。"
+    },
+    {
+      "id": "a1-0612",
+      "word": "off",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "（電源が）切れて／休みで",
+      "example": "The lights are off in the room.",
+      "exampleJa": "部屋の明かりは消えています。"
+    },
+    {
+      "id": "a1-0613",
+      "word": "office",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "事務所／会社",
+      "example": "My mother goes to the office by bus.",
+      "exampleJa": "母はバスで会社に行きます。"
+    },
+    {
+      "id": "a1-0614",
+      "word": "officer",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "警察官／役人",
+      "example": "The police officer helped the child.",
+      "exampleJa": "警察官がその子どもを助けました。"
+    },
+    {
+      "id": "a1-0615",
+      "word": "often",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "よく／しばしば",
+      "example": "I often play games with my brother.",
+      "exampleJa": "私はよく弟とゲームをします。"
+    },
+    {
+      "id": "a1-0616",
+      "word": "OK",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "大丈夫な／よい",
+      "example": "Is it OK to sit here?",
+      "exampleJa": "ここに座ってもいいですか。"
+    },
+    {
+      "id": "a1-0617",
+      "word": "old",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "古い／年をとった",
+      "example": "This is an old temple.",
+      "exampleJa": "これは古いお寺です。"
+    },
+    {
+      "id": "a1-0618",
+      "word": "Olympics",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "オリンピック",
+      "example": "The Olympics are held every four years.",
+      "exampleJa": "オリンピックは4年ごとに開かれます。"
+    },
+    {
+      "id": "a1-0619",
+      "word": "on",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜の上に",
+      "example": "The cup is on the table.",
+      "exampleJa": "カップはテーブルの上にあります。"
+    },
+    {
+      "id": "a1-0620",
+      "word": "once",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "一度／かつて",
+      "example": "I go swimming once a week.",
+      "exampleJa": "私は週に一度泳ぎに行きます。"
+    },
+    {
+      "id": "a1-0621",
+      "word": "one",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "1／一つの",
+      "example": "I have one question.",
+      "exampleJa": "一つ質問があります。"
+    },
+    {
+      "id": "a1-0622",
+      "word": "only",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "唯一の／〜だけ",
+      "example": "She is the only girl in the club.",
+      "exampleJa": "彼女はクラブでただ一人の女の子です。"
+    },
+    {
+      "id": "a1-0623",
+      "word": "open",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "開いた",
+      "example": "The window is open.",
+      "exampleJa": "窓が開いています。"
+    },
+    {
+      "id": "a1-0624",
+      "word": "opera",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "オペラ",
+      "example": "We saw an opera in the theater.",
+      "exampleJa": "私たちは劇場でオペラを見ました。"
+    },
+    {
+      "id": "a1-0625",
+      "word": "orange",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "オレンジ色の",
+      "example": "She has an orange umbrella.",
+      "exampleJa": "彼女はオレンジ色の傘を持っています。"
+    },
+    {
+      "id": "a1-0626",
+      "word": "order",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "注文／順番",
+      "example": "May I take your order?",
+      "exampleJa": "ご注文をうかがってもよろしいですか。"
+    },
+    {
+      "id": "a1-0627",
+      "word": "other",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "ほかの",
+      "example": "Do you have any other questions?",
+      "exampleJa": "ほかに質問はありますか。"
+    },
+    {
+      "id": "a1-0628",
+      "word": "out",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "外へ",
+      "example": "Let's go out for a walk.",
+      "exampleJa": "散歩に出かけましょう。"
+    },
+    {
+      "id": "a1-0629",
+      "word": "outside",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "外で",
+      "example": "The children are playing outside.",
+      "exampleJa": "子どもたちは外で遊んでいます。"
+    },
+    {
+      "id": "a1-0630",
+      "word": "over",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜の上に／〜を越えて",
+      "example": "A bird flew over the house.",
+      "exampleJa": "鳥が家の上を飛んでいきました。"
+    },
+    {
+      "id": "a1-0631",
+      "word": "own",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "自分自身の",
+      "example": "I want my own room.",
+      "exampleJa": "私は自分の部屋がほしいです。"
+    },
+    {
+      "id": "a1-0632",
+      "word": "owner",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "持ち主／オーナー",
+      "example": "Who is the owner of this dog?",
+      "exampleJa": "この犬の飼い主はだれですか。"
+    },
+    {
+      "id": "a1-0633",
+      "word": "p.m.",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "午後",
+      "example": "The show starts at 7 p.m.",
+      "exampleJa": "ショーは午後7時に始まります。"
+    },
+    {
+      "id": "a1-0634",
+      "word": "page",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ページ",
+      "example": "Open your book to page ten.",
+      "exampleJa": "本の10ページを開きなさい。"
+    },
+    {
+      "id": "a1-0635",
+      "word": "paint",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "（絵の具で）描く／塗る",
+      "example": "We painted the wall white.",
+      "exampleJa": "私たちは壁を白く塗りました。"
+    },
+    {
+      "id": "a1-0636",
+      "word": "painting",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "絵画",
+      "example": "This painting is very famous.",
+      "exampleJa": "この絵画はとても有名です。"
+    },
+    {
+      "id": "a1-0637",
+      "word": "pair",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "1組／ペア",
+      "example": "I bought a pair of shoes.",
+      "exampleJa": "私は靴を1足買いました。"
+    },
+    {
+      "id": "a1-0638",
+      "word": "palace",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "宮殿",
+      "example": "The queen lives in the palace.",
+      "exampleJa": "女王は宮殿に住んでいます。"
+    },
+    {
+      "id": "a1-0639",
+      "word": "pants",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ズボン",
+      "example": "These pants are too long for me.",
+      "exampleJa": "このズボンは私には長すぎます。"
+    },
+    {
+      "id": "a1-0640",
+      "word": "paper",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "紙",
+      "example": "Give me a piece of paper.",
+      "exampleJa": "紙を1枚ください。"
+    },
+    {
+      "id": "a1-0641",
+      "word": "paragraph",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "段落",
+      "example": "Read the first paragraph aloud.",
+      "exampleJa": "最初の段落を声に出して読みなさい。"
+    },
+    {
+      "id": "a1-0642",
+      "word": "pardon",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "もう一度言ってください（Pardon?）",
+      "example": "Pardon? Could you say that again?",
+      "exampleJa": "すみません、もう一度言っていただけますか。"
+    },
+    {
+      "id": "a1-0643",
+      "word": "parent",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "親",
+      "example": "My parents work in the city.",
+      "exampleJa": "私の両親は市内で働いています。"
+    },
+    {
+      "id": "a1-0644",
+      "word": "park",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "公園",
+      "example": "We played catch in the park.",
+      "exampleJa": "私たちは公園でキャッチボールをしました。"
+    },
+    {
+      "id": "a1-0645",
+      "word": "partner",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "パートナー／相手",
+      "example": "Choose a partner for the game.",
+      "exampleJa": "ゲームの相手を選んでください。"
+    },
+    {
+      "id": "a1-0646",
+      "word": "party",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "パーティー",
+      "example": "We had a party for her birthday.",
+      "exampleJa": "私たちは彼女の誕生日パーティーをしました。"
+    },
+    {
+      "id": "a1-0647",
+      "word": "past",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "〜を過ぎて",
+      "example": "It is half past seven.",
+      "exampleJa": "7時半です。"
+    },
+    {
+      "id": "a1-0648",
+      "word": "pay",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "払う",
+      "example": "I will pay for lunch today.",
+      "exampleJa": "今日は私が昼食代を払います。"
+    },
+    {
+      "id": "a1-0649",
+      "word": "peace",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "平和",
+      "example": "Everyone wants world peace.",
+      "exampleJa": "みんな世界平和を望んでいます。"
+    },
+    {
+      "id": "a1-0650",
+      "word": "pen",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ペン",
+      "example": "Can I use your pen?",
+      "exampleJa": "あなたのペンを使ってもいいですか。"
+    },
+    {
+      "id": "a1-0651",
+      "word": "pencil",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "鉛筆",
+      "example": "Write your name with a pencil.",
+      "exampleJa": "鉛筆で名前を書きなさい。"
+    },
+    {
+      "id": "a1-0652",
+      "word": "people",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "人々",
+      "example": "Many people were at the station.",
+      "exampleJa": "駅には多くの人がいました。"
+    },
+    {
+      "id": "a1-0653",
+      "word": "period",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "期間／時限",
+      "example": "We have math in the first period.",
+      "exampleJa": "1時間目は数学です。"
+    },
+    {
+      "id": "a1-0654",
+      "word": "person",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "人",
+      "example": "She is a very kind person.",
+      "exampleJa": "彼女はとても親切な人です。"
+    },
+    {
+      "id": "a1-0655",
+      "word": "personal",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "個人の",
+      "example": "This is my personal computer.",
+      "exampleJa": "これは私の個人用のコンピューターです。"
+    },
+    {
+      "id": "a1-0656",
+      "word": "pet",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ペット",
+      "example": "Do you have any pets?",
+      "exampleJa": "ペットを飼っていますか。"
+    },
+    {
+      "id": "a1-0657",
+      "word": "phone",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "電話",
+      "example": "The phone is ringing.",
+      "exampleJa": "電話が鳴っています。"
+    },
+    {
+      "id": "a1-0658",
+      "word": "photo",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "写真",
+      "example": "I took many photos of the sea.",
+      "exampleJa": "私は海の写真をたくさん撮りました。"
+    },
+    {
+      "id": "a1-0659",
+      "word": "piano",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ピアノ",
+      "example": "She plays the piano very well.",
+      "exampleJa": "彼女はピアノをとても上手に弾きます。"
+    },
+    {
+      "id": "a1-0660",
+      "word": "pick",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "選ぶ／摘む",
+      "example": "Pick a card from the box.",
+      "exampleJa": "箱からカードを1枚選んでください。"
+    },
+    {
+      "id": "a1-0661",
+      "word": "picnic",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ピクニック",
+      "example": "Let's go on a picnic tomorrow.",
+      "exampleJa": "明日ピクニックに行きましょう。"
+    },
+    {
+      "id": "a1-0662",
+      "word": "picture",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "写真／絵",
+      "example": "Can you take a picture of us?",
+      "exampleJa": "私たちの写真を撮ってもらえますか。"
+    },
+    {
+      "id": "a1-0663",
+      "word": "piece",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "1切れ／かけら",
+      "example": "I ate a piece of cake.",
+      "exampleJa": "私はケーキを1切れ食べました。"
+    },
+    {
+      "id": "a1-0664",
+      "word": "pig",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ブタ",
+      "example": "There are pigs on the farm.",
+      "exampleJa": "農場にはブタがいます。"
+    },
+    {
+      "id": "a1-0665",
+      "word": "pink",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "ピンク色の",
+      "example": "The cherry blossoms are pink.",
+      "exampleJa": "桜の花はピンク色です。"
+    },
+    {
+      "id": "a1-0666",
+      "word": "pizza",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ピザ",
+      "example": "We ordered a large pizza.",
+      "exampleJa": "私たちはLサイズのピザを注文しました。"
+    },
+    {
+      "id": "a1-0667",
+      "word": "place",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "場所",
+      "example": "This is my favorite place.",
+      "exampleJa": "ここは私のお気に入りの場所です。"
+    },
+    {
+      "id": "a1-0668",
+      "word": "plan",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "計画",
+      "example": "Do you have any plans for Sunday?",
+      "exampleJa": "日曜日に何か予定はありますか。"
+    },
+    {
+      "id": "a1-0669",
+      "word": "plane",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "飛行機",
+      "example": "The plane arrived on time.",
+      "exampleJa": "飛行機は時間どおりに到着しました。"
+    },
+    {
+      "id": "a1-0670",
+      "word": "play",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "遊ぶ／（スポーツを）する",
+      "example": "Let's play tennis after school.",
+      "exampleJa": "放課後にテニスをしましょう。"
+    },
+    {
+      "id": "a1-0671",
+      "word": "player",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "選手",
+      "example": "He is a famous soccer player.",
+      "exampleJa": "彼は有名なサッカー選手です。"
+    },
+    {
+      "id": "a1-0672",
+      "word": "please",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "どうぞ／〜してください",
+      "example": "Please sit down.",
+      "exampleJa": "どうぞ座ってください。"
+    },
+    {
+      "id": "a1-0673",
+      "word": "pleasure",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "喜び",
+      "example": "It's my pleasure to help you.",
+      "exampleJa": "お手伝いできてうれしいです。"
+    },
+    {
+      "id": "a1-0674",
+      "word": "pocket",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ポケット",
+      "example": "He put the key in his pocket.",
+      "exampleJa": "彼は鍵をポケットに入れました。"
+    },
+    {
+      "id": "a1-0675",
+      "word": "poem",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "詩",
+      "example": "She wrote a poem about spring.",
+      "exampleJa": "彼女は春についての詩を書きました。"
+    },
+    {
+      "id": "a1-0676",
+      "word": "point",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "点／要点",
+      "example": "Our team got ten points.",
+      "exampleJa": "私たちのチームは10点を取りました。"
+    },
+    {
+      "id": "a1-0677",
+      "word": "pollution",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "汚染",
+      "example": "Air pollution is a big problem.",
+      "exampleJa": "大気汚染は大きな問題です。"
+    },
+    {
+      "id": "a1-0678",
+      "word": "pool",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "プール",
+      "example": "We swim in the school pool.",
+      "exampleJa": "私たちは学校のプールで泳ぎます。"
+    },
+    {
+      "id": "a1-0679",
+      "word": "poor",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "貧しい／かわいそうな",
+      "example": "The poor cat has no home.",
+      "exampleJa": "そのかわいそうな猫には家がありません。"
+    },
+    {
+      "id": "a1-0680",
+      "word": "pop",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ポップス",
+      "example": "I like pop music.",
+      "exampleJa": "私はポップスが好きです。"
+    },
+    {
+      "id": "a1-0681",
+      "word": "post",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "郵便",
+      "example": "I sent the card by post.",
+      "exampleJa": "私はそのカードを郵便で送りました。"
+    },
+    {
+      "id": "a1-0682",
+      "word": "poster",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ポスター",
+      "example": "There is a movie poster on the wall.",
+      "exampleJa": "壁に映画のポスターがはってあります。"
+    },
+    {
+      "id": "a1-0683",
+      "word": "potato",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ジャガイモ",
+      "example": "We grow potatoes in the garden.",
+      "exampleJa": "私たちは庭でジャガイモを育てています。"
+    },
+    {
+      "id": "a1-0684",
+      "word": "practice",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "練習",
+      "example": "I have soccer practice today.",
+      "exampleJa": "私は今日サッカーの練習があります。"
+    },
+    {
+      "id": "a1-0685",
+      "word": "pray",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "祈る",
+      "example": "They prayed for peace.",
+      "exampleJa": "彼らは平和を祈りました。"
+    },
+    {
+      "id": "a1-0686",
+      "word": "present",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "プレゼント",
+      "example": "Thank you for the nice present.",
+      "exampleJa": "すてきなプレゼントをありがとう。"
+    },
+    {
+      "id": "a1-0687",
+      "word": "pretty",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "かわいい／きれいな",
+      "example": "What a pretty flower!",
+      "exampleJa": "なんてかわいい花でしょう。"
+    },
+    {
+      "id": "a1-0688",
+      "word": "price",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "値段",
+      "example": "The price of this bag is high.",
+      "exampleJa": "このかばんの値段は高いです。"
+    },
+    {
+      "id": "a1-0689",
+      "word": "prince",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "王子",
+      "example": "The prince lived in a castle.",
+      "exampleJa": "王子は城に住んでいました。"
+    },
+    {
+      "id": "a1-0690",
+      "word": "princess",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "王女",
+      "example": "The princess had long golden hair.",
+      "exampleJa": "王女は長い金色の髪をしていました。"
+    },
+    {
+      "id": "a1-0691",
+      "word": "problem",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "問題",
+      "example": "No problem. I can help you.",
+      "exampleJa": "問題ありません。手伝いますよ。"
+    },
+    {
+      "id": "a1-0692",
+      "word": "program",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "番組／プログラム",
+      "example": "This TV program is popular.",
+      "exampleJa": "このテレビ番組は人気があります。"
+    },
+    {
+      "id": "a1-0693",
+      "word": "purple",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "紫色",
+      "example": "Purple is my favorite color.",
+      "exampleJa": "紫は私の好きな色です。"
+    },
+    {
+      "id": "a1-0694",
+      "word": "push",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "押す",
+      "example": "Push the door to open it.",
+      "exampleJa": "ドアを押して開けてください。"
+    },
+    {
+      "id": "a1-0695",
+      "word": "put",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "置く",
+      "example": "Put the book on the desk.",
+      "exampleJa": "本を机の上に置きなさい。"
+    },
+    {
+      "id": "a1-0696",
+      "word": "quarter",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "4分の1／15分",
+      "example": "It is a quarter past six.",
+      "exampleJa": "6時15分です。"
+    },
+    {
+      "id": "a1-0697",
+      "word": "question",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "質問",
+      "example": "May I ask a question?",
+      "exampleJa": "質問してもいいですか。"
+    },
+    {
+      "id": "a1-0698",
+      "word": "quickly",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "速く",
+      "example": "He ran quickly to the station.",
+      "exampleJa": "彼は駅まで速く走りました。"
+    },
+    {
+      "id": "a1-0699",
+      "word": "quiet",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "静かな",
+      "example": "Please be quiet in the library.",
+      "exampleJa": "図書館では静かにしてください。"
+    },
+    {
+      "id": "a1-0700",
+      "word": "rabbit",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ウサギ",
+      "example": "The rabbit has red eyes.",
+      "exampleJa": "そのウサギは目が赤いです。"
+    },
+    {
+      "id": "a1-0701",
+      "word": "radio",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ラジオ",
+      "example": "I listen to the radio in the car.",
+      "exampleJa": "私は車の中でラジオを聞きます。"
+    },
+    {
+      "id": "a1-0702",
+      "word": "rain",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "雨",
+      "example": "We had a lot of rain yesterday.",
+      "exampleJa": "昨日は雨がたくさん降りました。"
+    },
+    {
+      "id": "a1-0703",
+      "word": "rainy",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "雨の",
+      "example": "It is rainy today.",
+      "exampleJa": "今日は雨です。"
+    },
+    {
+      "id": "a1-0704",
+      "word": "rat",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ネズミ（大型の）",
+      "example": "A rat ran across the road.",
+      "exampleJa": "ネズミが道を走って横切りました。"
+    },
+    {
+      "id": "a1-0705",
+      "word": "read",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "読む",
+      "example": "I read comics on weekends.",
+      "exampleJa": "私は週末に漫画を読みます。"
+    },
+    {
+      "id": "a1-0706",
+      "word": "reader",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "読者",
+      "example": "This magazine has many young readers.",
+      "exampleJa": "この雑誌には若い読者が多いです。"
+    },
+    {
+      "id": "a1-0707",
+      "word": "reading",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "読書",
+      "example": "Reading is my hobby.",
+      "exampleJa": "読書は私の趣味です。"
+    },
+    {
+      "id": "a1-0708",
+      "word": "ready",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "準備ができて",
+      "example": "Are you ready to go?",
+      "exampleJa": "出かける準備はできましたか。"
+    },
+    {
+      "id": "a1-0709",
+      "word": "real",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "本当の",
+      "example": "Is this a real diamond?",
+      "exampleJa": "これは本物のダイヤモンドですか。"
+    },
+    {
+      "id": "a1-0710",
+      "word": "really",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "本当に",
+      "example": "This cake is really good.",
+      "exampleJa": "このケーキは本当においしいです。"
+    },
+    {
+      "id": "a1-0711",
+      "word": "reason",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "理由",
+      "example": "Tell me the reason for it.",
+      "exampleJa": "その理由を教えてください。"
+    },
+    {
+      "id": "a1-0712",
+      "word": "red",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "赤い",
+      "example": "She likes red shoes.",
+      "exampleJa": "彼女は赤い靴が好きです。"
+    },
+    {
+      "id": "a1-0713",
+      "word": "remember",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "覚えている／思い出す",
+      "example": "I remember his face well.",
+      "exampleJa": "私は彼の顔をよく覚えています。"
+    },
+    {
+      "id": "a1-0714",
+      "word": "repeat",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "繰り返す",
+      "example": "Repeat after me, please.",
+      "exampleJa": "私のあとについて言ってください。"
+    },
+    {
+      "id": "a1-0715",
+      "word": "reporter",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "記者／レポーター",
+      "example": "The reporter asked him some questions.",
+      "exampleJa": "記者は彼にいくつか質問しました。"
+    },
+    {
+      "id": "a1-0716",
+      "word": "restaurant",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "レストラン",
+      "example": "We had dinner at an Italian restaurant.",
+      "exampleJa": "私たちはイタリアンレストランで夕食をとりました。"
+    },
+    {
+      "id": "a1-0717",
+      "word": "result",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "結果",
+      "example": "The test results come out tomorrow.",
+      "exampleJa": "テストの結果は明日出ます。"
+    },
+    {
+      "id": "a1-0718",
+      "word": "review",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "復習／レビュー",
+      "example": "Do a review before the test.",
+      "exampleJa": "テストの前に復習をしなさい。"
+    },
+    {
+      "id": "a1-0719",
+      "word": "ribbon",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "リボン",
+      "example": "She wore a pink ribbon in her hair.",
+      "exampleJa": "彼女は髪にピンクのリボンをつけていました。"
+    },
+    {
+      "id": "a1-0720",
+      "word": "rice",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "米／ご飯",
+      "example": "We eat rice every day.",
+      "exampleJa": "私たちは毎日ご飯を食べます。"
+    },
+    {
+      "id": "a1-0721",
+      "word": "rich",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "金持ちの／豊かな",
+      "example": "He became rich and famous.",
+      "exampleJa": "彼は金持ちで有名になりました。"
+    },
+    {
+      "id": "a1-0722",
+      "word": "ride",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "乗る",
+      "example": "Can you ride a bike?",
+      "exampleJa": "自転車に乗れますか。"
+    },
+    {
+      "id": "a1-0723",
+      "word": "right",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "正しい／右の",
+      "example": "That's the right answer.",
+      "exampleJa": "それが正しい答えです。"
+    },
+    {
+      "id": "a1-0724",
+      "word": "ring",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "指輪",
+      "example": "She wears a silver ring.",
+      "exampleJa": "彼女は銀の指輪をしています。"
+    },
+    {
+      "id": "a1-0725",
+      "word": "river",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "川",
+      "example": "We swam in the river in summer.",
+      "exampleJa": "私たちは夏に川で泳ぎました。"
+    },
+    {
+      "id": "a1-0726",
+      "word": "role",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "役割／役",
+      "example": "She played the role of the queen.",
+      "exampleJa": "彼女は女王の役を演じました。"
+    },
+    {
+      "id": "a1-0727",
+      "word": "room",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "部屋",
+      "example": "My room is small but clean.",
+      "exampleJa": "私の部屋は小さいけれどきれいです。"
+    },
+    {
+      "id": "a1-0728",
+      "word": "rose",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "バラ",
+      "example": "He gave her a red rose.",
+      "exampleJa": "彼は彼女に赤いバラをあげました。"
+    },
+    {
+      "id": "a1-0729",
+      "word": "row",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "列",
+      "example": "We sat in the front row.",
+      "exampleJa": "私たちは一番前の列に座りました。"
+    },
+    {
+      "id": "a1-0730",
+      "word": "rude",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "失礼な",
+      "example": "Don't be rude to old people.",
+      "exampleJa": "お年寄りに失礼なことをしてはいけません。"
+    },
+    {
+      "id": "a1-0731",
+      "word": "rule",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "規則／ルール",
+      "example": "Follow the school rules.",
+      "exampleJa": "学校の規則を守りなさい。"
+    },
+    {
+      "id": "a1-0732",
+      "word": "ruler",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "定規",
+      "example": "Draw a line with a ruler.",
+      "exampleJa": "定規で線を引きなさい。"
+    },
+    {
+      "id": "a1-0733",
+      "word": "run",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "走る",
+      "example": "I run in the park every morning.",
+      "exampleJa": "私は毎朝公園を走ります。"
+    },
+    {
+      "id": "a1-0734",
+      "word": "sad",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "悲しい",
+      "example": "I was sad to hear the news.",
+      "exampleJa": "その知らせを聞いて悲しかったです。"
+    },
+    {
+      "id": "a1-0735",
+      "word": "sailor",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "船乗り",
+      "example": "The sailor traveled around the world.",
+      "exampleJa": "その船乗りは世界中を旅しました。"
+    },
+    {
+      "id": "a1-0736",
+      "word": "salad",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "サラダ",
+      "example": "I eat salad with dinner.",
+      "exampleJa": "私は夕食にサラダを食べます。"
+    },
+    {
+      "id": "a1-0737",
+      "word": "sale",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "セール／販売",
+      "example": "The shoes are on sale now.",
+      "exampleJa": "その靴は今セール中です。"
+    },
+    {
+      "id": "a1-0738",
+      "word": "same",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "同じ",
+      "example": "We are in the same class.",
+      "exampleJa": "私たちは同じクラスです。"
+    },
+    {
+      "id": "a1-0739",
+      "word": "sandwich",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "サンドイッチ",
+      "example": "I made sandwiches for lunch.",
+      "exampleJa": "私は昼食にサンドイッチを作りました。"
+    },
+    {
+      "id": "a1-0740",
+      "word": "Saturday",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "土曜日",
+      "example": "We have no school on Saturday.",
+      "exampleJa": "土曜日は学校がありません。"
+    },
+    {
+      "id": "a1-0741",
+      "word": "save",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "救う／蓄える",
+      "example": "I am saving money for a new game.",
+      "exampleJa": "私は新しいゲームのためにお金をためています。"
+    },
+    {
+      "id": "a1-0742",
+      "word": "saw",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "のこぎり",
+      "example": "He cut the wood with a saw.",
+      "exampleJa": "彼はのこぎりで木を切りました。"
+    },
+    {
+      "id": "a1-0743",
+      "word": "say",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "言う",
+      "example": "What did you say?",
+      "exampleJa": "何と言いましたか。"
+    },
+    {
+      "id": "a1-0744",
+      "word": "school",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "学校",
+      "example": "Our school has a big library.",
+      "exampleJa": "私たちの学校には大きな図書館があります。"
+    },
+    {
+      "id": "a1-0745",
+      "word": "science",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "理科／科学",
+      "example": "We did an experiment in science class.",
+      "exampleJa": "私たちは理科の授業で実験をしました。"
+    },
+    {
+      "id": "a1-0746",
+      "word": "scientist",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "科学者",
+      "example": "The scientist studies the stars.",
+      "exampleJa": "その科学者は星を研究しています。"
+    },
+    {
+      "id": "a1-0747",
+      "word": "sea",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "海",
+      "example": "We went to the sea last summer.",
+      "exampleJa": "私たちは去年の夏、海に行きました。"
+    },
+    {
+      "id": "a1-0748",
+      "word": "seat",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "席",
+      "example": "Is this seat free?",
+      "exampleJa": "この席は空いていますか。"
+    },
+    {
+      "id": "a1-0749",
+      "word": "second",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "2番目の",
+      "example": "My room is on the second floor.",
+      "exampleJa": "私の部屋は2階にあります。"
+    },
+    {
+      "id": "a1-0750",
+      "word": "section",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "部分／区画",
+      "example": "The fruit section is over there.",
+      "exampleJa": "果物売り場はあちらです。"
+    },
+    {
+      "id": "a1-0751",
+      "word": "see",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "見える／会う",
+      "example": "I can see the sea from my room.",
+      "exampleJa": "私の部屋から海が見えます。"
+    },
+    {
+      "id": "a1-0752",
+      "word": "self",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "自分自身",
+      "example": "Be your best self every day.",
+      "exampleJa": "毎日最高の自分でいなさい。"
+    },
+    {
+      "id": "a1-0753",
+      "word": "sell",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "売る",
+      "example": "They sell fresh bread here.",
+      "exampleJa": "ここでは焼きたてのパンを売っています。"
+    },
+    {
+      "id": "a1-0754",
+      "word": "sentence",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "文",
+      "example": "Make a sentence with this word.",
+      "exampleJa": "この単語を使って文を作りなさい。"
+    },
+    {
+      "id": "a1-0755",
+      "word": "September",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "9月",
+      "example": "The second term starts in September.",
+      "exampleJa": "2学期は9月に始まります。"
+    },
+    {
+      "id": "a1-0756",
+      "word": "set",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "セットする／置く",
+      "example": "Set the alarm for six o'clock.",
+      "exampleJa": "目覚ましを6時にセットしなさい。"
+    },
+    {
+      "id": "a1-0757",
+      "word": "seven",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "7",
+      "example": "There are seven days in a week.",
+      "exampleJa": "1週間は7日あります。"
+    },
+    {
+      "id": "a1-0758",
+      "word": "seventeen",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "17",
+      "example": "My sister is seventeen years old.",
+      "exampleJa": "姉は17歳です。"
+    },
+    {
+      "id": "a1-0759",
+      "word": "seventy",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "70",
+      "example": "My grandfather is seventy years old.",
+      "exampleJa": "祖父は70歳です。"
+    },
+    {
+      "id": "a1-0760",
+      "word": "shake",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "振る",
+      "example": "Shake the bottle before you drink.",
+      "exampleJa": "飲む前にボトルを振ってください。"
+    },
+    {
+      "id": "a1-0761",
+      "word": "share",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "分け合う／共有する",
+      "example": "Let's share this pizza.",
+      "exampleJa": "このピザを分け合いましょう。"
+    },
+    {
+      "id": "a1-0762",
+      "word": "sheep",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "羊",
+      "example": "Many sheep are on the hill.",
+      "exampleJa": "たくさんの羊が丘にいます。"
+    },
+    {
+      "id": "a1-0763",
+      "word": "shelf",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "棚",
+      "example": "Put the books back on the shelf.",
+      "exampleJa": "本を棚に戻しなさい。"
+    },
+    {
+      "id": "a1-0764",
+      "word": "ship",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "船",
+      "example": "The ship sailed across the sea.",
+      "exampleJa": "船は海を渡って行きました。"
+    },
+    {
+      "id": "a1-0765",
+      "word": "shirt",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "シャツ",
+      "example": "He is wearing a white shirt.",
+      "exampleJa": "彼は白いシャツを着ています。"
+    },
+    {
+      "id": "a1-0766",
+      "word": "shoe",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "靴",
+      "example": "Take off your shoes here.",
+      "exampleJa": "ここで靴を脱いでください。"
+    },
+    {
+      "id": "a1-0767",
+      "word": "shop",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "店",
+      "example": "The shop sells cute bags.",
+      "exampleJa": "その店はかわいいかばんを売っています。"
+    },
+    {
+      "id": "a1-0768",
+      "word": "shopping",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "買い物",
+      "example": "I went shopping with my mother.",
+      "exampleJa": "私は母と買い物に行きました。"
+    },
+    {
+      "id": "a1-0769",
+      "word": "short",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "短い／背が低い",
+      "example": "Her hair is short.",
+      "exampleJa": "彼女の髪は短いです。"
+    },
+    {
+      "id": "a1-0770",
+      "word": "should",
+      "pos": "modal",
+      "level": "A1",
+      "meaning": "〜すべきだ",
+      "example": "You should go to bed early.",
+      "exampleJa": "早く寝るべきですよ。"
+    },
+    {
+      "id": "a1-0771",
+      "word": "shoulder",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "肩",
+      "example": "He carried the bag on his shoulder.",
+      "exampleJa": "彼は肩にかばんをかけて運びました。"
+    },
+    {
+      "id": "a1-0772",
+      "word": "show",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "見せる",
+      "example": "Show me your new watch.",
+      "exampleJa": "新しい腕時計を見せて。"
+    },
+    {
+      "id": "a1-0773",
+      "word": "shower",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "シャワー",
+      "example": "I take a shower every morning.",
+      "exampleJa": "私は毎朝シャワーを浴びます。"
+    },
+    {
+      "id": "a1-0774",
+      "word": "shy",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "恥ずかしがりの",
+      "example": "My little sister is very shy.",
+      "exampleJa": "妹はとても恥ずかしがりです。"
+    },
+    {
+      "id": "a1-0775",
+      "word": "sick",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "病気の",
+      "example": "He is sick in bed today.",
+      "exampleJa": "彼は今日病気で寝ています。"
+    },
+    {
+      "id": "a1-0776",
+      "word": "side",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "側／横",
+      "example": "Walk on the right side of the road.",
+      "exampleJa": "道の右側を歩きなさい。"
+    },
+    {
+      "id": "a1-0777",
+      "word": "sight",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "景色／視力",
+      "example": "The sight from the tower was beautiful.",
+      "exampleJa": "塔からの景色は美しかったです。"
+    },
+    {
+      "id": "a1-0778",
+      "word": "sign",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "標識／記号",
+      "example": "The sign says \"Stop\".",
+      "exampleJa": "その標識には「止まれ」と書いてあります。"
+    },
+    {
+      "id": "a1-0779",
+      "word": "sing",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "歌う",
+      "example": "She sings very well.",
+      "exampleJa": "彼女はとても上手に歌います。"
+    },
+    {
+      "id": "a1-0780",
+      "word": "singer",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "歌手",
+      "example": "The singer is popular in Japan.",
+      "exampleJa": "その歌手は日本で人気があります。"
+    },
+    {
+      "id": "a1-0781",
+      "word": "sir",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "（男性への呼びかけ）",
+      "example": "May I help you, sir?",
+      "exampleJa": "お客様、何かお手伝いしましょうか。"
+    },
+    {
+      "id": "a1-0782",
+      "word": "sister",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "姉／妹",
+      "example": "My sister is older than me.",
+      "exampleJa": "姉は私より年上です。"
+    },
+    {
+      "id": "a1-0783",
+      "word": "sit",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "座る",
+      "example": "Sit down, please.",
+      "exampleJa": "座ってください。"
+    },
+    {
+      "id": "a1-0784",
+      "word": "site",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "サイト／場所",
+      "example": "I found the news on this site.",
+      "exampleJa": "私はこのサイトでそのニュースを見つけました。"
+    },
+    {
+      "id": "a1-0785",
+      "word": "six",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "6",
+      "example": "I get home at six.",
+      "exampleJa": "私は6時に帰宅します。"
+    },
+    {
+      "id": "a1-0786",
+      "word": "sixteen",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "16",
+      "example": "She is sixteen years old.",
+      "exampleJa": "彼女は16歳です。"
+    },
+    {
+      "id": "a1-0787",
+      "word": "sixty",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "60",
+      "example": "One hour is sixty minutes.",
+      "exampleJa": "1時間は60分です。"
+    },
+    {
+      "id": "a1-0788",
+      "word": "size",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "サイズ／大きさ",
+      "example": "Do you have a smaller size?",
+      "exampleJa": "もっと小さいサイズはありますか。"
+    },
+    {
+      "id": "a1-0789",
+      "word": "skill",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "技術／スキル",
+      "example": "Cooking is a useful skill.",
+      "exampleJa": "料理は役に立つ技術です。"
+    },
+    {
+      "id": "a1-0790",
+      "word": "skirt",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "スカート",
+      "example": "She bought a long skirt.",
+      "exampleJa": "彼女は長いスカートを買いました。"
+    },
+    {
+      "id": "a1-0791",
+      "word": "sky",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "空",
+      "example": "The sky is clear today.",
+      "exampleJa": "今日は空が晴れています。"
+    },
+    {
+      "id": "a1-0792",
+      "word": "sleep",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "眠る",
+      "example": "I sleep eight hours every night.",
+      "exampleJa": "私は毎晩8時間眠ります。"
+    },
+    {
+      "id": "a1-0793",
+      "word": "slow",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "遅い",
+      "example": "This train is slow but comfortable.",
+      "exampleJa": "この電車は遅いけれど快適です。"
+    },
+    {
+      "id": "a1-0794",
+      "word": "small",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "小さい",
+      "example": "I live in a small town.",
+      "exampleJa": "私は小さな町に住んでいます。"
+    },
+    {
+      "id": "a1-0795",
+      "word": "smart",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "頭のよい",
+      "example": "She is smart and kind.",
+      "exampleJa": "彼女は頭がよくて親切です。"
+    },
+    {
+      "id": "a1-0796",
+      "word": "smell",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "におい",
+      "example": "I like the smell of fresh bread.",
+      "exampleJa": "私は焼きたてのパンのにおいが好きです。"
+    },
+    {
+      "id": "a1-0797",
+      "word": "smile",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "笑顔",
+      "example": "She has a beautiful smile.",
+      "exampleJa": "彼女は美しい笑顔をしています。"
+    },
+    {
+      "id": "a1-0798",
+      "word": "smith",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "鍛冶屋",
+      "example": "The smith made a strong sword.",
+      "exampleJa": "鍛冶屋は丈夫な剣を作りました。"
+    },
+    {
+      "id": "a1-0799",
+      "word": "smoke",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "煙",
+      "example": "Smoke is coming from the chimney.",
+      "exampleJa": "煙突から煙が出ています。"
+    },
+    {
+      "id": "a1-0800",
+      "word": "smoking",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "喫煙",
+      "example": "No smoking in this building.",
+      "exampleJa": "この建物では喫煙禁止です。"
+    },
+    {
+      "id": "a1-0801",
+      "word": "snake",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ヘビ",
+      "example": "A snake is sleeping under the rock.",
+      "exampleJa": "岩の下でヘビが眠っています。"
+    },
+    {
+      "id": "a1-0802",
+      "word": "snow",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "雪",
+      "example": "The snow is deep this year.",
+      "exampleJa": "今年は雪が深いです。"
+    },
+    {
+      "id": "a1-0803",
+      "word": "snowy",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "雪の降る",
+      "example": "It was snowy last night.",
+      "exampleJa": "昨夜は雪でした。"
+    },
+    {
+      "id": "a1-0804",
+      "word": "so",
+      "pos": "conjunction",
+      "level": "A1",
+      "meaning": "だから／とても",
+      "example": "I was tired, so I went to bed early.",
+      "exampleJa": "疲れていたので早く寝ました。"
+    },
+    {
+      "id": "a1-0805",
+      "word": "soccer",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "サッカー",
+      "example": "Soccer is popular around the world.",
+      "exampleJa": "サッカーは世界中で人気です。"
+    },
+    {
+      "id": "a1-0806",
+      "word": "social",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "社会の",
+      "example": "I like social studies class.",
+      "exampleJa": "私は社会科の授業が好きです。"
+    },
+    {
+      "id": "a1-0807",
+      "word": "sofa",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ソファー",
+      "example": "Grandpa is sleeping on the sofa.",
+      "exampleJa": "おじいちゃんがソファーで眠っています。"
+    },
+    {
+      "id": "a1-0808",
+      "word": "solve",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "解く／解決する",
+      "example": "Can you solve this problem?",
+      "exampleJa": "この問題を解けますか。"
+    },
+    {
+      "id": "a1-0809",
+      "word": "some",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "いくつかの",
+      "example": "I bought some apples.",
+      "exampleJa": "私はリンゴをいくつか買いました。"
+    },
+    {
+      "id": "a1-0810",
+      "word": "someone",
+      "pos": "pronoun",
+      "level": "A1",
+      "meaning": "だれか",
+      "example": "Someone is at the door.",
+      "exampleJa": "だれかがドアのところにいます。"
+    },
+    {
+      "id": "a1-0811",
+      "word": "something",
+      "pos": "pronoun",
+      "level": "A1",
+      "meaning": "何か",
+      "example": "I want something to drink.",
+      "exampleJa": "何か飲み物がほしいです。"
+    },
+    {
+      "id": "a1-0812",
+      "word": "son",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "息子",
+      "example": "Their son plays baseball.",
+      "exampleJa": "彼らの息子は野球をしています。"
+    },
+    {
+      "id": "a1-0813",
+      "word": "song",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "歌",
+      "example": "This song makes me happy.",
+      "exampleJa": "この歌は私を幸せにしてくれます。"
+    },
+    {
+      "id": "a1-0814",
+      "word": "soon",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "すぐに",
+      "example": "Summer vacation will come soon.",
+      "exampleJa": "もうすぐ夏休みが来ます。"
+    },
+    {
+      "id": "a1-0815",
+      "word": "sorry",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "すまなく思って",
+      "example": "I'm sorry I'm late.",
+      "exampleJa": "遅れてごめんなさい。"
+    },
+    {
+      "id": "a1-0816",
+      "word": "soup",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "スープ",
+      "example": "This soup is still hot.",
+      "exampleJa": "このスープはまだ熱いです。"
+    },
+    {
+      "id": "a1-0817",
+      "word": "speak",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "話す",
+      "example": "Do you speak English?",
+      "exampleJa": "英語を話しますか。"
+    },
+    {
+      "id": "a1-0818",
+      "word": "special",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "特別な",
+      "example": "Today is a special day for me.",
+      "exampleJa": "今日は私にとって特別な日です。"
+    },
+    {
+      "id": "a1-0819",
+      "word": "speech",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "スピーチ／演説",
+      "example": "She made a speech in English.",
+      "exampleJa": "彼女は英語でスピーチをしました。"
+    },
+    {
+      "id": "a1-0820",
+      "word": "spell",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "つづる",
+      "example": "How do you spell your name?",
+      "exampleJa": "あなたの名前はどうつづりますか。"
+    },
+    {
+      "id": "a1-0821",
+      "word": "spend",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "（時間・お金を）使う",
+      "example": "I spent the weekend with my family.",
+      "exampleJa": "私は週末を家族と過ごしました。"
+    },
+    {
+      "id": "a1-0822",
+      "word": "sport",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "スポーツ",
+      "example": "What sport do you like?",
+      "exampleJa": "どんなスポーツが好きですか。"
+    },
+    {
+      "id": "a1-0823",
+      "word": "spot",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "場所／しみ",
+      "example": "This is a good spot for a picnic.",
+      "exampleJa": "ここはピクニックによい場所です。"
+    },
+    {
+      "id": "a1-0824",
+      "word": "spring",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "春",
+      "example": "Flowers bloom in spring.",
+      "exampleJa": "春には花が咲きます。"
+    },
+    {
+      "id": "a1-0825",
+      "word": "spy",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "スパイ",
+      "example": "The movie is about a spy.",
+      "exampleJa": "その映画はスパイについてのものです。"
+    },
+    {
+      "id": "a1-0826",
+      "word": "stage",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "舞台／ステージ",
+      "example": "She sang on the stage.",
+      "exampleJa": "彼女は舞台で歌いました。"
+    },
+    {
+      "id": "a1-0827",
+      "word": "stand",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "立つ",
+      "example": "Please stand up.",
+      "exampleJa": "立ってください。"
+    },
+    {
+      "id": "a1-0828",
+      "word": "star",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "星／スター",
+      "example": "The stars are bright tonight.",
+      "exampleJa": "今夜は星が明るいです。"
+    },
+    {
+      "id": "a1-0829",
+      "word": "start",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "始める／始まる",
+      "example": "The game starts at two.",
+      "exampleJa": "試合は2時に始まります。"
+    },
+    {
+      "id": "a1-0830",
+      "word": "station",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "駅",
+      "example": "I will meet you at the station.",
+      "exampleJa": "駅で会いましょう。"
+    },
+    {
+      "id": "a1-0831",
+      "word": "stay",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "滞在する／とどまる",
+      "example": "We stayed at my uncle's house.",
+      "exampleJa": "私たちはおじの家に泊まりました。"
+    },
+    {
+      "id": "a1-0832",
+      "word": "step",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "一歩／段",
+      "example": "Watch your step on the stairs.",
+      "exampleJa": "階段では足元に気をつけて。"
+    },
+    {
+      "id": "a1-0833",
+      "word": "still",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "まだ／じっとした",
+      "example": "It is still raining outside.",
+      "exampleJa": "外はまだ雨が降っています。"
+    },
+    {
+      "id": "a1-0834",
+      "word": "stone",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "石",
+      "example": "The bridge is made of stone.",
+      "exampleJa": "その橋は石でできています。"
+    },
+    {
+      "id": "a1-0835",
+      "word": "stop",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "止まる／やめる",
+      "example": "The bus stopped at the corner.",
+      "exampleJa": "バスは角で止まりました。"
+    },
+    {
+      "id": "a1-0836",
+      "word": "store",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "店",
+      "example": "The store is open until nine.",
+      "exampleJa": "その店は9時まで開いています。"
+    },
+    {
+      "id": "a1-0837",
+      "word": "story",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "物語／話",
+      "example": "Grandma told us an old story.",
+      "exampleJa": "おばあちゃんが昔話をしてくれました。"
+    },
+    {
+      "id": "a1-0838",
+      "word": "straight",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "まっすぐに",
+      "example": "Go straight down this street.",
+      "exampleJa": "この通りをまっすぐ行ってください。"
+    },
+    {
+      "id": "a1-0839",
+      "word": "strange",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "奇妙な",
+      "example": "I heard a strange sound last night.",
+      "exampleJa": "昨夜、奇妙な音を聞きました。"
+    },
+    {
+      "id": "a1-0840",
+      "word": "street",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "通り",
+      "example": "There are many shops on this street.",
+      "exampleJa": "この通りにはたくさんの店があります。"
+    },
+    {
+      "id": "a1-0841",
+      "word": "strict",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "厳しい",
+      "example": "Our teacher is strict but kind.",
+      "exampleJa": "私たちの先生は厳しいけれど親切です。"
+    },
+    {
+      "id": "a1-0842",
+      "word": "strong",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "強い",
+      "example": "He is strong and fast.",
+      "exampleJa": "彼は強くて速いです。"
+    },
+    {
+      "id": "a1-0843",
+      "word": "student",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "生徒／学生",
+      "example": "She is a junior high school student.",
+      "exampleJa": "彼女は中学生です。"
+    },
+    {
+      "id": "a1-0844",
+      "word": "study",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "勉強する",
+      "example": "I study English every day.",
+      "exampleJa": "私は毎日英語を勉強します。"
+    },
+    {
+      "id": "a1-0845",
+      "word": "subject",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "教科／主題",
+      "example": "What subject do you like best?",
+      "exampleJa": "どの教科が一番好きですか。"
+    },
+    {
+      "id": "a1-0846",
+      "word": "subway",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "地下鉄",
+      "example": "I take the subway to work.",
+      "exampleJa": "私は地下鉄で仕事に行きます。"
+    },
+    {
+      "id": "a1-0847",
+      "word": "successful",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "成功した",
+      "example": "The school festival was successful.",
+      "exampleJa": "学園祭は成功しました。"
+    },
+    {
+      "id": "a1-0848",
+      "word": "sugar",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "砂糖",
+      "example": "Do you put sugar in your coffee?",
+      "exampleJa": "コーヒーに砂糖を入れますか。"
+    },
+    {
+      "id": "a1-0849",
+      "word": "suggestion",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "提案",
+      "example": "That is a good suggestion.",
+      "exampleJa": "それはよい提案ですね。"
+    },
+    {
+      "id": "a1-0850",
+      "word": "sum",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "合計",
+      "example": "The sum of two and three is five.",
+      "exampleJa": "2と3の合計は5です。"
+    },
+    {
+      "id": "a1-0851",
+      "word": "summer",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "夏",
+      "example": "We go camping every summer.",
+      "exampleJa": "私たちは毎年夏にキャンプに行きます。"
+    },
+    {
+      "id": "a1-0852",
+      "word": "sun",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "太陽",
+      "example": "The sun rises in the east.",
+      "exampleJa": "太陽は東からのぼります。"
+    },
+    {
+      "id": "a1-0853",
+      "word": "Sunday",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "日曜日",
+      "example": "We go to church on Sunday.",
+      "exampleJa": "私たちは日曜日に教会へ行きます。"
+    },
+    {
+      "id": "a1-0854",
+      "word": "sunny",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "晴れた",
+      "example": "It is sunny and warm today.",
+      "exampleJa": "今日は晴れて暖かいです。"
+    },
+    {
+      "id": "a1-0855",
+      "word": "sunshine",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "日光",
+      "example": "The cat likes sitting in the sunshine.",
+      "exampleJa": "その猫は日なたに座るのが好きです。"
+    },
+    {
+      "id": "a1-0856",
+      "word": "super",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "すごい／最高の",
+      "example": "That was a super game!",
+      "exampleJa": "すごい試合でしたね。"
+    },
+    {
+      "id": "a1-0857",
+      "word": "supermarket",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "スーパーマーケット",
+      "example": "I buy milk at the supermarket.",
+      "exampleJa": "私はスーパーで牛乳を買います。"
+    },
+    {
+      "id": "a1-0858",
+      "word": "sure",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "確信して",
+      "example": "Are you sure about that?",
+      "exampleJa": "それは確かですか。"
+    },
+    {
+      "id": "a1-0859",
+      "word": "surf",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "サーフィンをする／ネットを見る",
+      "example": "He surfs the Internet every night.",
+      "exampleJa": "彼は毎晩インターネットを見ます。"
+    },
+    {
+      "id": "a1-0860",
+      "word": "surprise",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "驚き／サプライズ",
+      "example": "What a nice surprise!",
+      "exampleJa": "なんてうれしいサプライズでしょう。"
+    },
+    {
+      "id": "a1-0861",
+      "word": "survey",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "調査／アンケート",
+      "example": "We did a survey about school lunch.",
+      "exampleJa": "私たちは給食についてアンケートをしました。"
+    },
+    {
+      "id": "a1-0862",
+      "word": "sweet",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "甘い",
+      "example": "This grape is very sweet.",
+      "exampleJa": "このブドウはとても甘いです。"
+    },
+    {
+      "id": "a1-0863",
+      "word": "swim",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "泳ぐ",
+      "example": "I can swim 100 meters.",
+      "exampleJa": "私は100メートル泳げます。"
+    },
+    {
+      "id": "a1-0864",
+      "word": "swimming",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "水泳",
+      "example": "Swimming is good exercise.",
+      "exampleJa": "水泳はよい運動です。"
+    },
+    {
+      "id": "a1-0865",
+      "word": "swimming pool",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "プール",
+      "example": "The hotel has a big swimming pool.",
+      "exampleJa": "そのホテルには大きなプールがあります。"
+    },
+    {
+      "id": "a1-0866",
+      "word": "table",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "テーブル",
+      "example": "Put the dishes on the table.",
+      "exampleJa": "皿をテーブルに置いてください。"
+    },
+    {
+      "id": "a1-0867",
+      "word": "take",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "取る／連れて行く",
+      "example": "Take an umbrella with you.",
+      "exampleJa": "傘を持って行きなさい。"
+    },
+    {
+      "id": "a1-0868",
+      "word": "talk",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "話す",
+      "example": "We talked about the movie.",
+      "exampleJa": "私たちはその映画について話しました。"
+    },
+    {
+      "id": "a1-0869",
+      "word": "tall",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "背が高い",
+      "example": "My brother is very tall.",
+      "exampleJa": "兄はとても背が高いです。"
+    },
+    {
+      "id": "a1-0870",
+      "word": "taxi",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "タクシー",
+      "example": "We took a taxi to the hotel.",
+      "exampleJa": "私たちはタクシーでホテルへ行きました。"
+    },
+    {
+      "id": "a1-0871",
+      "word": "tea",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "紅茶／お茶",
+      "example": "Would you like some tea?",
+      "exampleJa": "お茶はいかがですか。"
+    },
+    {
+      "id": "a1-0872",
+      "word": "teach",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "教える",
+      "example": "Ms. Sato teaches us music.",
+      "exampleJa": "佐藤先生は私たちに音楽を教えています。"
+    },
+    {
+      "id": "a1-0873",
+      "word": "teacher",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "先生",
+      "example": "Our teacher is from Canada.",
+      "exampleJa": "私たちの先生はカナダ出身です。"
+    },
+    {
+      "id": "a1-0874",
+      "word": "team",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "チーム",
+      "example": "Our team won the game.",
+      "exampleJa": "私たちのチームは試合に勝ちました。"
+    },
+    {
+      "id": "a1-0875",
+      "word": "technology",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "科学技術",
+      "example": "Technology changes our lives.",
+      "exampleJa": "科学技術は私たちの生活を変えます。"
+    },
+    {
+      "id": "a1-0876",
+      "word": "telephone",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "電話",
+      "example": "May I use your telephone?",
+      "exampleJa": "電話をお借りしてもいいですか。"
+    },
+    {
+      "id": "a1-0877",
+      "word": "television",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "テレビ",
+      "example": "We watch television after dinner.",
+      "exampleJa": "私たちは夕食後にテレビを見ます。"
+    },
+    {
+      "id": "a1-0878",
+      "word": "tell",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "伝える／教える",
+      "example": "Tell me about your trip.",
+      "exampleJa": "旅行について教えてください。"
+    },
+    {
+      "id": "a1-0879",
+      "word": "temple",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "寺",
+      "example": "This temple is 500 years old.",
+      "exampleJa": "この寺は500年前に建てられました。"
+    },
+    {
+      "id": "a1-0880",
+      "word": "ten",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "10",
+      "example": "I go to bed at ten.",
+      "exampleJa": "私は10時に寝ます。"
+    },
+    {
+      "id": "a1-0881",
+      "word": "tennis",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "テニス",
+      "example": "We play tennis on Saturdays.",
+      "exampleJa": "私たちは毎週土曜日にテニスをします。"
+    },
+    {
+      "id": "a1-0882",
+      "word": "terrible",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "ひどい",
+      "example": "The weather was terrible yesterday.",
+      "exampleJa": "昨日は天気がひどかったです。"
+    },
+    {
+      "id": "a1-0883",
+      "word": "test",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "テスト／試験",
+      "example": "We have a math test tomorrow.",
+      "exampleJa": "明日数学のテストがあります。"
+    },
+    {
+      "id": "a1-0884",
+      "word": "than",
+      "pos": "conjunction",
+      "level": "A1",
+      "meaning": "〜よりも",
+      "example": "I am taller than my mother.",
+      "exampleJa": "私は母より背が高いです。"
+    },
+    {
+      "id": "a1-0885",
+      "word": "thank",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "感謝する",
+      "example": "Thank you for your help.",
+      "exampleJa": "手伝ってくれてありがとう。"
+    },
+    {
+      "id": "a1-0886",
+      "word": "thanks",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ありがとう／感謝",
+      "example": "Thanks for the nice gift.",
+      "exampleJa": "すてきな贈り物をありがとう。"
+    },
+    {
+      "id": "a1-0887",
+      "word": "theater",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "劇場／映画館",
+      "example": "The theater is full tonight.",
+      "exampleJa": "今夜、劇場は満員です。"
+    },
+    {
+      "id": "a1-0888",
+      "word": "then",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "それから／そのとき",
+      "example": "I did my homework, and then watched TV.",
+      "exampleJa": "私は宿題をして、それからテレビを見ました。"
+    },
+    {
+      "id": "a1-0889",
+      "word": "there",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "そこに",
+      "example": "Put your bag there.",
+      "exampleJa": "かばんをそこに置いてください。"
+    },
+    {
+      "id": "a1-0890",
+      "word": "thick",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "厚い",
+      "example": "This dictionary is very thick.",
+      "exampleJa": "この辞書はとても厚いです。"
+    },
+    {
+      "id": "a1-0891",
+      "word": "thin",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "薄い／やせた",
+      "example": "The ice on the lake is thin.",
+      "exampleJa": "湖の氷は薄いです。"
+    },
+    {
+      "id": "a1-0892",
+      "word": "thing",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "もの／こと",
+      "example": "I have many things to do today.",
+      "exampleJa": "私は今日やることがたくさんあります。"
+    },
+    {
+      "id": "a1-0893",
+      "word": "think",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "思う／考える",
+      "example": "I think this movie is great.",
+      "exampleJa": "この映画はすばらしいと思います。"
+    },
+    {
+      "id": "a1-0894",
+      "word": "thirteen",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "13",
+      "example": "I am thirteen years old.",
+      "exampleJa": "私は13歳です。"
+    },
+    {
+      "id": "a1-0895",
+      "word": "thirty",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "30",
+      "example": "April has thirty days.",
+      "exampleJa": "4月は30日あります。"
+    },
+    {
+      "id": "a1-0896",
+      "word": "three",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "3",
+      "example": "I have three classes this morning.",
+      "exampleJa": "今朝は授業が3つあります。"
+    },
+    {
+      "id": "a1-0897",
+      "word": "through",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜を通って",
+      "example": "The train went through the tunnel.",
+      "exampleJa": "電車はトンネルを通り抜けました。"
+    },
+    {
+      "id": "a1-0898",
+      "word": "throw",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "投げる",
+      "example": "Throw the ball to first base.",
+      "exampleJa": "一塁にボールを投げなさい。"
+    },
+    {
+      "id": "a1-0899",
+      "word": "Thursday",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "木曜日",
+      "example": "We have P.E. on Thursday.",
+      "exampleJa": "木曜日に体育があります。"
+    },
+    {
+      "id": "a1-0900",
+      "word": "ticket",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "切符／チケット",
+      "example": "I bought two tickets for the concert.",
+      "exampleJa": "私はコンサートのチケットを2枚買いました。"
+    },
+    {
+      "id": "a1-0901",
+      "word": "tiger",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "トラ",
+      "example": "The tiger is sleeping in the zoo.",
+      "exampleJa": "動物園でトラが眠っています。"
+    },
+    {
+      "id": "a1-0902",
+      "word": "tight",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "きつい",
+      "example": "These shoes are too tight.",
+      "exampleJa": "この靴はきつすぎます。"
+    },
+    {
+      "id": "a1-0903",
+      "word": "time",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "時間",
+      "example": "What time is it now?",
+      "exampleJa": "今何時ですか。"
+    },
+    {
+      "id": "a1-0904",
+      "word": "tired",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "疲れた",
+      "example": "I am tired after soccer practice.",
+      "exampleJa": "サッカーの練習のあとで疲れています。"
+    },
+    {
+      "id": "a1-0905",
+      "word": "today",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "今日",
+      "example": "Today is my birthday.",
+      "exampleJa": "今日は私の誕生日です。"
+    },
+    {
+      "id": "a1-0906",
+      "word": "together",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "一緒に",
+      "example": "Let's study together.",
+      "exampleJa": "一緒に勉強しましょう。"
+    },
+    {
+      "id": "a1-0907",
+      "word": "toilet",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "トイレ",
+      "example": "Where is the toilet?",
+      "exampleJa": "トイレはどこですか。"
+    },
+    {
+      "id": "a1-0908",
+      "word": "tomato",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "トマト",
+      "example": "We grow tomatoes every summer.",
+      "exampleJa": "私たちは毎年夏にトマトを育てます。"
+    },
+    {
+      "id": "a1-0909",
+      "word": "tomorrow",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "明日",
+      "example": "See you tomorrow.",
+      "exampleJa": "また明日会いましょう。"
+    },
+    {
+      "id": "a1-0910",
+      "word": "tonight",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "今夜",
+      "example": "The moon is beautiful tonight.",
+      "exampleJa": "今夜は月がきれいです。"
+    },
+    {
+      "id": "a1-0911",
+      "word": "too",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "〜もまた／あまりに",
+      "example": "I like this song, too.",
+      "exampleJa": "私もこの歌が好きです。"
+    },
+    {
+      "id": "a1-0912",
+      "word": "tool",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "道具",
+      "example": "Bring the tools from the garage.",
+      "exampleJa": "ガレージから道具を持ってきてください。"
+    },
+    {
+      "id": "a1-0913",
+      "word": "tooth",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "歯",
+      "example": "Brush your teeth after meals.",
+      "exampleJa": "食後に歯をみがきなさい。"
+    },
+    {
+      "id": "a1-0914",
+      "word": "top",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "頂上／一番上",
+      "example": "We reached the top of the mountain.",
+      "exampleJa": "私たちは山の頂上に着きました。"
+    },
+    {
+      "id": "a1-0915",
+      "word": "topic",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "話題／トピック",
+      "example": "Choose a topic for your speech.",
+      "exampleJa": "スピーチの話題を選びなさい。"
+    },
+    {
+      "id": "a1-0916",
+      "word": "touch",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "さわる",
+      "example": "Don't touch the paintings.",
+      "exampleJa": "絵にさわらないでください。"
+    },
+    {
+      "id": "a1-0917",
+      "word": "towel",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "タオル",
+      "example": "Dry your hands with this towel.",
+      "exampleJa": "このタオルで手をふいてください。"
+    },
+    {
+      "id": "a1-0918",
+      "word": "tower",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "塔／タワー",
+      "example": "Tokyo Tower is 333 meters tall.",
+      "exampleJa": "東京タワーは333メートルの高さです。"
+    },
+    {
+      "id": "a1-0919",
+      "word": "town",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "町",
+      "example": "My town has a beautiful river.",
+      "exampleJa": "私の町には美しい川があります。"
+    },
+    {
+      "id": "a1-0920",
+      "word": "toy",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "おもちゃ",
+      "example": "The baby is playing with a toy.",
+      "exampleJa": "赤ちゃんがおもちゃで遊んでいます。"
+    },
+    {
+      "id": "a1-0921",
+      "word": "train",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "電車",
+      "example": "The train is crowded in the morning.",
+      "exampleJa": "朝は電車が混んでいます。"
+    },
+    {
+      "id": "a1-0922",
+      "word": "travel",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "旅行する",
+      "example": "I want to travel around the world.",
+      "exampleJa": "私は世界中を旅行したいです。"
+    },
+    {
+      "id": "a1-0923",
+      "word": "tree",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "木",
+      "example": "A bird made a nest in the tree.",
+      "exampleJa": "鳥が木に巣を作りました。"
+    },
+    {
+      "id": "a1-0924",
+      "word": "trip",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "旅行",
+      "example": "How was your trip to Okinawa?",
+      "exampleJa": "沖縄旅行はどうでしたか。"
+    },
+    {
+      "id": "a1-0925",
+      "word": "trousers",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ズボン（英）",
+      "example": "He bought new trousers for work.",
+      "exampleJa": "彼は仕事用に新しいズボンを買いました。"
+    },
+    {
+      "id": "a1-0926",
+      "word": "truck",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "トラック",
+      "example": "A big truck stopped at the light.",
+      "exampleJa": "大きなトラックが信号で止まりました。"
+    },
+    {
+      "id": "a1-0927",
+      "word": "true",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "本当の",
+      "example": "Is the story true?",
+      "exampleJa": "その話は本当ですか。"
+    },
+    {
+      "id": "a1-0928",
+      "word": "try",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "試す／やってみる",
+      "example": "Try this cake. It's delicious.",
+      "exampleJa": "このケーキを食べてみて。おいしいですよ。"
+    },
+    {
+      "id": "a1-0929",
+      "word": "T-shirt",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "Tシャツ",
+      "example": "He wears a T-shirt in summer.",
+      "exampleJa": "彼は夏にTシャツを着ます。"
+    },
+    {
+      "id": "a1-0930",
+      "word": "tube",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "チューブ",
+      "example": "I bought a tube of toothpaste.",
+      "exampleJa": "私は歯みがき粉のチューブを買いました。"
+    },
+    {
+      "id": "a1-0931",
+      "word": "Tuesday",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "火曜日",
+      "example": "The museum is closed on Tuesday.",
+      "exampleJa": "博物館は火曜日は休みです。"
+    },
+    {
+      "id": "a1-0932",
+      "word": "turkey",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "七面鳥",
+      "example": "They eat turkey on Christmas.",
+      "exampleJa": "彼らはクリスマスに七面鳥を食べます。"
+    },
+    {
+      "id": "a1-0933",
+      "word": "turn",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "曲がる／回す",
+      "example": "Turn left at the bank.",
+      "exampleJa": "銀行のところで左に曲がってください。"
+    },
+    {
+      "id": "a1-0934",
+      "word": "TV",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "テレビ",
+      "example": "I watch TV for an hour a day.",
+      "exampleJa": "私は1日1時間テレビを見ます。"
+    },
+    {
+      "id": "a1-0935",
+      "word": "twelve",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "12",
+      "example": "A year has twelve months.",
+      "exampleJa": "1年は12か月あります。"
+    },
+    {
+      "id": "a1-0936",
+      "word": "twenty",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "20",
+      "example": "My brother is twenty years old.",
+      "exampleJa": "兄は20歳です。"
+    },
+    {
+      "id": "a1-0937",
+      "word": "two",
+      "pos": "number",
+      "level": "A1",
+      "meaning": "2",
+      "example": "I have two cats.",
+      "exampleJa": "私は猫を2匹飼っています。"
+    },
+    {
+      "id": "a1-0938",
+      "word": "type",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "型／タイプ",
+      "example": "What type of music do you like?",
+      "exampleJa": "どんなタイプの音楽が好きですか。"
+    },
+    {
+      "id": "a1-0939",
+      "word": "ugly",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "みにくい",
+      "example": "The ugly duckling became a swan.",
+      "exampleJa": "みにくいアヒルの子は白鳥になりました。"
+    },
+    {
+      "id": "a1-0940",
+      "word": "umbrella",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "傘",
+      "example": "Take your umbrella. It may rain.",
+      "exampleJa": "傘を持って行きなさい。雨が降るかもしれません。"
+    },
+    {
+      "id": "a1-0941",
+      "word": "uncle",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "おじ",
+      "example": "My uncle lives near the sea.",
+      "exampleJa": "おじは海の近くに住んでいます。"
+    },
+    {
+      "id": "a1-0942",
+      "word": "under",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜の下に",
+      "example": "The ball is under the desk.",
+      "exampleJa": "ボールは机の下にあります。"
+    },
+    {
+      "id": "a1-0943",
+      "word": "underline",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "下線",
+      "example": "Put an underline under the new words.",
+      "exampleJa": "新しい単語に下線を引きなさい。"
+    },
+    {
+      "id": "a1-0944",
+      "word": "until",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜まで（ずっと）",
+      "example": "I studied until ten last night.",
+      "exampleJa": "私は昨夜10時まで勉強しました。"
+    },
+    {
+      "id": "a1-0945",
+      "word": "up",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "上へ",
+      "example": "Look up at the sky.",
+      "exampleJa": "空を見上げてごらん。"
+    },
+    {
+      "id": "a1-0946",
+      "word": "use",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "使う",
+      "example": "May I use your dictionary?",
+      "exampleJa": "辞書を使ってもいいですか。"
+    },
+    {
+      "id": "a1-0947",
+      "word": "usually",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "たいてい",
+      "example": "I usually walk to school.",
+      "exampleJa": "私はたいてい歩いて学校に行きます。"
+    },
+    {
+      "id": "a1-0948",
+      "word": "vacation",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "休暇",
+      "example": "Summer vacation starts next week.",
+      "exampleJa": "夏休みは来週始まります。"
+    },
+    {
+      "id": "a1-0949",
+      "word": "vase",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "花びん",
+      "example": "She put the roses in a vase.",
+      "exampleJa": "彼女はバラを花びんに入れました。"
+    },
+    {
+      "id": "a1-0950",
+      "word": "vegetable",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "野菜",
+      "example": "Eat more vegetables every day.",
+      "exampleJa": "毎日もっと野菜を食べなさい。"
+    },
+    {
+      "id": "a1-0951",
+      "word": "very",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "とても",
+      "example": "This book is very interesting.",
+      "exampleJa": "この本はとてもおもしろいです。"
+    },
+    {
+      "id": "a1-0952",
+      "word": "video",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "動画／ビデオ",
+      "example": "We watched a video about animals.",
+      "exampleJa": "私たちは動物についての動画を見ました。"
+    },
+    {
+      "id": "a1-0953",
+      "word": "visit",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "訪れる",
+      "example": "We visited Kyoto last month.",
+      "exampleJa": "私たちは先月京都を訪れました。"
+    },
+    {
+      "id": "a1-0954",
+      "word": "volleyball",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "バレーボール",
+      "example": "The girls are playing volleyball.",
+      "exampleJa": "女の子たちはバレーボールをしています。"
+    },
+    {
+      "id": "a1-0955",
+      "word": "vote",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "投票",
+      "example": "The plan won by ten votes.",
+      "exampleJa": "その案は10票差で勝ちました。"
+    },
+    {
+      "id": "a1-0956",
+      "word": "wait",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "待つ",
+      "example": "Please wait for me here.",
+      "exampleJa": "ここで私を待っていてください。"
+    },
+    {
+      "id": "a1-0957",
+      "word": "waiter",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ウェイター",
+      "example": "The waiter brought our food.",
+      "exampleJa": "ウェイターが料理を運んできました。"
+    },
+    {
+      "id": "a1-0958",
+      "word": "waitress",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ウェイトレス",
+      "example": "The waitress smiled at us.",
+      "exampleJa": "ウェイトレスは私たちにほほえみました。"
+    },
+    {
+      "id": "a1-0959",
+      "word": "wake",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "目を覚ます",
+      "example": "I wake up at six every day.",
+      "exampleJa": "私は毎日6時に目を覚まします。"
+    },
+    {
+      "id": "a1-0960",
+      "word": "walk",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "歩く",
+      "example": "We walked to the park.",
+      "exampleJa": "私たちは公園まで歩きました。"
+    },
+    {
+      "id": "a1-0961",
+      "word": "wall",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "壁",
+      "example": "There is a clock on the wall.",
+      "exampleJa": "壁に時計がかかっています。"
+    },
+    {
+      "id": "a1-0962",
+      "word": "want",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "ほしい",
+      "example": "I want a new smartphone.",
+      "exampleJa": "私は新しいスマートフォンがほしいです。"
+    },
+    {
+      "id": "a1-0963",
+      "word": "war",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "戦争",
+      "example": "The war ended many years ago.",
+      "exampleJa": "その戦争は何年も前に終わりました。"
+    },
+    {
+      "id": "a1-0964",
+      "word": "warm",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "暖かい",
+      "example": "It is warm today.",
+      "exampleJa": "今日は暖かいです。"
+    },
+    {
+      "id": "a1-0965",
+      "word": "wash",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "洗う",
+      "example": "Wash your hands before eating.",
+      "exampleJa": "食べる前に手を洗いなさい。"
+    },
+    {
+      "id": "a1-0966",
+      "word": "watch",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "（じっと）見る",
+      "example": "We watched the soccer game on TV.",
+      "exampleJa": "私たちはテレビでサッカーの試合を見ました。"
+    },
+    {
+      "id": "a1-0967",
+      "word": "water",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "水",
+      "example": "Can I have a glass of water?",
+      "exampleJa": "水を一杯もらえますか。"
+    },
+    {
+      "id": "a1-0968",
+      "word": "way",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "道／方法",
+      "example": "Could you tell me the way to the station?",
+      "exampleJa": "駅への道を教えていただけますか。"
+    },
+    {
+      "id": "a1-0969",
+      "word": "wear",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "着ている",
+      "example": "She wears a red sweater today.",
+      "exampleJa": "彼女は今日赤いセーターを着ています。"
+    },
+    {
+      "id": "a1-0970",
+      "word": "weather",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "天気",
+      "example": "How is the weather in Tokyo?",
+      "exampleJa": "東京の天気はどうですか。"
+    },
+    {
+      "id": "a1-0971",
+      "word": "Wednesday",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "水曜日",
+      "example": "We have English class on Wednesday.",
+      "exampleJa": "水曜日に英語の授業があります。"
+    },
+    {
+      "id": "a1-0972",
+      "word": "week",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "週",
+      "example": "I play tennis twice a week.",
+      "exampleJa": "私は週に2回テニスをします。"
+    },
+    {
+      "id": "a1-0973",
+      "word": "weekend",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "週末",
+      "example": "What do you do on weekends?",
+      "exampleJa": "週末は何をしますか。"
+    },
+    {
+      "id": "a1-0974",
+      "word": "welcome",
+      "pos": "interjection",
+      "level": "A1",
+      "meaning": "ようこそ",
+      "example": "Welcome to our school!",
+      "exampleJa": "私たちの学校へようこそ。"
+    },
+    {
+      "id": "a1-0975",
+      "word": "well",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "上手に／元気で",
+      "example": "She plays the piano well.",
+      "exampleJa": "彼女はピアノを上手に弾きます。"
+    },
+    {
+      "id": "a1-0976",
+      "word": "what",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "何／何の",
+      "example": "What is this?",
+      "exampleJa": "これは何ですか。"
+    },
+    {
+      "id": "a1-0977",
+      "word": "wheel",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "車輪",
+      "example": "A bicycle has two wheels.",
+      "exampleJa": "自転車には車輪が2つあります。"
+    },
+    {
+      "id": "a1-0978",
+      "word": "when",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "いつ",
+      "example": "When is your birthday?",
+      "exampleJa": "あなたの誕生日はいつですか。"
+    },
+    {
+      "id": "a1-0979",
+      "word": "where",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "どこに",
+      "example": "Where do you live?",
+      "exampleJa": "どこに住んでいますか。"
+    },
+    {
+      "id": "a1-0980",
+      "word": "which",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "どちらの／どの",
+      "example": "Which color do you like, red or blue?",
+      "exampleJa": "赤と青、どちらの色が好きですか。"
+    },
+    {
+      "id": "a1-0981",
+      "word": "white",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "白い",
+      "example": "The mountain is white with snow.",
+      "exampleJa": "山は雪で白くなっています。"
+    },
+    {
+      "id": "a1-0982",
+      "word": "who",
+      "pos": "pronoun",
+      "level": "A1",
+      "meaning": "だれ",
+      "example": "Who is that tall boy?",
+      "exampleJa": "あの背の高い男の子はだれですか。"
+    },
+    {
+      "id": "a1-0983",
+      "word": "whose",
+      "pos": "determiner",
+      "level": "A1",
+      "meaning": "だれの",
+      "example": "Whose notebook is this?",
+      "exampleJa": "これはだれのノートですか。"
+    },
+    {
+      "id": "a1-0984",
+      "word": "why",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "なぜ",
+      "example": "Why are you so happy today?",
+      "exampleJa": "なぜ今日はそんなにうれしそうなのですか。"
+    },
+    {
+      "id": "a1-0985",
+      "word": "wife",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "妻",
+      "example": "His wife is a doctor.",
+      "exampleJa": "彼の妻は医者です。"
+    },
+    {
+      "id": "a1-0986",
+      "word": "will",
+      "pos": "modal",
+      "level": "A1",
+      "meaning": "〜するだろう／〜するつもりだ",
+      "example": "I will call you tomorrow.",
+      "exampleJa": "明日あなたに電話します。"
+    },
+    {
+      "id": "a1-0987",
+      "word": "win",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "勝つ",
+      "example": "Our team will win the next game.",
+      "exampleJa": "私たちのチームは次の試合に勝つでしょう。"
+    },
+    {
+      "id": "a1-0988",
+      "word": "wind",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "風",
+      "example": "The wind is strong today.",
+      "exampleJa": "今日は風が強いです。"
+    },
+    {
+      "id": "a1-0989",
+      "word": "window",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "窓",
+      "example": "Open the window, please.",
+      "exampleJa": "窓を開けてください。"
+    },
+    {
+      "id": "a1-0990",
+      "word": "winter",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "冬",
+      "example": "We ski in winter.",
+      "exampleJa": "私たちは冬にスキーをします。"
+    },
+    {
+      "id": "a1-0991",
+      "word": "wish",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "願う",
+      "example": "I wish you good luck.",
+      "exampleJa": "幸運を祈っています。"
+    },
+    {
+      "id": "a1-0992",
+      "word": "with",
+      "pos": "preposition",
+      "level": "A1",
+      "meaning": "〜と一緒に",
+      "example": "I went shopping with my friend.",
+      "exampleJa": "私は友達と買い物に行きました。"
+    },
+    {
+      "id": "a1-0993",
+      "word": "woman",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "女性",
+      "example": "That woman is a famous singer.",
+      "exampleJa": "あの女性は有名な歌手です。"
+    },
+    {
+      "id": "a1-0994",
+      "word": "wonderful",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "すばらしい",
+      "example": "We had a wonderful time.",
+      "exampleJa": "私たちはすばらしい時間を過ごしました。"
+    },
+    {
+      "id": "a1-0995",
+      "word": "word",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "単語／言葉",
+      "example": "I learn ten new words a day.",
+      "exampleJa": "私は1日に新しい単語を10個覚えます。"
+    },
+    {
+      "id": "a1-0996",
+      "word": "work",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "働く",
+      "example": "My mother works at a bank.",
+      "exampleJa": "母は銀行で働いています。"
+    },
+    {
+      "id": "a1-0997",
+      "word": "worker",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "働く人／労働者",
+      "example": "The workers are building a bridge.",
+      "exampleJa": "作業員たちが橋を建設しています。"
+    },
+    {
+      "id": "a1-0998",
+      "word": "world",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "世界",
+      "example": "English is used around the world.",
+      "exampleJa": "英語は世界中で使われています。"
+    },
+    {
+      "id": "a1-0999",
+      "word": "worry",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "心配する",
+      "example": "Don't worry. Everything will be fine.",
+      "exampleJa": "心配しないで。すべてうまくいきますよ。"
+    },
+    {
+      "id": "a1-1000",
+      "word": "would",
+      "pos": "modal",
+      "level": "A1",
+      "meaning": "〜だろう／〜したいのですが",
+      "example": "Would you like some tea?",
+      "exampleJa": "お茶はいかがですか。"
+    },
+    {
+      "id": "a1-1001",
+      "word": "write",
+      "pos": "verb",
+      "level": "A1",
+      "meaning": "書く",
+      "example": "I write in my diary every night.",
+      "exampleJa": "私は毎晩日記を書きます。"
+    },
+    {
+      "id": "a1-1002",
+      "word": "writer",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "作家",
+      "example": "The writer wrote many famous books.",
+      "exampleJa": "その作家は多くの有名な本を書きました。"
+    },
+    {
+      "id": "a1-1003",
+      "word": "wrong",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "間違った",
+      "example": "I took the wrong train.",
+      "exampleJa": "私は電車を乗り間違えました。"
+    },
+    {
+      "id": "a1-1004",
+      "word": "yard",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "庭",
+      "example": "The children are playing in the yard.",
+      "exampleJa": "子どもたちは庭で遊んでいます。"
+    },
+    {
+      "id": "a1-1005",
+      "word": "year",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "年",
+      "example": "I visited Kyoto last year.",
+      "exampleJa": "私は去年京都を訪れました。"
+    },
+    {
+      "id": "a1-1006",
+      "word": "yellow",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "黄色い",
+      "example": "The sunflowers are bright yellow.",
+      "exampleJa": "ヒマワリは明るい黄色です。"
+    },
+    {
+      "id": "a1-1007",
+      "word": "yes",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "はい",
+      "example": "Yes, I like sushi very much.",
+      "exampleJa": "はい、私はおすしが大好きです。"
+    },
+    {
+      "id": "a1-1008",
+      "word": "yesterday",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "昨日",
+      "example": "It rained a lot yesterday.",
+      "exampleJa": "昨日は雨がたくさん降りました。"
+    },
+    {
+      "id": "a1-1009",
+      "word": "yet",
+      "pos": "adverb",
+      "level": "A1",
+      "meaning": "まだ／もう",
+      "example": "I haven't finished my homework yet.",
+      "exampleJa": "私はまだ宿題を終えていません。"
+    },
+    {
+      "id": "a1-1010",
+      "word": "yogurt",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "ヨーグルト",
+      "example": "I eat yogurt with fruit.",
+      "exampleJa": "私は果物と一緒にヨーグルトを食べます。"
+    },
+    {
+      "id": "a1-1011",
+      "word": "young",
+      "pos": "adjective",
+      "level": "A1",
+      "meaning": "若い",
+      "example": "My grandmother looks young.",
+      "exampleJa": "祖母は若く見えます。"
+    },
+    {
+      "id": "a1-1012",
+      "word": "zoo",
+      "pos": "noun",
+      "level": "A1",
+      "meaning": "動物園",
+      "example": "We saw pandas at the zoo.",
+      "exampleJa": "私たちは動物園でパンダを見ました。"
+    }
+  ]
+}
