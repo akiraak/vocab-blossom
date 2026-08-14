@@ -79,12 +79,18 @@ enum Dashboard {
         return summary
     }
 
+    struct DailyCount: Identifiable, Equatable {
+        let date: Date
+        let count: Int
+        var id: Date { date }
+    }
+
     /// 直近 `days` 日の日別回答数（古い順）
-    static func dailyCounts(logs: [LogSnapshot], days: Int, now: Date) -> [(date: Date, count: Int)] {
+    static func dailyCounts(logs: [LogSnapshot], days: Int, now: Date) -> [DailyCount] {
         var counts: [String: Int] = [:]
         for log in logs { counts[log.dateKey, default: 0] += 1 }
         return DateUtil.recentDays(count: days, from: now).map {
-            (date: $0, count: counts[DateUtil.dateKey($0)] ?? 0)
+            DailyCount(date: $0, count: counts[DateUtil.dateKey($0)] ?? 0)
         }
     }
 
