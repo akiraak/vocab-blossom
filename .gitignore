@@ -1,9 +1,14 @@
 vibeboard/dist/
 vibeboard/node_modules/
 
-# app
+# node (単語データ検証用)
 node_modules/
-/dist/
-/dev-dist/
 *.local
 
+# Xcode
+ios/VocabBlossom.xcodeproj/
+ios/VocabBlossom/Info.plist
+ios/build/
+DerivedData/
+*.xcuserstate
+.DS_Store

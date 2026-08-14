@@ -14,7 +14,7 @@ import sys
 from glob import glob
 from pathlib import Path
 
-DECK_DIR = Path("src/data/decks")
+DECK_DIR = Path("data/decks")
 EDITABLE = {"meaning", "example", "exampleJa"}
 
 

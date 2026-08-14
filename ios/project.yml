@@ -1,0 +1,72 @@
+name: VocabBlossom
+
+options:
+  bundleIdPrefix: com.akiraak
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    TARGETED_DEVICE_FAMILY: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  VocabBlossom:
+    type: application
+    platform: iOS
+    sources:
+      - path: VocabBlossom
+      # 単語データ（data/decks）はフォルダ参照でバンドルへ同梱する。
+      # Node/Python 側の整備パイプラインと同じ実体を参照するため、コピーを持たない。
+      - path: ../data/decks
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.akiraak.VocabBlossom
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_KEY_CFBundleDisplayName: vocab-blossom
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    info:
+      path: VocabBlossom/Info.plist
+      properties:
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        ITSAppUsesNonExemptEncryption: false
+
+  VocabBlossomTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: VocabBlossomTests
+    dependencies:
+      - target: VocabBlossom
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.akiraak.VocabBlossomTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  VocabBlossom:
+    build:
+      targets:
+        VocabBlossom: all
+        VocabBlossomTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - VocabBlossomTests

@@ -1,0 +1,30 @@
+included:
+  - VocabBlossom
+  - VocabBlossomTests
+
+excluded:
+  - VocabBlossom.xcodeproj
+
+disabled_rules:
+  # SwiftUI の View は宣言的に長くなるため、行数系は緩める
+  - type_body_length
+  - file_length
+  # 日本語ラベルを扱うので、英語前提の命名規則は外す
+  - todo
+
+line_length:
+  warning: 110
+  error: 140
+  ignores_comments: true
+
+identifier_name:
+  min_length: 1
+  excluded:
+    - id
+
+function_body_length:
+  warning: 80
+  error: 120
+
+nesting:
+  type_level: 2

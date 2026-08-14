@@ -41,7 +41,7 @@
 
 ## 3. データスキーマ
 
-型定義は `src/data/types.ts`、デッキ JSON は `src/data/decks/*.json`。
+型定義は `src/data/types.ts`、デッキ JSON は `data/decks/*.json`。
 
 ```jsonc
 // Deck
