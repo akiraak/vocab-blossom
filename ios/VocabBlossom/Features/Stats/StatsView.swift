@@ -32,15 +32,28 @@ struct StatsView: View {
     private func summaryCard(_ logs: [Dashboard.LogSnapshot]) -> some View {
         let blossomed = progresses.count { $0.stage >= SRS.maxStage }
         let accuracy = Dashboard.accuracy(logs: logs)
-        return HStack(spacing: 12) {
-            metric("学習した語", "\(progresses.count)", "語")
-            metric("開花", "\(blossomed)", "語")
-            metric(
-                "正答率",
-                accuracy.map { "\(Int(($0 * 100).rounded()))" } ?? "-",
-                accuracy == nil ? "" : "%"
-            )
+        return VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                metric("学習した語", "\(progresses.count)", "語")
+                metric("開花", "\(blossomed)", "語")
+                metric(
+                    "正答率",
+                    accuracy.map { "\(Int(($0 * 100).rounded()))" } ?? "-",
+                    accuracy == nil ? "" : "%"
+                )
+            }
+            // 「もう知ってる」で登録した語は最初から開花なので、数字が誤解されないよう内訳を出す
+            if knownCount > 0 {
+                Text("開花のうち \(knownCount) 語は「もう知ってる」で登録した単語です")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
+    }
+
+    private var knownCount: Int {
+        progresses.count(where: \.known)
     }
 
     private func metric(_ title: String, _ value: String, _ unit: String) -> some View {
