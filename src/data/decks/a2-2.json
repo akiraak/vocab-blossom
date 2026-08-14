@@ -61,7 +61,7 @@
       "word": "liberty",
       "pos": "noun",
       "level": "A2",
-      "meaning": "自由",
+      "meaning": "自由（freedom のかたい言い方）",
       "example": "The Statue of Liberty is in New York.",
       "exampleJa": "自由の女神像はニューヨークにあります。"
     },
@@ -223,7 +223,7 @@
       "word": "luckily",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "幸運にも",
+      "meaning": "運よく／ラッキーなことに",
       "example": "Luckily, I caught the last train.",
       "exampleJa": "幸運にも、私は最終電車に間に合いました。"
     },
@@ -385,7 +385,7 @@
       "word": "marry",
       "pos": "verb",
       "level": "A2",
-      "meaning": "結婚する",
+      "meaning": "〜と結婚する",
       "example": "He married his high school classmate.",
       "exampleJa": "彼は高校の同級生と結婚しました。"
     },
@@ -394,7 +394,7 @@
       "word": "marvelous",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "すばらしい",
+      "meaning": "みごとな／驚くほどよい",
       "example": "The dinner was marvelous.",
       "exampleJa": "夕食はすばらしかったです。"
     },
@@ -511,7 +511,7 @@
       "word": "midday",
       "pos": "noun",
       "level": "A2",
-      "meaning": "正午",
+      "meaning": "正午／真昼",
       "example": "The sun is high at midday.",
       "exampleJa": "正午には太陽が高くのぼります。"
     },
@@ -862,7 +862,7 @@
       "word": "nobody",
       "pos": "pronoun",
       "level": "A2",
-      "meaning": "だれも〜ない",
+      "meaning": "だれも〜ない（話し言葉でよく使う）",
       "example": "Nobody was in the classroom.",
       "exampleJa": "教室にはだれもいませんでした。"
     },
@@ -1132,7 +1132,7 @@
       "word": "overseas",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "海外へ［で］",
+      "meaning": "外国へ［で］",
       "example": "She works overseas now.",
       "exampleJa": "彼女は今、海外で働いています。"
     },
@@ -1222,7 +1222,7 @@
       "word": "pass",
       "pos": "verb",
       "level": "A2",
-      "meaning": "手渡す／合格する／通り過ぎる",
+      "meaning": "手渡す／合格する",
       "example": "Please pass me the salt.",
       "exampleJa": "塩を取ってください。"
     },
@@ -1384,7 +1384,7 @@
       "word": "perhaps",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "もしかすると",
+      "meaning": "もしかすると／たぶん",
       "example": "Perhaps he forgot the meeting.",
       "exampleJa": "もしかすると彼は会議を忘れたのかもしれません。"
     },
@@ -1429,7 +1429,7 @@
       "word": "photograph",
       "pos": "noun",
       "level": "A2",
-      "meaning": "写真",
+      "meaning": "写真（photo の正式な言い方）",
       "example": "This is an old photograph of my grandparents.",
       "exampleJa": "これは祖父母の古い写真です。"
     },
@@ -1744,7 +1744,7 @@
       "word": "possibly",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "もしかすると",
+      "meaning": "ひょっとしたら",
       "example": "The story is possibly true.",
       "exampleJa": "その話はもしかすると本当かもしれません。"
     },
@@ -1870,7 +1870,7 @@
       "word": "principal",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "主要な",
+      "meaning": "主な／いちばん重要な",
       "example": "Rice is the principal food in Japan.",
       "exampleJa": "米は日本の主要な食べ物です。"
     },
@@ -1915,7 +1915,7 @@
       "word": "probably",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "たぶん",
+      "meaning": "おそらく（可能性が高い）",
       "example": "It will probably rain tomorrow.",
       "exampleJa": "明日はたぶん雨が降るでしょう。"
     },
@@ -1996,7 +1996,7 @@
       "word": "proper",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "適切な",
+      "meaning": "きちんとした／ちゃんとした",
       "example": "Wear proper clothes for the ceremony.",
       "exampleJa": "式には適切な服を着なさい。"
     },
@@ -2095,7 +2095,7 @@
       "word": "quick",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "速い",
+      "meaning": "すばやい／手早い",
       "example": "Let's have a quick lunch.",
       "exampleJa": "手早く昼食をとりましょう。"
     },
@@ -2680,7 +2680,7 @@
       "word": "round",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "回って／丸い",
+      "meaning": "回って／〜のまわりを",
       "example": "The earth goes round the sun.",
       "exampleJa": "地球は太陽のまわりを回ります。"
     },
@@ -2789,8 +2789,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "（for the sake of で）〜のため",
-      "example": "He quit smoking for the sake of his health.",
-      "exampleJa": "彼は健康のために禁煙しました。"
+      "example": "She studies hard for the sake of her future.",
+      "exampleJa": "彼女は自分の将来のために一生懸命勉強します。"
     },
     {
       "id": "a2-0927",
@@ -2924,8 +2924,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "はさみ",
-      "example": "Cut the paper with scissors.",
-      "exampleJa": "はさみで紙を切ってください。"
+      "example": "The scissors are on the desk.",
+      "exampleJa": "はさみは机の上にあります。"
     },
     {
       "id": "a2-0942",
@@ -3031,7 +3031,7 @@
       "word": "seem",
       "pos": "verb",
       "level": "A2",
-      "meaning": "〜のように見える",
+      "meaning": "〜のようだ／〜らしい",
       "example": "She seems happy today.",
       "exampleJa": "彼女は今日うれしそうです。"
     },
@@ -3103,7 +3103,7 @@
       "word": "several",
       "pos": "determiner",
       "level": "A2",
-      "meaning": "いくつかの",
+      "meaning": "数個の（3つ以上のいくつか）",
       "example": "I visited Kyoto several times.",
       "exampleJa": "私は京都を何回か訪れました。"
     },
@@ -3625,7 +3625,7 @@
       "word": "somebody",
       "pos": "pronoun",
       "level": "A2",
-      "meaning": "だれか",
+      "meaning": "だれか（someone のくだけた言い方）",
       "example": "Somebody left an umbrella here.",
       "exampleJa": "だれかがここに傘を置き忘れました。"
     },
@@ -3896,8 +3896,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "嵐",
-      "example": "The storm broke many trees.",
-      "exampleJa": "嵐で多くの木が折れました。"
+      "example": "Many trees fell in the storm.",
+      "exampleJa": "嵐で多くの木が倒れました。"
     },
     {
       "id": "a2-1050",
@@ -4129,7 +4129,7 @@
       "word": "supper",
       "pos": "noun",
       "level": "A2",
-      "meaning": "夕食",
+      "meaning": "夕食（軽めの夜の食事）",
       "example": "We had a light supper at nine.",
       "exampleJa": "私たちは9時に軽い夕食をとりました。"
     },
@@ -4453,7 +4453,7 @@
       "word": "though",
       "pos": "conjunction",
       "level": "A2",
-      "meaning": "〜だけれども",
+      "meaning": "〜だけれども（although のくだけた言い方）",
       "example": "Though it was late, he kept working.",
       "exampleJa": "遅い時間でしたが、彼は働き続けました。"
     },
@@ -4516,7 +4516,7 @@
       "word": "till",
       "pos": "preposition",
       "level": "A2",
-      "meaning": "〜まで（ずっと）",
+      "meaning": "〜まで（until のくだけた言い方）",
       "example": "The shop is open till nine.",
       "exampleJa": "その店は9時まで開いています。"
     },
@@ -4750,7 +4750,7 @@
       "word": "truly",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "本当に",
+      "meaning": "心から",
       "example": "I am truly sorry for the mistake.",
       "exampleJa": "その間違いを本当に申し訳なく思います。"
     },
@@ -4966,9 +4966,9 @@
       "word": "upon",
       "pos": "preposition",
       "level": "A2",
-      "meaning": "〜の上に",
-      "example": "Once upon a time, there was a king.",
-      "exampleJa": "昔々、ある王様がいました。"
+      "meaning": "〜の上に（on のかたい言い方）",
+      "example": "The old castle stands upon a hill.",
+      "exampleJa": "その古い城は丘の上に立っています。"
     },
     {
       "id": "a2-1169",
@@ -5137,7 +5137,7 @@
       "word": "wander",
       "pos": "verb",
       "level": "A2",
-      "meaning": "歩き回る",
+      "meaning": "あてもなく歩き回る／ぶらぶら歩く",
       "example": "We wandered around the old town.",
       "exampleJa": "私たちは旧市街を歩き回りました。"
     },
@@ -5174,8 +5174,8 @@
       "pos": "adjective",
       "level": "A2",
       "meaning": "弱い",
-      "example": "I am weak at math.",
-      "exampleJa": "私は数学が苦手です。"
+      "example": "The little kitten is small and weak.",
+      "exampleJa": "その小さな子猫は小さくて弱いです。"
     },
     {
       "id": "a2-1192",
@@ -5245,7 +5245,7 @@
       "word": "weep",
       "pos": "verb",
       "level": "A2",
-      "meaning": "泣く",
+      "meaning": "静かに泣く／涙を流す",
       "example": "She wept at the sad news.",
       "exampleJa": "彼女は悲しい知らせに泣きました。"
     },
@@ -5272,7 +5272,7 @@
       "word": "well-known",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "有名な",
+      "meaning": "よく知られている",
       "example": "He is a well-known writer in Japan.",
       "exampleJa": "彼は日本で有名な作家です。"
     },
@@ -5282,8 +5282,8 @@
       "pos": "adjective",
       "level": "A2",
       "meaning": "西の",
-      "example": "The sun sets in the west sky.",
-      "exampleJa": "太陽は西の空に沈みます。"
+      "example": "The west side of the town is quiet.",
+      "exampleJa": "その町の西側は静かです。"
     },
     {
       "id": "a2-1204",
@@ -5381,8 +5381,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "ワイン",
-      "example": "They drank red wine with dinner.",
-      "exampleJa": "彼らは夕食と一緒に赤ワインを飲みました。"
+      "example": "France is famous for its wine.",
+      "exampleJa": "フランスはワインで有名です。"
     },
     {
       "id": "a2-1215",
@@ -5470,7 +5470,7 @@
       "word": "worldwide",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "世界中で",
+      "meaning": "世界規模で／世界中に",
       "example": "The game is played worldwide.",
       "exampleJa": "そのゲームは世界中でプレーされています。"
     },

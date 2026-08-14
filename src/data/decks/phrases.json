@@ -106,7 +106,7 @@
       "word": "sit down",
       "pos": "phrase",
       "level": "A1",
-      "meaning": "座る",
+      "meaning": "腰を下ろす／席につく",
       "example": "Please sit down here.",
       "exampleJa": "ここに座ってください。"
     },
@@ -322,7 +322,7 @@
       "word": "hurry up",
       "pos": "phrase",
       "level": "A1",
-      "meaning": "急ぐ",
+      "meaning": "早くする／急いで",
       "example": "Hurry up! The train is coming.",
       "exampleJa": "急いで。電車が来ますよ。"
     },
@@ -493,7 +493,7 @@
       "word": "have fun",
       "pos": "phrase",
       "level": "A1",
-      "meaning": "楽しむ",
+      "meaning": "楽しく過ごす",
       "example": "Have fun at the party!",
       "exampleJa": "パーティーを楽しんでね。"
     },
@@ -691,7 +691,7 @@
       "word": "think of",
       "pos": "phrase",
       "level": "A1",
-      "meaning": "〜を思いつく",
+      "meaning": "〜のことを考える／〜を思いつく",
       "example": "I thought of a good idea.",
       "exampleJa": "私はよい考えを思いつきました。"
     },
@@ -782,8 +782,8 @@
       "pos": "phrase",
       "level": "A1",
       "meaning": "1組の",
-      "example": "I bought a pair of shoes.",
-      "exampleJa": "私は靴を1足買いました。"
+      "example": "I need a pair of gloves.",
+      "exampleJa": "私は手袋が1組必要です。"
     },
     {
       "id": "ph-0088",
@@ -1088,7 +1088,7 @@
       "pos": "phrase",
       "level": "A2",
       "meaning": "結局",
-      "example": "After all, he didn't come.",
+      "example": "He didn't come after all.",
       "exampleJa": "結局、彼は来ませんでした。"
     },
     {
@@ -1168,7 +1168,7 @@
       "word": "such as",
       "pos": "phrase",
       "level": "A2",
-      "meaning": "〜のような",
+      "meaning": "たとえば〜など",
       "example": "I like sports such as tennis and soccer.",
       "exampleJa": "私はテニスやサッカーのようなスポーツが好きです。"
     },
@@ -1627,7 +1627,7 @@
       "word": "look after",
       "pos": "phrase",
       "level": "A2",
-      "meaning": "〜の世話をする",
+      "meaning": "〜の面倒を見る",
       "example": "Can you look after my cat this weekend?",
       "exampleJa": "今週末、私の猫の世話をしてくれますか。"
     },

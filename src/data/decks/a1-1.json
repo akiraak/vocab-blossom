@@ -25,7 +25,7 @@
       "word": "above",
       "pos": "adverb",
       "level": "A1",
-      "meaning": "〜の上に",
+      "meaning": "〜より上に／上の方に",
       "example": "The plane is above the clouds.",
       "exampleJa": "飛行機は雲の上にいます。"
     },
@@ -241,7 +241,7 @@
       "word": "angry",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "怒って",
+      "meaning": "怒っている",
       "example": "My mother was angry with me.",
       "exampleJa": "母は私に怒っていました。"
     },
@@ -286,7 +286,7 @@
       "word": "anybody",
       "pos": "pronoun",
       "level": "A1",
-      "meaning": "だれか／だれも",
+      "meaning": "だれか（anyone のくだけた言い方）",
       "example": "Is anybody home?",
       "exampleJa": "だれか家にいますか。"
     },
@@ -638,8 +638,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "ベッド",
-      "example": "I go to bed at ten.",
-      "exampleJa": "私は10時に寝ます。"
+      "example": "My bed is very soft.",
+      "exampleJa": "私のベッドはとても柔らかいです。"
     },
     {
       "id": "a1-0072",
@@ -665,8 +665,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "牛肉",
-      "example": "This beef is very soft.",
-      "exampleJa": "この牛肉はとてもやわらかいです。"
+      "example": "I ate beef for dinner.",
+      "exampleJa": "私は夕食に牛肉を食べました。"
     },
     {
       "id": "a1-0075",
@@ -718,7 +718,7 @@
       "word": "below",
       "pos": "adverb",
       "level": "A1",
-      "meaning": "〜の下に",
+      "meaning": "〜より下に／下の方に",
       "example": "Write your name below the line.",
       "exampleJa": "線の下に名前を書いてください。"
     },
@@ -781,7 +781,7 @@
       "word": "bike",
       "pos": "noun",
       "level": "A1",
-      "meaning": "自転車",
+      "meaning": "自転車（bicycle のくだけた言い方）",
       "example": "My bike is new.",
       "exampleJa": "私の自転車は新しいです。"
     },
@@ -1141,7 +1141,7 @@
       "word": "burger",
       "pos": "noun",
       "level": "A1",
-      "meaning": "ハンバーガー",
+      "meaning": "ハンバーガー（hamburger のくだけた言い方）",
       "example": "I ate a burger for lunch.",
       "exampleJa": "私は昼食にハンバーガーを食べました。"
     },
@@ -1574,8 +1574,8 @@
       "pos": "adjective",
       "level": "A1",
       "meaning": "きれいな／清潔な",
-      "example": "Keep your room clean.",
-      "exampleJa": "部屋をきれいにしておきなさい。"
+      "example": "My hands are clean now.",
+      "exampleJa": "私の手は今きれいです。"
     },
     {
       "id": "a1-0176",
@@ -1682,15 +1682,15 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "コート",
-      "example": "Put on your coat. It's cold.",
-      "exampleJa": "コートを着なさい。寒いですよ。"
+      "example": "I bought a new coat.",
+      "exampleJa": "私は新しいコートを買いました。"
     },
     {
       "id": "a1-0188",
       "word": "code",
       "pos": "noun",
       "level": "A1",
-      "meaning": "コード／記号",
+      "meaning": "コード／暗証番号",
       "example": "What is the code for this door?",
       "exampleJa": "このドアの暗証番号は何ですか。"
     },
@@ -1708,7 +1708,7 @@
       "word": "coke",
       "pos": "noun",
       "level": "A1",
-      "meaning": "コーラ",
+      "meaning": "コーラ（くだけた言い方）",
       "example": "Two cokes, please.",
       "exampleJa": "コーラを2つください。"
     },
@@ -1744,7 +1744,7 @@
       "word": "college",
       "pos": "noun",
       "level": "A1",
-      "meaning": "大学",
+      "meaning": "大学（アメリカでの言い方）",
       "example": "My sister goes to college.",
       "exampleJa": "姉は大学に通っています。"
     },
@@ -1834,7 +1834,7 @@
       "word": "cop",
       "pos": "noun",
       "level": "A1",
-      "meaning": "警察官",
+      "meaning": "警察官（くだけた言い方）",
       "example": "A cop is standing at the corner.",
       "exampleJa": "警察官が角に立っています。"
     },
@@ -1879,7 +1879,7 @@
       "word": "couch",
       "pos": "noun",
       "level": "A1",
-      "meaning": "ソファー",
+      "meaning": "ソファー／長いす",
       "example": "The cat is sleeping on the couch.",
       "exampleJa": "猫がソファーで眠っています。"
     },
@@ -1898,8 +1898,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "コース／講座",
-      "example": "Of course you can come!",
-      "exampleJa": "もちろん来ていいですよ。"
+      "example": "She is taking an English course.",
+      "exampleJa": "彼女は英語の講座を受けています。"
     },
     {
       "id": "a1-0212",
@@ -2258,8 +2258,8 @@
       "pos": "adverb",
       "level": "A1",
       "meaning": "下へ",
-      "example": "Sit down, please.",
-      "exampleJa": "座ってください。"
+      "example": "Please put the bag down.",
+      "exampleJa": "かばんを下に置いてください。"
     },
     {
       "id": "a1-0252",
@@ -2563,7 +2563,7 @@
       "word": "everybody",
       "pos": "pronoun",
       "level": "A1",
-      "meaning": "みんな",
+      "meaning": "みんな（everyone のくだけた言い方）",
       "example": "Everybody likes her.",
       "exampleJa": "みんな彼女が好きです。"
     },
@@ -2617,7 +2617,7 @@
       "word": "excellent",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "すばらしい",
+      "meaning": "優秀な／非常に優れた",
       "example": "Your speech was excellent!",
       "exampleJa": "あなたのスピーチはすばらしかったです。"
     },
@@ -2645,8 +2645,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "言い訳",
-      "example": "Excuse me, where is the station?",
-      "exampleJa": "すみません、駅はどこですか。"
+      "example": "That is just an excuse.",
+      "exampleJa": "それはただの言い訳です。"
     },
     {
       "id": "a1-0295",
@@ -2716,7 +2716,7 @@
       "word": "false",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "間違った",
+      "meaning": "誤りの／事実と違う",
       "example": "True or false?",
       "exampleJa": "正しいですか、間違っていますか。"
     },
@@ -3221,8 +3221,8 @@
       "pos": "adjective",
       "level": "A1",
       "meaning": "楽しい",
-      "example": "The party was a lot of fun.",
-      "exampleJa": "パーティーはとても楽しかったです。"
+      "example": "It was a fun party.",
+      "exampleJa": "それは楽しいパーティーでした。"
     },
     {
       "id": "a1-0359",
@@ -3338,8 +3338,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "ガラス／コップ",
-      "example": "Can I have a glass of water?",
-      "exampleJa": "水を一杯もらえますか。"
+      "example": "This window is made of glass.",
+      "exampleJa": "この窓はガラスでできています。"
     },
     {
       "id": "a1-0372",
@@ -3571,7 +3571,7 @@
       "word": "guest",
       "pos": "noun",
       "level": "A1",
-      "meaning": "客",
+      "meaning": "招待客／宿泊客",
       "example": "We have guests this evening.",
       "exampleJa": "今晩お客さんが来ます。"
     },
@@ -3635,8 +3635,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "ホール／会館",
-      "example": "The concert is at the city hall.",
-      "exampleJa": "コンサートは市民ホールであります。"
+      "example": "The concert is in a large hall.",
+      "exampleJa": "コンサートは大きなホールで行われます。"
     },
     {
       "id": "a1-0405",
@@ -3715,7 +3715,7 @@
       "word": "have to",
       "pos": "modal",
       "level": "A1",
-      "meaning": "〜しなければならない",
+      "meaning": "〜する必要がある",
       "example": "I have to clean my room today.",
       "exampleJa": "私は今日部屋を掃除しなければなりません。"
     },
@@ -4345,7 +4345,7 @@
       "word": "kid",
       "pos": "noun",
       "level": "A1",
-      "meaning": "子ども",
+      "meaning": "子ども（child のくだけた言い方）",
       "example": "The kids are playing outside.",
       "exampleJa": "子どもたちは外で遊んでいます。"
     },
@@ -4453,7 +4453,7 @@
       "word": "large",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "大きい",
+      "meaning": "大きい（サイズが）／広い",
       "example": "A large orange juice, please.",
       "exampleJa": "オレンジジュースのLサイズをください。"
     },

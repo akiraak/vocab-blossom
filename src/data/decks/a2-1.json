@@ -331,7 +331,7 @@
       "word": "alright",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "大丈夫で",
+      "meaning": "大丈夫で（all right のくだけた書き方）",
       "example": "Are you alright? You look pale.",
       "exampleJa": "大丈夫ですか。顔色が悪いですよ。"
     },
@@ -448,7 +448,7 @@
       "word": "annoying",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "いらいらさせる",
+      "meaning": "うっとうしい／迷惑な",
       "example": "The sound of the drill is annoying.",
       "exampleJa": "ドリルの音はいらいらします。"
     },
@@ -457,7 +457,7 @@
       "word": "anxious",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "心配して",
+      "meaning": "不安で／気がかりな",
       "example": "She was anxious about the test.",
       "exampleJa": "彼女はテストのことを心配していました。"
     },
@@ -493,7 +493,7 @@
       "word": "apart",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "離れて",
+      "meaning": "（間が）離れて／ばらばらに",
       "example": "The two towns are ten kilometers apart.",
       "exampleJa": "その2つの町は10キロ離れています。"
     },
@@ -701,8 +701,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "攻撃",
-      "example": "The castle was strong against attack.",
-      "exampleJa": "その城は攻撃に強かったです。"
+      "example": "The castle was safe from attack.",
+      "exampleJa": "その城は攻撃から安全でした。"
     },
     {
       "id": "a2-0079",
@@ -729,7 +729,7 @@
       "level": "A2",
       "meaning": "態度",
       "example": "She has a positive attitude.",
-      "exampleJa": "彼女は前向きな態度をしています。"
+      "exampleJa": "彼女は前向きな態度をとっています。"
     },
     {
       "id": "a2-0082",
@@ -817,7 +817,7 @@
       "word": "awful",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "ひどい",
+      "meaning": "ひどく悪い／いやな",
       "example": "The weather was awful last week.",
       "exampleJa": "先週は天気がひどかったです。"
     },
@@ -954,7 +954,7 @@
       "level": "A2",
       "meaning": "ひとまとまり／1回分",
       "example": "She baked a batch of cookies.",
-      "exampleJa": "彼女はクッキーをひと焼き分作りました。"
+      "exampleJa": "彼女はクッキーを1回分焼きました。"
     },
     {
       "id": "a2-0107",
@@ -1438,7 +1438,7 @@
       "word": "cab",
       "pos": "noun",
       "level": "A2",
-      "meaning": "タクシー",
+      "meaning": "タクシー（taxi のくだけた言い方）",
       "example": "Let's take a cab to the airport.",
       "exampleJa": "空港までタクシーに乗りましょう。"
     },
@@ -1465,7 +1465,7 @@
       "word": "camping",
       "pos": "noun",
       "level": "A2",
-      "meaning": "キャンプ",
+      "meaning": "キャンプをすること",
       "example": "We go camping every August.",
       "exampleJa": "私たちは毎年8月にキャンプに行きます。"
     },
@@ -2149,7 +2149,7 @@
       "word": "concentrate",
       "pos": "verb",
       "level": "A2",
-      "meaning": "集中する",
+      "meaning": "気持ちを集中させる",
       "example": "I can't concentrate with this noise.",
       "exampleJa": "この騒音では集中できません。"
     },
@@ -2203,7 +2203,7 @@
       "word": "consequence",
       "pos": "noun",
       "level": "A2",
-      "meaning": "結果",
+      "meaning": "行動の結果／影響",
       "example": "Think about the consequences of your actions.",
       "exampleJa": "自分の行動の結果について考えなさい。"
     },
@@ -2366,8 +2366,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "国／田舎",
-      "example": "Japan is an island country.",
-      "exampleJa": "日本は島国です。"
+      "example": "Which country do you want to visit?",
+      "exampleJa": "あなたはどの国を訪れたいですか？"
     },
     {
       "id": "a2-0264",
@@ -2447,8 +2447,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "信用／クレジット",
-      "example": "Can I pay by credit card?",
-      "exampleJa": "クレジットカードで払えますか。"
+      "example": "I bought the bike on credit.",
+      "exampleJa": "私はその自転車をクレジットで買いました。"
     },
     {
       "id": "a2-0273",
@@ -2572,7 +2572,7 @@
       "word": "customer",
       "pos": "noun",
       "level": "A2",
-      "meaning": "客",
+      "meaning": "（店の）客／顧客",
       "example": "The store has many customers today.",
       "exampleJa": "その店は今日お客さんが多いです。"
     },
@@ -2644,7 +2644,7 @@
       "word": "dead",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "死んだ",
+      "meaning": "死んだ／（電池などが）切れた",
       "example": "The battery is dead.",
       "exampleJa": "電池が切れています。"
     },
@@ -3157,7 +3157,7 @@
       "word": "during",
       "pos": "preposition",
       "level": "A2",
-      "meaning": "〜の間に",
+      "meaning": "〜の間ずっと／〜中に",
       "example": "Don't talk during the class.",
       "exampleJa": "授業中に話してはいけません。"
     },
@@ -3221,8 +3221,8 @@
       "pos": "adjective",
       "level": "A2",
       "meaning": "東の",
-      "example": "The sun rises in the east sky.",
-      "exampleJa": "太陽は東の空にのぼります。"
+      "example": "The east side of the city is quiet.",
+      "exampleJa": "その市の東側は静かです。"
     },
     {
       "id": "a2-0359",
@@ -3392,8 +3392,8 @@
       "pos": "adverb",
       "level": "A2",
       "meaning": "十分に",
-      "example": "Do we have enough food for everyone?",
-      "exampleJa": "みんなの分の食べ物は十分ありますか。"
+      "example": "This box is not big enough.",
+      "exampleJa": "この箱は十分な大きさではありません。"
     },
     {
       "id": "a2-0378",
@@ -3437,8 +3437,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "うらやましさ",
-      "example": "I felt envy at his new bike.",
-      "exampleJa": "私は彼の新しい自転車をうらやましく思いました。"
+      "example": "I looked at his new bike with envy.",
+      "exampleJa": "私は彼の新しい自転車をうらやましそうに見ました。"
     },
     {
       "id": "a2-0383",
@@ -3742,7 +3742,7 @@
       "word": "fantastic",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "すばらしい",
+      "meaning": "最高の／すごくいい",
       "example": "The view from the top was fantastic.",
       "exampleJa": "頂上からの眺めはすばらしかったです。"
     },
@@ -3769,7 +3769,7 @@
       "word": "fascinating",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "魅力的な",
+      "meaning": "とても興味深い／夢中にさせる",
       "example": "The story of the pyramids is fascinating.",
       "exampleJa": "ピラミッドの話はとても興味深いです。"
     },
@@ -3922,7 +3922,7 @@
       "word": "finally",
       "pos": "adverb",
       "level": "A2",
-      "meaning": "ついに",
+      "meaning": "ついに／最後に",
       "example": "The bus finally arrived.",
       "exampleJa": "バスがついに到着しました。"
     },
@@ -3949,7 +3949,7 @@
       "word": "fit",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "健康な／ぴったり合う",
+      "meaning": "健康な／適した",
       "example": "He stays fit by running.",
       "exampleJa": "彼は走ることで健康を保っています。"
     },
@@ -3968,8 +3968,8 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "ノミ",
-      "example": "We found cheap dishes at the flea market.",
-      "exampleJa": "私たちはフリーマーケットで安い食器を見つけました。"
+      "example": "My dog has fleas.",
+      "exampleJa": "私の犬にはノミがいます。"
     },
     {
       "id": "a2-0442",
@@ -4174,7 +4174,7 @@
       "word": "fridge",
       "pos": "noun",
       "level": "A2",
-      "meaning": "冷蔵庫",
+      "meaning": "冷蔵庫（refrigerator のくだけた言い方）",
       "example": "There is some juice in the fridge.",
       "exampleJa": "冷蔵庫にジュースがあります。"
     },
@@ -4462,7 +4462,7 @@
       "word": "granddad",
       "pos": "noun",
       "level": "A2",
-      "meaning": "おじいちゃん",
+      "meaning": "おじいちゃん（主にイギリスで使う言い方）",
       "example": "Granddad tells us funny stories.",
       "exampleJa": "おじいちゃんはおもしろい話をしてくれます。"
     },
@@ -4489,7 +4489,7 @@
       "word": "granny",
       "pos": "noun",
       "level": "A2",
-      "meaning": "おばあちゃん",
+      "meaning": "おばあちゃん（grandma より親しみをこめた言い方）",
       "example": "Granny bakes cookies for us.",
       "exampleJa": "おばあちゃんは私たちにクッキーを焼いてくれます。"
     },
@@ -4732,7 +4732,7 @@
       "word": "helpful",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "役に立つ",
+      "meaning": "助けになる／親切な",
       "example": "Your advice was very helpful.",
       "exampleJa": "あなたの助言はとても役に立ちました。"
     },
@@ -4777,7 +4777,7 @@
       "word": "hike",
       "pos": "noun",
       "level": "A2",
-      "meaning": "ハイキング",
+      "meaning": "ハイキング（1 回の山歩き）",
       "example": "We went on a hike in the hills.",
       "exampleJa": "私たちは丘へハイキングに行きました。"
     },
@@ -4786,7 +4786,7 @@
       "word": "hiking",
       "pos": "noun",
       "level": "A2",
-      "meaning": "ハイキング",
+      "meaning": "ハイキングをすること",
       "example": "Hiking in autumn is very nice.",
       "exampleJa": "秋のハイキングはとても気持ちがいいです。"
     },
@@ -4921,7 +4921,7 @@
       "word": "ill",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "病気の",
+      "meaning": "病気の（sick よりかたい言い方）",
       "example": "He is ill and can't come today.",
       "exampleJa": "彼は病気で今日来られません。"
     },
@@ -5012,8 +5012,8 @@
       "pos": "verb",
       "level": "A2",
       "meaning": "改善する／上達する",
-      "example": "My English is improving little by little.",
-      "exampleJa": "私の英語は少しずつ上達しています。"
+      "example": "I want to improve my cooking skills.",
+      "exampleJa": "私は料理の腕を上達させたいです。"
     },
     {
       "id": "a2-0558",
@@ -5057,7 +5057,7 @@
       "pos": "noun",
       "level": "A2",
       "meaning": "独立",
-      "example": "The country got independence in 1960.",
+      "example": "The country gained independence in 1960.",
       "exampleJa": "その国は1960年に独立しました。"
     },
     {
@@ -5281,7 +5281,7 @@
       "word": "joy",
       "pos": "noun",
       "level": "A2",
-      "meaning": "喜び",
+      "meaning": "大きな喜び",
       "example": "The children jumped for joy.",
       "exampleJa": "子どもたちは喜んで跳び上がりました。"
     },
@@ -5344,7 +5344,7 @@
       "word": "kindly",
       "pos": "adjective",
       "level": "A2",
-      "meaning": "親切な／親切に",
+      "meaning": "親切な",
       "example": "The kindly old man showed us the way.",
       "exampleJa": "親切な老人が道を教えてくれました。"
     },

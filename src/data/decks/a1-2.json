@@ -133,7 +133,7 @@
       "word": "living",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "生きている",
+      "meaning": "生きている（名詞の前で使う）",
       "example": "All living things need water.",
       "exampleJa": "すべての生き物は水を必要とします。"
     },
@@ -332,8 +332,8 @@
       "pos": "modal",
       "level": "A1",
       "meaning": "〜してもよい／〜かもしれない",
-      "example": "May I come in?",
-      "exampleJa": "入ってもいいですか。"
+      "example": "It may rain this afternoon.",
+      "exampleJa": "午後は雨が降るかもしれません。"
     },
     {
       "id": "a1-0544",
@@ -431,8 +431,8 @@
       "pos": "adjective",
       "level": "A1",
       "meaning": "真ん中の",
-      "example": "He is a middle school student.",
-      "exampleJa": "彼は中学生です。"
+      "example": "I sat in the middle seat.",
+      "exampleJa": "私は真ん中の席に座りました。"
     },
     {
       "id": "a1-0555",
@@ -475,7 +475,7 @@
       "word": "mobile",
       "pos": "noun",
       "level": "A1",
-      "meaning": "携帯電話",
+      "meaning": "携帯電話（mobile phone のくだけた言い方）",
       "example": "Call me on my mobile.",
       "exampleJa": "私の携帯に電話してください。"
     },
@@ -539,7 +539,7 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "サル",
-      "example": "Monkeys live in this mountain.",
+      "example": "Monkeys live on this mountain.",
       "exampleJa": "この山にはサルが住んでいます。"
     },
     {
@@ -863,8 +863,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "鼻",
-      "example": "An elephant has a long nose.",
-      "exampleJa": "ゾウは鼻が長いです。"
+      "example": "The dog has a black nose.",
+      "exampleJa": "その犬は鼻が黒いです。"
     },
     {
       "id": "a1-0603",
@@ -1141,7 +1141,7 @@
       "word": "p.m.",
       "pos": "adverb",
       "level": "A1",
-      "meaning": "午後",
+      "meaning": "午後（時刻のあとにつける）",
       "example": "The show starts at 7 p.m.",
       "exampleJa": "ショーは午後7時に始まります。"
     },
@@ -1403,8 +1403,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "写真／絵",
-      "example": "Can you take a picture of us?",
-      "exampleJa": "私たちの写真を撮ってもらえますか。"
+      "example": "She drew a picture of a cat.",
+      "exampleJa": "彼女は猫の絵を描きました。"
     },
     {
       "id": "a1-0663",
@@ -1465,7 +1465,7 @@
       "word": "plane",
       "pos": "noun",
       "level": "A1",
-      "meaning": "飛行機",
+      "meaning": "飛行機（airplane の短い言い方）",
       "example": "The plane arrived on time.",
       "exampleJa": "飛行機は時間どおりに到着しました。"
     },
@@ -1501,7 +1501,7 @@
       "word": "pleasure",
       "pos": "noun",
       "level": "A1",
-      "meaning": "喜び",
+      "meaning": "楽しみ／満足",
       "example": "It's my pleasure to help you.",
       "exampleJa": "お手伝いできてうれしいです。"
     },
@@ -1825,7 +1825,7 @@
       "word": "real",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "本当の",
+      "meaning": "本物の／実際の",
       "example": "Is this a real diamond?",
       "exampleJa": "これは本物のダイヤモンドですか。"
     },
@@ -2186,8 +2186,8 @@
       "pos": "adjective",
       "level": "A1",
       "meaning": "2番目の",
-      "example": "My room is on the second floor.",
-      "exampleJa": "私の部屋は2階にあります。"
+      "example": "This is my second cup of tea.",
+      "exampleJa": "これは私の2杯目のお茶です。"
     },
     {
       "id": "a1-0750",
@@ -2339,8 +2339,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "靴",
-      "example": "Take off your shoes here.",
-      "exampleJa": "ここで靴を脱いでください。"
+      "example": "These shoes are too small for me.",
+      "exampleJa": "この靴は私には小さすぎます。"
     },
     {
       "id": "a1-0767",
@@ -2968,7 +2968,7 @@
       "word": "store",
       "pos": "noun",
       "level": "A1",
-      "meaning": "店",
+      "meaning": "店（アメリカ英語の言い方）",
       "example": "The store is open until nine.",
       "exampleJa": "その店は9時まで開いています。"
     },
@@ -3139,7 +3139,7 @@
       "word": "sunshine",
       "pos": "noun",
       "level": "A1",
-      "meaning": "日光",
+      "meaning": "日ざし／日なた",
       "example": "The cat likes sitting in the sunshine.",
       "exampleJa": "その猫は日なたに座るのが好きです。"
     },
@@ -3229,7 +3229,7 @@
       "word": "swimming pool",
       "pos": "noun",
       "level": "A1",
-      "meaning": "プール",
+      "meaning": "水泳プール／スイミングプール",
       "example": "The hotel has a big swimming pool.",
       "exampleJa": "そのホテルには大きなプールがあります。"
     },
@@ -3256,7 +3256,7 @@
       "word": "talk",
       "pos": "verb",
       "level": "A1",
-      "meaning": "話す",
+      "meaning": "おしゃべりする／会話する",
       "example": "We talked about the movie.",
       "exampleJa": "私たちはその映画について話しました。"
     },
@@ -3284,8 +3284,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "紅茶／お茶",
-      "example": "Would you like some tea?",
-      "exampleJa": "お茶はいかがですか。"
+      "example": "I drink green tea every morning.",
+      "exampleJa": "私は毎朝緑茶を飲みます。"
     },
     {
       "id": "a1-0872",
@@ -3328,7 +3328,7 @@
       "word": "telephone",
       "pos": "noun",
       "level": "A1",
-      "meaning": "電話",
+      "meaning": "電話（phone の正式な言い方）",
       "example": "May I use your telephone?",
       "exampleJa": "電話をお借りしてもいいですか。"
     },
@@ -3357,7 +3357,7 @@
       "level": "A1",
       "meaning": "寺",
       "example": "This temple is 500 years old.",
-      "exampleJa": "この寺は500年前に建てられました。"
+      "exampleJa": "この寺は500年の歴史があります。"
     },
     {
       "id": "a1-0880",
@@ -3365,8 +3365,8 @@
       "pos": "number",
       "level": "A1",
       "meaning": "10",
-      "example": "I go to bed at ten.",
-      "exampleJa": "私は10時に寝ます。"
+      "example": "I have ten pencils.",
+      "exampleJa": "私は鉛筆を10本持っています。"
     },
     {
       "id": "a1-0881",
@@ -3409,7 +3409,7 @@
       "word": "thank",
       "pos": "verb",
       "level": "A1",
-      "meaning": "感謝する",
+      "meaning": "（人に）お礼を言う",
       "example": "Thank you for your help.",
       "exampleJa": "手伝ってくれてありがとう。"
     },
@@ -3635,8 +3635,8 @@
       "pos": "adverb",
       "level": "A1",
       "meaning": "今夜",
-      "example": "The moon is beautiful tonight.",
-      "exampleJa": "今夜は月がきれいです。"
+      "example": "I will study English tonight.",
+      "exampleJa": "私は今夜英語を勉強します。"
     },
     {
       "id": "a1-0911",
@@ -3850,7 +3850,7 @@
       "word": "TV",
       "pos": "noun",
       "level": "A1",
-      "meaning": "テレビ",
+      "meaning": "テレビ（television の略）",
       "example": "I watch TV for an hour a day.",
       "exampleJa": "私は1日1時間テレビを見ます。"
     },
@@ -3932,8 +3932,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "下線",
-      "example": "Put an underline under the new words.",
-      "exampleJa": "新しい単語に下線を引きなさい。"
+      "example": "This word has a red underline.",
+      "exampleJa": "この単語には赤い下線が引いてあります。"
     },
     {
       "id": "a1-0944",
@@ -4004,8 +4004,8 @@
       "pos": "adverb",
       "level": "A1",
       "meaning": "とても",
-      "example": "This book is very interesting.",
-      "exampleJa": "この本はとてもおもしろいです。"
+      "example": "She runs very fast.",
+      "exampleJa": "彼女はとても速く走ります。"
     },
     {
       "id": "a1-0952",
@@ -4075,7 +4075,7 @@
       "word": "wake",
       "pos": "verb",
       "level": "A1",
-      "meaning": "目を覚ます",
+      "meaning": "目が覚める／（人を）起こす",
       "example": "I wake up at six every day.",
       "exampleJa": "私は毎日6時に目を覚まします。"
     },
@@ -4148,8 +4148,8 @@
       "pos": "noun",
       "level": "A1",
       "meaning": "水",
-      "example": "Can I have a glass of water?",
-      "exampleJa": "水を一杯もらえますか。"
+      "example": "I drink water every morning.",
+      "exampleJa": "私は毎朝水を飲みます。"
     },
     {
       "id": "a1-0968",
@@ -4166,7 +4166,7 @@
       "pos": "verb",
       "level": "A1",
       "meaning": "着ている",
-      "example": "She wears a red sweater today.",
+      "example": "She is wearing a red sweater today.",
       "exampleJa": "彼女は今日赤いセーターを着ています。"
     },
     {
@@ -4390,7 +4390,7 @@
       "word": "wonderful",
       "pos": "adjective",
       "level": "A1",
-      "meaning": "すばらしい",
+      "meaning": "すばらしい／すてきな",
       "example": "We had a wonderful time.",
       "exampleJa": "私たちはすばらしい時間を過ごしました。"
     },
@@ -4480,7 +4480,7 @@
       "word": "yard",
       "pos": "noun",
       "level": "A1",
-      "meaning": "庭",
+      "meaning": "庭（家のまわりの空き地）",
       "example": "The children are playing in the yard.",
       "exampleJa": "子どもたちは庭で遊んでいます。"
     },

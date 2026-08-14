@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { decks } from './decks'
+import { findHeadword } from '../lib/inflect'
 import type { PartOfSpeech, WordEntry } from './types'
 
 const POS: PartOfSpeech[] = [
@@ -78,5 +79,58 @@ describe('デッキデータ', () => {
         expect(w.id).toBe(`${prefix}-${String(i + 1).padStart(4, '0')}`)
       })
     }
+  })
+})
+
+/** 同じ値を持つエントリを「値 -> 単語一覧」の形で集める */
+function duplicatesBy(pick: (w: WordEntry) => string): string[] {
+  const groups = new Map<string, WordEntry[]>()
+  for (const w of allWords) {
+    const key = pick(w)
+    groups.set(key, [...(groups.get(key) ?? []), w])
+  }
+  return [...groups]
+    .filter(([, ws]) => ws.length > 1)
+    .map(([key, ws]) => `${key} -> ${ws.map((w) => `${w.id} ${w.word}`).join(', ')}`)
+}
+
+describe('訳・例文の内容', () => {
+  it('意味が全デッキを通して重複しない（4択で正解が複数になるため）', () => {
+    expect(duplicatesBy((w) => w.meaning)).toEqual([])
+  })
+
+  it('例文が全デッキを通して重複しない', () => {
+    expect(duplicatesBy((w) => w.example)).toEqual([])
+  })
+
+  it('例文が見出し語（活用形を含む）を含む', () => {
+    const missing = allWords
+      .filter((w) => !findHeadword(w.example, w.word))
+      .map((w) => `${w.id} ${w.word} | ${w.example}`)
+    expect(missing).toEqual([])
+  })
+
+  it('例文が初学者向けの短文に収まる（3〜12 語）', () => {
+    const outOfRange = allWords
+      .filter((w) => {
+        const count = w.example.split(/\s+/).length
+        return count < 3 || count > 12
+      })
+      .map((w) => `${w.id} ${w.word} | ${w.example}`)
+    expect(outOfRange).toEqual([])
+  })
+
+  it('意味は 2 個まで（「／」区切り）', () => {
+    const tooMany = allWords
+      .filter((w) => w.meaning.split('／').length > 2)
+      .map((w) => `${w.id} ${w.word} | ${w.meaning}`)
+    expect(tooMany).toEqual([])
+  })
+
+  it('例文訳が句点で終わる', () => {
+    const bad = allWords
+      .filter((w) => !/[。？！]$/.test(w.exampleJa.trim()))
+      .map((w) => `${w.id} ${w.word} | ${w.exampleJa}`)
+    expect(bad).toEqual([])
   })
 })
