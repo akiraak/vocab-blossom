@@ -1,10 +1,11 @@
 # TODO
 
-- MVP 実装（レベル選択オンボーディング、学習/復習ループ、庭ビジュアル、単語帳一覧、統計、設定）[plan](docs/plans/mvp-implementation.md)
-  - [ ] Phase 1: 基盤（依存追加、SRS/クイズ/セッションの純ロジック、Dexie、設定、TTS、ルーティング）
-  - [ ] Phase 2: オンボーディング + ホーム（庭・ストリーク）
-  - [ ] Phase 3: 学習/復習セッション（提示カード・4 形式クイズ・再出題・締め画面）
-  - [ ] Phase 4: 単語帳一覧・単語詳細
-  - [ ] Phase 5: 統計・設定（エクスポート/インポート）
-  - [ ] Phase 6: 仕上げ（テスト整備、ビルド・PWA・レスポンシブ確認）
-- iOS アプリ実装（MVP の PWA 検証後。方式は要検討: Capacitor でのラップ / React Native / Swift ネイティブ）
+- iOS ネイティブ実装（SwiftUI。Web/PWA からの全面移行）[plan](docs/plans/ios-native-migration.md)
+  - [ ] Phase 1: プロジェクト基盤（XcodeGen、単語 JSON 同梱、SwiftData、設定、TTS、TabView 骨格、Web 資産の削除）
+  - [ ] Phase 2: コアロジック移植（日付/SRS/クイズ生成/セッション構築 + 単体テスト）
+  - [ ] Phase 3: オンボーディング + ホーム（庭・ストリーク）
+  - [ ] Phase 4: 学習/復習セッション（提示カード・4 形式クイズ・再出題・締め画面）
+  - [ ] Phase 5: 単語帳一覧・単語詳細
+  - [ ] Phase 6: 統計・設定（エクスポート/インポート）
+  - [ ] Phase 7: 仕上げ（アイコン、実機確認、Dynamic Type / VoiceOver、SwiftLint）
+- 端末間の進捗同期（PC / 複数端末で使うようになったら。MVP はエクスポート/インポートのみ）
