@@ -19,6 +19,11 @@ struct SeededRNG: RandomNumberGenerator {
     }
 }
 
+extension ShuffleOrder {
+    /// 並び順を固定したいテストで使う。端末ごとの種（`.install`）に左右されないようにする
+    static let test = ShuffleOrder(seed: 20_260_816)
+}
+
 enum TestDate {
     /// ローカルタイムゾーンの正午。日付境界の丸めに影響されないよう昼を基準にする
     static func at(_ year: Int, _ month: Int, _ day: Int, hour: Int = 12) -> Date {

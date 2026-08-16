@@ -26,6 +26,8 @@ enum Dashboard {
         var newWordPool: [WordEntry]
         var newWordsPerDay: Int
         var reviewLimitPerDay: Int
+        /// 出題順をランダムにする並び
+        var order: ShuffleOrder = .install
     }
 
     /// AnswerLog から集計に必要な分だけ取り出した値
@@ -55,7 +57,8 @@ enum Dashboard {
                 newWordsPerDay: input.newWordsPerDay,
                 reviewLimitPerDay: input.reviewLimitPerDay,
                 reviewsDoneToday: reviewsDoneToday,
-                newWordsDoneToday: newWordsDoneToday
+                newWordsDoneToday: newWordsDoneToday,
+                order: input.order
             )
         )
 

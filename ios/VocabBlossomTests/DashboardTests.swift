@@ -6,7 +6,7 @@ import Testing
 @Suite("ホーム・統計の集計")
 struct DashboardTests {
     let now = TestDate.at(2026, 8, 14)
-    let pool = WordStore.shared.newWordPool(level: .a1)
+    let pool = WordStore.shared.newWordPool(level: .a1, order: .test)
 
     private func input(
         progress: [ProgressSnapshot] = [],
@@ -21,7 +21,8 @@ struct DashboardTests {
             logs: logs,
             newWordPool: pool,
             newWordsPerDay: newWordsPerDay,
-            reviewLimitPerDay: 60
+            reviewLimitPerDay: 60,
+            order: .test
         )
     }
 

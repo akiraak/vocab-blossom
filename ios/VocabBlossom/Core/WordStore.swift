@@ -63,27 +63,10 @@ final class WordStore {
 
     /// 新規学習で出す順番。
     ///
-    /// レベル内の単語は ID 順（＝ CEFR-J の並び）だが、熟語デッキを後ろにまとめると
-    /// 何百語も進むまで熟語に触れられない。10 語ごとに 1 つ混ぜて均す。
-    func newWordPool(level: CefrLevel) -> [WordEntry] {
-        let words = words(level: level)
-        let plain = words.filter { $0.pos != .phrase }
-        let phrases = words.filter { $0.pos == .phrase }
-        guard !phrases.isEmpty else { return plain }
-
-        let step = max(1, plain.count / phrases.count)
-        var result: [WordEntry] = []
-        result.reserveCapacity(words.count)
-        var phraseIndex = 0
-        for (offset, word) in plain.enumerated() {
-            result.append(word)
-            if (offset + 1) % step == 0, phraseIndex < phrases.count {
-                result.append(phrases[phraseIndex])
-                phraseIndex += 1
-            }
-        }
-        result.append(contentsOf: phrases[phraseIndex...])
-        return result
+    /// デッキの並びは CEFR-J の ABC 順（＝ ID 順）なので、そのまま出すと毎日 a から順に進む
+    /// ことになる。レベル内をまるごとシャッフルして、単語も熟語も満遍なく出会えるようにする。
+    func newWordPool(level: CefrLevel, order: ShuffleOrder = .install) -> [WordEntry] {
+        order.shuffled(words(level: level), id: \.id)
     }
 
     /// 単語・意味・例文の部分一致検索（大小文字無視）。

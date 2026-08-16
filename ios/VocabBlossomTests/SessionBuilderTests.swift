@@ -6,7 +6,7 @@ import Testing
 @Suite("セッション構築")
 struct SessionBuilderTests {
     let now = TestDate.at(2026, 8, 14)
-    let pool = WordStore.shared.newWordPool(level: .a1)
+    let pool = WordStore.shared.newWordPool(level: .a1, order: .test)
 
     private func input(
         progress: [ProgressSnapshot] = [],
@@ -22,7 +22,8 @@ struct SessionBuilderTests {
             newWordsPerDay: newWordsPerDay,
             reviewLimitPerDay: reviewLimitPerDay,
             reviewsDoneToday: reviewsDoneToday,
-            newWordsDoneToday: newWordsDoneToday
+            newWordsDoneToday: newWordsDoneToday,
+            order: .test
         )
     }
 
@@ -40,15 +41,24 @@ struct SessionBuilderTests {
     @Test("期限が来た単語だけ復習に入る")
     func onlyDueWordsAreReviewed() {
         let plan = SessionBuilder.build(input(progress: progress(dueOffsets: [-2, 0, 1, 5])))
-        #expect(plan.reviewWordIds == ["w-0000", "w-0001"])
+        #expect(Set(plan.reviewWordIds) == ["w-0000", "w-0001"])
         #expect(plan.deferredReviewCount == 0)
     }
 
-    @Test("期限超過の古い順に出す")
-    func mostOverdueFirst() {
+    @Test("上限で打ち切るときは期限超過の古い方から選ぶ")
+    func mostOverdueSurviveTheLimit() {
         let items = progress(dueOffsets: [0, -5, -1])
+        let plan = SessionBuilder.build(input(progress: items, reviewLimitPerDay: 2))
+        #expect(Set(plan.reviewWordIds) == ["w-0001", "w-0002"])
+        #expect(plan.deferredReviewCount == 1)
+    }
+
+    @Test("出題順は ID 順にならない（毎日同じ並びで覚えないように）")
+    func reviewOrderIsShuffled() {
+        let items = progress(dueOffsets: Array(repeating: -1, count: 30))
         let plan = SessionBuilder.build(input(progress: items))
-        #expect(plan.reviewWordIds == ["w-0001", "w-0002", "w-0000"])
+        #expect(Set(plan.reviewWordIds) == Set(items.map(\.wordId)))
+        #expect(plan.reviewWordIds != items.map(\.wordId))
     }
 
     @Test("復習は 1 日上限までで打ち切り、残りは翌日へ繰り越す")
@@ -144,14 +154,5 @@ struct SessionBuilderTests {
         let plan = SessionBuilder.build(input(newWordsPerDay: 12))
         #expect(plan.newBatches.map(\.count) == [5, 5, 2])
         #expect(plan.newBatches.flatMap { $0 } == plan.newWordIds)
-    }
-
-    @Test("新規学習プールは熟語を均等に混ぜる")
-    func newWordPoolInterleavesPhrases() {
-        // A1 は単語 1,012 / 熟語 100 なので、単語 10 語ごとに熟語が 1 つ入る
-        #expect(pool.prefix(10).allSatisfy { $0.pos != .phrase })
-        #expect(pool[10].pos == .phrase)
-        #expect(pool.prefix(22).filter { $0.pos == .phrase }.count == 2)
-        #expect(pool.count == WordStore.shared.words(level: .a1).count)
     }
 }

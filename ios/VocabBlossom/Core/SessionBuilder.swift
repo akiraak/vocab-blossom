@@ -42,23 +42,29 @@ enum SessionBuilder {
         var reviewsDoneToday: Int = 0
         /// 今日すでに学習した新規語の数
         var newWordsDoneToday: Int = 0
+        /// 出題順をランダムにする並び
+        var order: ShuffleOrder = .install
     }
 
     static func build(_ input: Input) -> SessionPlan {
         let today = DateUtil.startOfDay(input.now)
 
-        // 期限が来た順（古い超過から）に並べる。同着は安定させるため ID 順
+        // 期限が来た順（古い超過から）に並べる。
+        // 同着は ID 順にすると上限で打ち切る日に ABC 順の先頭ばかり選ばれるので、シャッフル順にする
         let due = input.progress
             .filter { DateUtil.startOfDay($0.dueAt) <= today }
             .sorted {
-                $0.dueAt == $1.dueAt ? $0.wordId < $1.wordId : $0.dueAt < $1.dueAt
+                $0.dueAt == $1.dueAt
+                    ? input.order.key($0.wordId) < input.order.key($1.wordId)
+                    : $0.dueAt < $1.dueAt
             }
 
         let reviewSlots = max(0, input.reviewLimitPerDay - input.reviewsDoneToday)
-        let reviews = due.prefix(reviewSlots).map(\.wordId)
+        // 選ぶのは期限順だが、出す順はシャッフルする（毎日同じ並びで覚えてしまわないように）
+        let reviews = input.order.shuffled(due.prefix(reviewSlots).map(\.wordId))
 
         var plan = SessionPlan(
-            reviewWordIds: Array(reviews),
+            reviewWordIds: reviews,
             deferredReviewCount: due.count - reviews.count
         )
 
