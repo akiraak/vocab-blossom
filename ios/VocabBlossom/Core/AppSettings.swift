@@ -8,6 +8,7 @@ final class AppSettings {
         static let level = "settings.level"
         static let newWordsPerDay = "settings.newWordsPerDay"
         static let soundEnabled = "settings.soundEnabled"
+        static let effectSoundEnabled = "settings.effectSoundEnabled"
         static let hasOnboarded = "settings.hasOnboarded"
     }
 
@@ -34,6 +35,7 @@ final class AppSettings {
         newWordsPerDay = defaults.object(forKey: Key.newWordsPerDay) as? Int
             ?? Self.defaultNewWordsPerDay
         soundEnabled = defaults.object(forKey: Key.soundEnabled) as? Bool ?? true
+        effectSoundEnabled = defaults.object(forKey: Key.effectSoundEnabled) as? Bool ?? true
         hasOnboarded = defaults.bool(forKey: Key.hasOnboarded)
     }
 
@@ -53,6 +55,11 @@ final class AppSettings {
 
     var soundEnabled: Bool {
         didSet { defaults.set(soundEnabled, forKey: Key.soundEnabled) }
+    }
+
+    /// 正解・不正解の効果音。読み上げとは独立に切れるようにする
+    var effectSoundEnabled: Bool {
+        didSet { defaults.set(effectSoundEnabled, forKey: Key.effectSoundEnabled) }
     }
 
     var hasOnboarded: Bool {

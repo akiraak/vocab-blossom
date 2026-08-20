@@ -21,7 +21,6 @@ final class SpeechService: NSObject {
     private var previousSynthesizer: AVSpeechSynthesizer?
 
     private var deactivateTask: Task<Void, Never>?
-    private var isCategoryConfigured = false
 
     /// 単語の読み上げ速度。既定値だと初学者には速いので少し落とす
     private let wordRate: Float = 0.42
@@ -65,7 +64,7 @@ final class SpeechService: NSObject {
         guard !utterances.isEmpty else { return }
 
         deactivateTask?.cancel()
-        prepareSession()
+        LearningAudioSession.shared.activate()
 
         // AVSpeechSynthesizer は「発話が実際に始まる前に stopSpeaking すると、
         // 内部状態が詰まって以後まったく鳴らなくなる」ことがある。
@@ -95,41 +94,13 @@ final class SpeechService: NSObject {
         return utterance
     }
 
-    /// マナーモードでも学習音声が鳴るよう `.playback` にする。
-    ///
-    /// カテゴリ設定・有効化は他アプリの再生中や通話中だと失敗する。
-    /// 一度失敗したまま黙り続けないよう、成功するまで毎回やり直す。
-    private func prepareSession() {
-        let session = AVAudioSession.sharedInstance()
-        if !isCategoryConfigured {
-            do {
-                try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-                isCategoryConfigured = true
-            } catch {
-                log.error("音声カテゴリの設定に失敗: \(error.localizedDescription)")
-            }
-        }
-        // 通話や他アプリの割り込みでセッションは無効化される。読み上げのたびに有効化し直す
-        do {
-            try session.setActive(true)
-        } catch {
-            log.error("音声セッションの有効化に失敗: \(error.localizedDescription)")
-        }
-    }
-
     /// 読み上げ中に無効化すると失敗したり音声が詰まったりするので、少し待ってから行う。
     private func scheduleDeactivate() {
         deactivateTask?.cancel()
         deactivateTask = Task {
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, synthesizer == nil else { return }
-            do {
-                try AVAudioSession.sharedInstance().setActive(
-                    false, options: [.notifyOthersOnDeactivation]
-                )
-            } catch {
-                log.debug("音声セッションの無効化に失敗: \(error.localizedDescription)")
-            }
+            LearningAudioSession.shared.deactivate()
         }
     }
 }

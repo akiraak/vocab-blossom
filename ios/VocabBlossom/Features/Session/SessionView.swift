@@ -56,11 +56,7 @@ struct SessionView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .task(id: runner.step.id) { speakIfNeeded(runner.step) }
-        .onChange(of: runner.selectedIndex) { _, newValue in
-            guard newValue != nil, case .quiz(let quiz, _) = runner.step else { return }
-            // 回答後は正誤にかかわらず単語と例文を読み上げて定着を促す
-            speak(word: quiz.word.word, example: quiz.word.example)
-        }
+        .task(id: runner.selectedIndex) { await feedbackAfterAnswer(runner) }
     }
 
     @ViewBuilder
@@ -96,6 +92,21 @@ struct SessionView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
+    }
+
+    /// 回答直後のフィードバック。正誤の効果音を鳴らし、少し置いてから
+    /// 単語と例文を読み上げて定着を促す（正誤にかかわらず読む）。
+    /// 読み上げ前に「次へ」で進んだら読み上げは取りやめる（次のカードと衝突させない）
+    private func feedbackAfterAnswer(_ runner: SessionRunner) async {
+        guard let correct = runner.lastAnswerWasCorrect,
+              case .quiz(let quiz, _) = runner.step else { return }
+        if settings.effectSoundEnabled {
+            SoundEffectService.shared.play(correct ? .correct : .incorrect)
+            // 効果音と読み上げが重ならないよう少し待つ
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+        }
+        speak(word: quiz.word.word, example: quiz.word.example)
     }
 
     private func speakIfNeeded(_ step: SessionRunner.Step) {

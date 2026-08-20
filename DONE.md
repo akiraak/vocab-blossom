@@ -1,5 +1,6 @@
 # DONE
 
+- 2026-08-19 問題回答時の正解と不正解にわかりやすい音を入れる（クイズ番組式のピンポン / ブッブーをコードで PCM 合成して `AVAudioPlayer` で再生。回答の瞬間に鳴らし、単語の読み上げは 0.5 秒遅らせて重ねない。設定に「正解・不正解の音」トグルを追加し読み上げとは独立にオフにできる）→ [plan](docs/plans/archive/answer-feedback-sounds.md)
 - 2026-08-13 どのようなアプリにするか考える → [docs/specs/app-concept.md](docs/specs/app-concept.md)
 - 2026-08-13 技術スタックのセットアップ（Vite + React + TypeScript + Tailwind v4 + vite-plugin-pwa + Vitest。ビルド・テスト・dev サーバー起動を確認済み）→ [plan](docs/plans/archive/tech-setup.md)
 - 2026-08-14 単語データの整備（CEFR A1〜A2 デッキ 2,243 語 + 基礎熟語 200 の JSON 作成）→ [plan](docs/plans/archive/word-data.md) / [spec](docs/specs/word-data.md)

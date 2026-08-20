@@ -9,12 +9,13 @@ struct AppSettingsTests {
         AppSettings(defaults: UserDefaults(suiteName: "settings-tests-\(UUID().uuidString)")!)
     }
 
-    @Test("初期値はレベル A1・新規 10 語・音声オン・未オンボーディング")
+    @Test("初期値はレベル A1・新規 10 語・音声オン・効果音オン・未オンボーディング")
     func defaults() {
         let settings = makeSettings()
         #expect(settings.level == .a1)
         #expect(settings.newWordsPerDay == AppSettings.defaultNewWordsPerDay)
         #expect(settings.soundEnabled)
+        #expect(settings.effectSoundEnabled)
         #expect(!settings.hasOnboarded)
     }
 
@@ -44,6 +45,7 @@ struct AppSettingsTests {
         settings.level = .a2
         settings.newWordsPerDay = 50
         settings.soundEnabled = false
+        settings.effectSoundEnabled = false
         settings.hasOnboarded = true
 
         let restored = AppSettings(defaults: UserDefaults(suiteName: name)!)
@@ -51,6 +53,7 @@ struct AppSettingsTests {
         #expect(restored.newWordsPerDay == 50)
         #expect(restored.reviewLimitPerDay == 300)
         #expect(!restored.soundEnabled)
+        #expect(!restored.effectSoundEnabled)
         #expect(restored.hasOnboarded)
     }
 }
