@@ -12,24 +12,9 @@
 - コミットは機能・修正の単位で分ける（Phase ごとなど、あとから読んで意図が分かる粒度）
 - コミットは指示があったときに行う。push も同様に、指示があったときだけ行う
 
-<!-- vibeboard:begin -->
-## 開発管理画面 (vibeboard)
+## 開発管理画面
 
-ローカル開発時のタスク・プラン管理は [vibeboard](https://github.com/akiraak/vibeboard) で行う。
-プロジェクト直下に degit で vendor してある（`./vibeboard/`）。
-
-```bash
-# 親プロジェクト直下から
-node vibeboard/dist/cli.js --root .
-```
-
-`http://localhost:3010` でプロジェクト直下の `docs/plans/`・`docs/specs/`・`TODO.md`・`DONE.md`・`CLAUDE.md`・`README.md` を閲覧・編集できる。
-
-- `Root` タブで `TODO.md` / `DONE.md` / `CLAUDE.md` / `README.md` をプレビュー表示・編集できる
-  - 編集は楽観ロック（mtime チェック）付き。外部で先に更新されていた場合は保存時に 409 を返し、リロード / 手元維持 / 強制上書き を選べる
-  - `fs.watch` + 2 秒ポーリングで外部変更を検知し、SSE でクライアントへ即時反映する
-- ローカル開発専用（本番管理画面とは独立）
-- ポート変更は `--port` または `VIBEBOARD_PORT` 環境変数で指定可能
+タスク・プラン・ファイルの閲覧と編集、Claude Code への依頼は project-manager（`http://127.0.0.1:8200`、`~/project-manager`）で行う。vibeboard は 2026-10 に撤去した。
 
 ## タスク管理ルール
 
@@ -56,4 +41,3 @@ node vibeboard/dist/cli.js --root .
 4. **作業完了時の後片付け**
    - 親タスクを `DONE.md` に移動する
    - 対応するプランファイルは `docs/plans/archive/` に移動する
-<!-- vibeboard:end -->

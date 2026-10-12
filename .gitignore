@@ -1,6 +1,3 @@
-vibeboard/dist/
-vibeboard/node_modules/
-
 # node (単語データ検証用)
 node_modules/
 *.local
