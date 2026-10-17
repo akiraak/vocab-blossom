@@ -1,6 +1,7 @@
 # node (単語データ検証用)
 node_modules/
 *.local
+dist/
 
 # Xcode
 ios/VocabBlossom.xcodeproj/
