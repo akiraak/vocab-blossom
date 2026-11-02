@@ -33,7 +33,8 @@ ios/
 data/decks/             単語 JSON（アプリへフォルダ参照で同梱）
 data/source/            CEFR-J 元データ
 scripts/                単語データ整備（Python）、アプリアイコン生成（Swift）
-src/                    単語データの内容検証テスト（Vitest）のみ
+src/                    単語データの内容検証テスト（Vitest）
+server/                 管理画面（Web）とアプリ同期のサーバー（Node 24 + TypeScript、node:http）
 docs/                   仕様・プラン
 ```
 
@@ -89,7 +90,20 @@ swift scripts/make-appicon.swift   # 1024x1024 PNG を Assets.xcassets へ書き
 
 ```bash
 npm install
-npm test         # 単語データの内容検証 (Vitest)
+npm test         # 単語データの内容検証 + サーバーのテスト (Vitest)
 ```
 
 単語データは `data/decks/*.json`。整備・レビュー手順は [docs/specs/word-data.md](docs/specs/word-data.md) を参照。
+
+### 管理画面のサーバー
+
+Node 24 が必要（`.node-version`。better-sqlite3 のネイティブモジュールを Node 24 でビルドするため、
+`npm test` も Node 24 で動かす）。
+
+```bash
+(cd server && npm install)
+API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3014/admin
+```
+
+デプロイ契約（env・ポート・永続化先）は [docs/specs/deploy-g3plus.md](docs/specs/deploy-g3plus.md)、
+全体のプランは [docs/plans/admin-server.md](docs/plans/admin-server.md)。

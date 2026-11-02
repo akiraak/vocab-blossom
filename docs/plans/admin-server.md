@@ -51,7 +51,9 @@ AI タイポチェック（TODO の別タスク）はこのサーバーに API �
 - デプロイ設定の正本は `g3plus-ops/vocab-blossom/`（`docker-compose.yml` / `Dockerfile` / `.env` / `.env.example`）
 - デプロイ契約（Node・起動コマンド・必須 env・永続化先）の正本はこのリポジトリの `docs/specs/deploy-g3plus.md`
 - ポートは **3014**（g3plus の次の空き）。**ホスト非公開**で、`n8n_default` ネットワークの cloudflared からだけ届く
-- SQLite は volume で永続化（`/home/ubuntu/vocab-blossom/server/data:/app/data`）
+- コンテナ内はリポジトリと同じ並び（`/app/server/` と `/app/data/decks/`）にする。起動は `node server/src/main.ts`
+- SQLite は volume で永続化（`/home/ubuntu/vocab-blossom/server/data:/app/server/data`）。
+  `/app/data` は同梱の単語 JSON の置き場所なので volume にしない（Phase 1 で変更）
 
 ### 認証（trip-note と同じ方式）
 
@@ -65,7 +67,7 @@ AI タイポチェック（TODO の別タスク）はこのサーバーに API �
   **リポジトリが public なので、secret は絶対にコミットしない**（`.gitignore` に入れ、`ServerConfig.example.plist` だけ置く）。
   ファイルが無ければサーバー機能を使わず、今までどおりオフラインで動く
 - env: `API_SHARED_SECRET`（必須、`openssl rand -hex 32`）/ `ANTHROPIC_API_KEY`（任意。未設定なら AI 機能だけ使えない）/
-  `ADMIN_ENABLED` / `VOCAB_DB_PATH=/app/data/vocab-blossom.db` / `PORT=3014`
+  `ADMIN_ENABLED` / `VOCAB_DB_PATH=/app/server/data/vocab-blossom.db` / `PORT=3014`
 
 ### 同期するデータ
 

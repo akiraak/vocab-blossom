@@ -4,7 +4,7 @@
   - グループの追加・名前変更・削除と、グループ内の単語・フレーズの追加・外す・編集（アプリと同期）
   - Claude API キーは管理画面の起動時の環境変数（`ANTHROPIC_API_KEY`）で渡す（アプリには埋め込まない）
   - g3plus-ops 経由で `vocab.chobi.me` に配置する
-  - [ ] Phase 1: サーバーの土台（`server/`・フレームワーク無しの `node:http`・Bearer 認証・`ADMIN_ENABLED`・SQLite・デプロイ契約）
+  - [x] Phase 1: サーバーの土台（`server/`・フレームワーク無しの `node:http`・Bearer 認証・`ADMIN_ENABLED`・SQLite・デプロイ契約）
   - [ ] Phase 2: データと同期 API（グループ・自作語・削除記録、`POST /api/sync`）
   - [ ] Phase 3: 管理画面（グループ一覧・グループ詳細・マイ単語一覧）
   - [ ] Phase 4: g3plus へデプロイ（clone・g3plus-ops・Cloudflare の手作業）

@@ -3,6 +3,9 @@ node_modules/
 *.local
 dist/
 
+# 管理画面サーバーの SQLite（ローカル開発用。本番は g3plus の volume）
+server/data/
+
 # Xcode
 ios/VocabBlossom.xcodeproj/
 ios/VocabBlossom/Info.plist
