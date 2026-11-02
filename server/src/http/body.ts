@@ -38,3 +38,15 @@ export async function readJson(request: Request, maxBytes: number): Promise<unkn
     throw new InvalidJsonError('JSON ではない')
   }
 }
+
+/** application/x-www-form-urlencoded のフォームを上限つきで読む（管理画面のフォームはファイルを送らない） */
+export async function readForm(request: Request, maxBytes: number): Promise<URLSearchParams> {
+  let body: string
+  try {
+    body = await readText(request, maxBytes)
+  } catch (error) {
+    if (error instanceof TypeError) return new URLSearchParams()
+    throw error
+  }
+  return new URLSearchParams(body)
+}

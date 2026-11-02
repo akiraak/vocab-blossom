@@ -45,23 +45,88 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]): SafeH
   return new SafeHtml(out)
 }
 
+export type NavKey = 'groups' | 'custom-words'
+
 export type LayoutOptions = {
   title: string
   body: SafeHtml
+  /** ヘッダーで強調するメニュー */
+  nav?: NavKey
 }
 
 const STYLE = `
-  :root { color-scheme: light dark; --accent: #d9468b; }
+  :root { color-scheme: light dark; --accent: #d9468b; --line: #8884; --muted: #888;
+          --bg-soft: #8881; --danger: #c0392b; }
+  * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
          margin: 0; line-height: 1.6; }
-  header { padding: 12px 16px; border-bottom: 1px solid #8884; display: flex; gap: 16px; align-items: baseline; }
+  a { color: var(--accent); }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 20px;
+           align-items: baseline; flex-wrap: wrap; }
   header .brand { font-weight: 700; color: var(--accent); text-decoration: none; }
-  header nav a { margin-right: 12px; }
+  header nav { display: flex; gap: 16px; }
+  header nav a { color: inherit; text-decoration: none; padding-bottom: 2px; }
+  header nav a[aria-current="page"] { border-bottom: 2px solid var(--accent); font-weight: 600; }
   main { max-width: 960px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.5rem; margin: 8px 0 16px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 8px; }
+  .breadcrumb { font-size: 0.9rem; margin: 0; }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  .error { color: var(--danger); font-weight: 600; }
+  .notice { background: var(--bg-soft); border-left: 4px solid var(--accent); padding: 8px 12px; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.actions { white-space: nowrap; text-align: right; }
+  td.actions form { display: inline; }
+  .tag { display: inline-block; font-size: 0.75rem; padding: 0 6px; border-radius: 4px;
+         background: var(--bg-soft); border: 1px solid var(--line); margin-left: 4px; white-space: nowrap; }
+  .tag.custom { border-color: var(--accent); color: var(--accent); }
+  form.inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  form.stack { display: grid; gap: 8px; max-width: 560px; }
+  form.stack label { display: grid; gap: 2px; font-size: 0.9rem; }
+  input[type="text"], input[type="search"], select, textarea {
+    font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+    background: transparent; color: inherit; }
+  input[type="text"], input[type="search"] { min-width: 240px; }
+  textarea { min-height: 3em; }
+  button { font: inherit; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line);
+           background: var(--bg-soft); color: inherit; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { color: var(--danger); }
+  button.small { padding: 0 8px; font-size: 0.85rem; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .danger-zone { margin-top: 40px; padding-top: 12px; border-top: 1px solid var(--line); }
 `
 
-/** 管理画面の共通レイアウト（ヘッダー・CSS） */
-export function layout({ title, body }: LayoutOptions): SafeHtml {
+// 画面の動きはこれだけ: 削除の確認と、日時を端末の時刻で表示する
+const SCRIPT = `
+  document.addEventListener('submit', (event) => {
+    const message = event.target.getAttribute('data-confirm')
+    if (message && !window.confirm(message)) event.preventDefault()
+  })
+  for (const el of document.querySelectorAll('time[datetime]')) {
+    const d = new Date(el.getAttribute('datetime'))
+    if (!Number.isNaN(d.getTime())) {
+      el.textContent = d.toLocaleString('ja-JP', { dateStyle: 'short', timeStyle: 'short' })
+    }
+  }
+`
+
+/** 日時（ミリ秒）。JS が無ければ UTC のまま出す */
+export function time(ms: number): SafeHtml {
+  const iso = new Date(ms).toISOString()
+  return html`<time datetime="${iso}">${iso.slice(0, 16).replace('T', ' ')} UTC</time>`
+}
+
+const NAV: { key: NavKey; href: string; label: string }[] = [
+  { key: 'groups', href: '/admin/groups', label: 'グループ' },
+  { key: 'custom-words', href: '/admin/custom-words', label: 'マイ単語' },
+]
+
+/** 管理画面の共通レイアウト（ヘッダー・CSS・JS） */
+export function layout({ title, body, nav }: LayoutOptions): SafeHtml {
   return html`<!doctype html>
 <html lang="ja">
 <head>
@@ -73,10 +138,15 @@ export function layout({ title, body }: LayoutOptions): SafeHtml {
 <body>
 <header>
   <a class="brand" href="/admin">vocab-blossom</a>
+  <nav>${NAV.map(
+    (item) =>
+      html`<a href="${item.href}"${item.key === nav ? raw(' aria-current="page"') : ''}>${item.label}</a>`,
+  )}</nav>
 </header>
 <main>
 ${body}
 </main>
+<script>${raw(SCRIPT)}</script>
 </body>
 </html>`
 }

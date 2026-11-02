@@ -1,6 +1,7 @@
 import { type Handle, type Logger, createApp } from './app.ts'
 import type { Config } from './config.ts'
 import { type DB, migrate, openDatabase } from './db.ts'
+import { BundledWords } from './words/bundled.ts'
 
 // テスト用: サーバーを起動せずに handle(new Request(...)) で叩く
 
@@ -18,6 +19,13 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
   }
 }
 
+/** 同梱語はテスト全体で 1 回だけ読む */
+let bundledCache: BundledWords | undefined
+export function testBundled(): BundledWords {
+  bundledCache ??= BundledWords.load()
+  return bundledCache
+}
+
 export type TestApp = {
   handle: Handle
   db: DB
@@ -25,7 +33,10 @@ export type TestApp = {
   errors: string[]
 }
 
-export function createTestApp(overrides: Partial<Config> = {}): TestApp {
+export function createTestApp(
+  overrides: Partial<Config> = {},
+  { now }: { now?: () => number } = {},
+): TestApp {
   const db = openDatabase(':memory:')
   migrate(db)
   const logs: string[] = []
@@ -34,7 +45,7 @@ export function createTestApp(overrides: Partial<Config> = {}): TestApp {
     info: (message) => logs.push(message),
     error: (message) => errors.push(message),
   }
-  const handle = createApp({ config: testConfig(overrides), db, logger })
+  const handle = createApp({ config: testConfig(overrides), db, logger, now, bundled: testBundled() })
   return { handle, db, logs, errors }
 }
 
@@ -46,4 +57,13 @@ export function apiReq(path: string, init: RequestInit = {}): Request {
   const headers = new Headers(init.headers)
   headers.set('authorization', `Bearer ${TEST_SECRET}`)
   return req(path, { ...init, headers })
+}
+
+/** 管理画面のフォーム送信（自分のホストからの POST） */
+export function adminPost(path: string, fields: Record<string, string> = {}): Request {
+  return req(path, {
+    method: 'POST',
+    headers: { origin: TEST_ORIGIN, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(fields).toString(),
+  })
 }

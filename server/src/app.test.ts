@@ -69,7 +69,7 @@ describe('/admin/* と ADMIN_ENABLED', () => {
   it('Origin が違う・無い POST は 403、同じなら通る', async () => {
     const { handle } = createTestApp()
     const post = (headers: Record<string, string>) =>
-      handle(req('/admin/groups', { method: 'POST', headers }))
+      handle(req('/admin', { method: 'POST', headers }))
 
     expect((await post({})).status).toBe(403)
     expect((await post({ origin: 'https://evil.example' })).status).toBe(403)
@@ -82,7 +82,7 @@ describe('/admin/* と ADMIN_ENABLED', () => {
 
   it('メソッド違いは 405 と Allow', async () => {
     const { handle } = createTestApp()
-    const res = await handle(req('/admin/groups', { method: 'PUT', headers: { origin: TEST_ORIGIN } }))
+    const res = await handle(req('/admin', { method: 'PUT', headers: { origin: TEST_ORIGIN } }))
     expect(res.status).toBe(405)
     expect(res.headers.get('allow')).toBe('GET, HEAD')
   })

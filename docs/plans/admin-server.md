@@ -154,6 +154,40 @@ AI タイポチェック（TODO の別タスク）はこのサーバーに API �
   Phase 3 の管理画面も `store.ts` の同じ関数（`updatedAt` = 今）で書く
 - 削除記録は消さない（1 人分なので量は小さい）
 
+### Phase 3 の詳細（管理画面）
+
+- **構成**
+  - `server/src/words/bundled.ts`: 起動時に `data/decks/*.json` を読み、ID で引く・検索する・同じ綴りを探す
+    （綴りの比較は iOS の `WordStore.normalizedSpelling` と同じ「前後の空白を落として小文字」）
+  - `server/src/admin/service.ts`: 管理画面の操作。`SyncStore` の `apply*` を使い、日時は
+    `max(今, 今の updatedAt + 1)` にする（端末の時計が進んでいても管理画面の変更が LWW で捨てられないように）。
+    複数の書き込み（自作語を作ってグループに入れる など）は 1 トランザクション
+  - `server/src/admin/pages.ts`（HTML）/ `server/src/admin/routes.ts`（ルートとフォームの処理）
+- **画面は素の HTML フォーム**。POST の後は 303 で GET に戻す（PRG）。入力の誤りは同じ画面を 400 で出し直し、入力を残す。
+  JS は「削除の確認（`data-confirm`）」と「日時を端末の時刻で表示」だけ
+- **ルート**（すべて `ADMIN_ENABLED=on` + POST は Origin の確認つき）
+
+  | メソッド・パス | 内容 |
+  | --- | --- |
+  | `GET /admin/groups` | グループ一覧（名前・語数・更新日時・削除）と追加フォーム |
+  | `POST /admin/groups` | 追加 → 詳細へ |
+  | `GET /admin/groups/:id?q=` | 詳細（語の一覧・名前の変更・削除・検索して追加・自作語を作って追加） |
+  | `POST /admin/groups/:id/rename` / `/delete` | 名前の変更 / 削除（一覧へ） |
+  | `POST /admin/groups/:id/words` | 語を末尾に追加（同梱語・既存の自作語。入っていれば何もしない） |
+  | `POST /admin/groups/:id/words/:wordId/remove` / `/move` | 外す / 上へ・下へ |
+  | `POST /admin/groups/:id/custom-words` | 自作語を作ってこのグループに入れる |
+  | `GET /admin/custom-words` | マイ単語一覧（入っているグループ・編集・削除）と作成フォーム |
+  | `POST /admin/custom-words` | グループに入れずに自作語を作る |
+  | `GET /admin/custom-words/:id` / `POST` 同じパス | 自作語の編集 |
+  | `POST /admin/custom-words/:id/delete` | 自作語の削除（すべてのグループから外れる） |
+
+- **検索**: 同梱語とグループに入っていない自作語から、英語（前方一致を先に）・意味の部分一致で最大 50 件
+- **同じ綴りの同梱語**: 自作語を作るときに見つかったら保存せずに案内を出し、「単語帳の語を追加する」
+  「それでも自作語として作る」を選ばせる（iOS のエディタの案内と同じ考え方）
+- グループ名が空なら iOS と同じ「新しいグループ」。自作語は英語・意味が必須、長さの上限は同期 API と同じ `LIMITS`
+- フォームの本文は 64KB まで（超えたら 413）
+- グループの中に解決できない ID（端末で作ってまだ届いていない自作語など）があれば「不明な語」として出し、外せるようにする
+
 Cloudflare の設定は自動化できないので、Phase 4 で手順を出してユーザーに依頼する。
 順序は「Access アプリ（`/api` と `/health` の Bypass → ルートの Allow）→ `.env` → Tunnel hostname」。
 公開前に `vocab.chobi.me` を DNS で引かない（LAN の DNS が NXDOMAIN を最大 30 分キャッシュする）。
