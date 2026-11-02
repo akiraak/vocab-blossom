@@ -102,7 +102,7 @@ Node 24 が必要（`.node-version`。better-sqlite3 のネイティブモジュ
 
 ```bash
 (cd server && npm install)
-API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3014/admin
+API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3015/admin
 ```
 
 デプロイ契約（env・ポート・永続化先）は [docs/specs/deploy-g3plus.md](docs/specs/deploy-g3plus.md)、

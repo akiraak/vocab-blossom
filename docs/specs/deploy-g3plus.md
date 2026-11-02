@@ -8,6 +8,7 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
 
 ## 契約
 
+- **置き先のサーバ**: g3plus（`g3plus.lan`。Tunnel は `g3plus`）
 - **リポジトリ**: https://github.com/akiraak/vocab-blossom（**public**）。g3plus 上に
   `/home/ubuntu/vocab-blossom/` として clone し build context にする。更新は `git pull` → rebuild
 - **Node**: 24（TypeScript を **型除去でそのまま起動**するため 24 以上が必須。ビルド工程・tsx なし）。
@@ -18,7 +19,7 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
   - `server/package.json` / `server/package-lock.json` / `server/src/` → `/app/server/`
   - `data/decks/` → `/app/data/decks/`
 - **起動**: `WORKDIR /app` で `node server/src/main.ts`。SIGTERM で受付をやめて DB を閉じて終わる
-- **ポート**: 3014（コンテナ内。ホストへは**非公開**、`n8n_default` ネットワークの cloudflared からだけ届く）
+- **ポート**: 3015（コンテナ内。ホストへは**非公開**、`n8n_default` ネットワークの cloudflared からだけ届く）
 - **必須 env**（`g3plus-ops/vocab-blossom/.env`）:
   - `API_SHARED_SECRET` — iOS の `/api/*` を守る共有シークレット（`openssl rand -hex 32`）。
     iOS の `ServerConfig.plist` の `API_KEY` と揃える。**未設定ならサーバーは起動しない**
@@ -27,7 +28,7 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
   - `ADMIN_ENABLED=on` — 管理画面（`/admin/*`）を有効にする。`on` 以外・未設定なら `/admin/*` はすべて 404（fail-safe）。
     Cloudflare Access を設定し終えてから `on` にする
   - `ANTHROPIC_API_KEY` — Claude API（AI タイポチェック。未実装）。未設定でも他の機能は動く
-  - `PORT` — 既定 3014
+  - `PORT` — 既定 3015
 - **永続化**: SQLite（`VOCAB_DB_PATH` のディレクトリ）。volume `/home/ubuntu/vocab-blossom/server/data:/app/server/data`。
   `/app/data` は同梱の単語 JSON の置き場所なので volume にしない。
   DB の版は `PRAGMA user_version` で管理し、起動時に未適用のマイグレーションを当てる
@@ -61,13 +62,13 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
    - `vocab.chobi.me/health` → **Bypass**（Everyone）
    - `vocab.chobi.me` → **Allow**（Google IdP / Emails）。管理画面の認証
 2. `.env` に `ADMIN_ENABLED=on` を入れて `up -d`
-3. **Tunnel hostname**: `vocab.chobi.me` → `http://vocab-blossom:3014`
+3. **Tunnel hostname**（tunnel `g3plus`）: `vocab.chobi.me` → `http://vocab-blossom:3015`
 
 ## ローカルで動かす
 
 ```bash
 (cd server && npm install)
-API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3014/admin
+API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3015/admin
 ```
 
 DB は既定で `server/data/vocab-blossom.db`（git 管理外）。

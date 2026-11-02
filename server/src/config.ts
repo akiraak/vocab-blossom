@@ -13,7 +13,7 @@ export type Config = {
   anthropicApiKey: string | undefined
 }
 
-export const DEFAULT_PORT = 3014
+export const DEFAULT_PORT = 3015
 export const DEFAULT_DB_PATH = path.resolve(import.meta.dirname, '../data/vocab-blossom.db')
 
 export class ConfigError extends Error {}
