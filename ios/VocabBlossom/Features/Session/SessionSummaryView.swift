@@ -3,9 +3,13 @@ import SwiftUI
 /// 締めの画面。今日育った分を庭の絵と一緒に見せて終わる。
 struct SessionSummaryView: View {
     let stats: SessionRunner.Stats
+    var mode: SessionRunner.Mode = .learning
+    var closeTitle = "庭にもどる"
     let onClose: () -> Void
 
-    private let store = WordStore.shared
+    @Environment(\.wordStore) private var store
+
+    private var isDrill: Bool { mode == .drill }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -33,22 +37,33 @@ struct SessionSummaryView: View {
                 if let accuracy = stats.accuracy {
                     row("正答率", "\(Int((accuracy * 100).rounded())) %")
                 }
-                row("新しく覚えた語", "\(stats.learnedWordIds.count) 語")
-                if !stats.knownWordIds.isEmpty {
-                    row("もう知ってる", "\(stats.knownWordIds.count) 語")
+                if isDrill {
+                    row("間違えた語", "\(stats.missedWordIds.count) 語")
+                } else {
+                    row("新しく覚えた語", "\(stats.learnedWordIds.count) 語")
+                    if !stats.knownWordIds.isEmpty {
+                        row("もう知ってる", "\(stats.knownWordIds.count) 語")
+                    }
+                    row("開花した語", "\(stats.blossomedWordIds.count) 語")
                 }
-                row("開花した語", "\(stats.blossomedWordIds.count) 語")
             }
             .cardStyle()
 
-            if !stats.blossomedWordIds.isEmpty {
+            if isDrill {
+                if !stats.missedWordIds.isEmpty {
+                    missedList
+                }
+                Text("ドリルの結果は成長や復習日には反映されません")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if !stats.blossomedWordIds.isEmpty {
                 blossomedList
             }
 
             Spacer(minLength: 0)
 
             Button(action: onClose) {
-                Text("庭にもどる")
+                Text(closeTitle)
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
@@ -58,6 +73,10 @@ struct SessionSummaryView: View {
     }
 
     private var headline: String {
+        if isDrill {
+            if stats.answered == 0 { return "出題する単語がありませんでした" }
+            return stats.missedWordIds.isEmpty ? "全問正解です 🎉" : "間違えた語を見直しておきましょう"
+        }
         if !stats.blossomedWordIds.isEmpty {
             return "\(stats.blossomedWordIds.count) 語が開花しました 🌸"
         }
@@ -84,6 +103,36 @@ struct SessionSummaryView: View {
                     }
                 }
             }
+        }
+        .cardStyle()
+    }
+
+    /// ドリルで間違えた語。多いときは画面に収まるようスクロールさせる
+    private var missedList: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("間違えた単語")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(stats.missedWordIds, id: \.self) { wordId in
+                        if let word = store.word(id: wordId) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(Theme.incorrect)
+                                Text(word.word).font(.subheadline.weight(.medium))
+                                Text(word.meaning)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 180)
+            .scrollBounceBehavior(.basedOnSize)
         }
         .cardStyle()
     }

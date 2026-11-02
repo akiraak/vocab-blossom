@@ -3,14 +3,21 @@ import SwiftUI
 
 /// 単語詳細。意味・例文・音声に加えて、成長状態と回答履歴を見せる。
 struct WordDetailView: View {
-    let word: WordEntry
+    /// 開いたときの内容。自作語は編集されうるので、表示には索引から引き直した `word` を使う
+    private let original: WordEntry
 
     @Environment(\.modelContext) private var context
+    @Environment(\.wordStore) private var store
+    @Environment(\.dismiss) private var dismiss
     @Query private var progresses: [WordProgress]
     @Query private var logs: [AnswerLog]
+    @Query(sort: \WordGroup.createdAt, order: .reverse) private var groups: [WordGroup]
+
+    @State private var editingCustom: CustomWord?
+    @State private var isConfirmingDelete = false
 
     init(word: WordEntry) {
-        self.word = word
+        original = word
         let wordId = word.id
         _progresses = Query(filter: #Predicate<WordProgress> { $0.wordId == wordId })
         _logs = Query(
@@ -19,7 +26,9 @@ struct WordDetailView: View {
         )
     }
 
+    private var word: WordEntry { store.word(id: original.id) ?? original }
     private var progress: WordProgress? { progresses.first }
+    private var memberGroups: [WordGroup] { groups.filter { $0.wordIds.contains(original.id) } }
     private var stage: Int { progress?.stage ?? 0 }
 
     var body: some View {
@@ -38,6 +47,78 @@ struct WordDetailView: View {
         .gardenBackground()
         .navigationTitle(word.word)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                groupMenu
+            }
+            if word.isCustom {
+                ToolbarItem(placement: .topBarTrailing) {
+                    customMenu
+                }
+            }
+        }
+        .sheet(item: $editingCustom) { custom in
+            CustomWordEditorView(mode: .edit(custom))
+        }
+        .confirmationDialog(
+            "「\(word.word)」を削除しますか？",
+            isPresented: $isConfirmingDelete,
+            titleVisibility: .visible
+        ) {
+            Button("単語を削除", role: .destructive) {
+                GroupEditor(context: context).deleteCustomWord(id: original.id)
+                dismiss()
+            }
+        } message: {
+            Text("すべてのグループから外れ、学習の記録も消えます。")
+        }
+    }
+
+    /// グループへの出し入れ。入っているグループにはチェックが付く
+    private var groupMenu: some View {
+        Menu {
+            if groups.isEmpty {
+                Text("グループタブでグループを作ると、ここから追加できます")
+            }
+            ForEach(groups) { group in
+                let isMember = group.wordIds.contains(original.id)
+                Button {
+                    let editor = GroupEditor(context: context)
+                    if isMember {
+                        editor.remove(wordIds: [original.id], from: group)
+                    } else {
+                        editor.add(wordIds: [original.id], to: group)
+                    }
+                } label: {
+                    if isMember {
+                        Label(group.name, systemImage: "checkmark")
+                    } else {
+                        Text(group.name)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: memberGroups.isEmpty ? "folder.badge.plus" : "folder.fill")
+        }
+        .accessibilityLabel("グループに追加")
+    }
+
+    private var customMenu: some View {
+        Menu {
+            Button {
+                editingCustom = GroupEditor(context: context).customWord(id: original.id)
+            } label: {
+                Label("編集", systemImage: "pencil")
+            }
+            Button(role: .destructive) {
+                isConfirmingDelete = true
+            } label: {
+                Label("削除", systemImage: "trash")
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+        }
+        .accessibilityLabel("単語の編集・削除")
     }
 
     private var statusCard: some View {
@@ -63,10 +144,20 @@ struct WordDetailView: View {
                 }
             }
 
-            if let deck = WordStore.shared.deck(of: word.id) {
+            if word.isCustom {
+                Divider()
+                row("デッキ", "マイ単語（自分で作った単語）")
+            } else if let deck = store.deck(of: word.id) {
                 Divider()
                 row("デッキ", deck.name)
-                row("レベル", word.level.label)
+                if let level = word.level {
+                    row("レベル", level.label)
+                }
+            }
+
+            if !memberGroups.isEmpty {
+                Divider()
+                row("グループ", memberGroups.map(\.name).joined(separator: "、"))
             }
         }
         .cardStyle()

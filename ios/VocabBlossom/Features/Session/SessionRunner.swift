@@ -5,8 +5,17 @@ import Observation
 ///
 /// 「復習 → 新規学習（5 語ミニバッチで提示 → 直後クイズ）→ 再出題 → 締め」の一本道を
 /// キューとして持ち、回答のたびに即保存する（中断してもやり直しにならない）。
+///
+/// ドリル（`Mode.drill`）は「全語クイズ → 再出題 → 締め」だけで、進捗も回答ログも残さない。
 @Observable
 final class SessionRunner {
+    enum Mode: Equatable {
+        /// いつもの学習。回答を SRS に記録する
+        case learning
+        /// グループのドリル。SRS の進捗・ログを動かさない練習
+        case drill
+    }
+
     /// キューに積む単位。実際のクイズは表示直前に組み立てる
     /// （再出題では選択肢を作り直し、下がったステージも反映されるようにするため）
     enum Item: Equatable {
@@ -38,12 +47,15 @@ final class SessionRunner {
         var blossomedWordIds: [String] = []
         /// 「もう知ってる」で飛ばした語
         var knownWordIds: [String] = []
+        /// 1 回でも間違えた語（ドリルの締めで見直す）
+        var missedWordIds: [String] = []
 
         var accuracy: Double? {
             answered > 0 ? Double(correct) / Double(answered) : nil
         }
     }
 
+    let mode: Mode
     private(set) var step: Step = .summary
     private(set) var stats = Stats()
     /// 回答済みなら選んだ選択肢の位置。未回答は nil
@@ -68,6 +80,7 @@ final class SessionRunner {
         self.engine = engine
         self.store = store
         self.clock = clock
+        mode = .learning
         builder = QuizBuilder(store: store, rng: rng)
 
         var items: [Item] = plan.reviewWordIds.map { .quiz(wordId: $0, kind: .review) }
@@ -77,6 +90,23 @@ final class SessionRunner {
             items.append(contentsOf: batch.map { .quiz(wordId: $0, kind: .new) })
         }
         queue = items
+        advance()
+    }
+
+    /// ドリル。渡した順にすべてクイズで出す（並びは呼び出し側でシャッフルしておく）
+    init(
+        drillWordIds: [String],
+        engine: LearningEngine,
+        store: WordStore = .shared,
+        rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
+        clock: @escaping () -> Date = { .now }
+    ) {
+        self.engine = engine
+        self.store = store
+        self.clock = clock
+        mode = .drill
+        builder = QuizBuilder(store: store, rng: rng)
+        queue = drillWordIds.map { .quiz(wordId: $0, kind: .review) }
         advance()
     }
 
@@ -116,23 +146,29 @@ final class SessionRunner {
 
         let wordId = quiz.word.id
         let correct = choiceIndex == quiz.answerIndex
-        let previousStage = engine.progress(for: wordId)?.stage ?? 0
-        let stageAfter = engine.record(
-            wordId: wordId,
-            correct: correct,
-            quizType: quiz.type,
-            kind: kind,
-            now: clock()
-        )
 
         stats.answered += 1
         if correct { stats.correct += 1 }
-        if kind == .new, !stats.learnedWordIds.contains(wordId) {
-            stats.learnedWordIds.append(wordId)
+        if !correct, !stats.missedWordIds.contains(wordId) {
+            stats.missedWordIds.append(wordId)
         }
-        if previousStage < SRS.maxStage, stageAfter >= SRS.maxStage,
-           !stats.blossomedWordIds.contains(wordId) {
-            stats.blossomedWordIds.append(wordId)
+
+        if mode == .learning {
+            let previousStage = engine.progress(for: wordId)?.stage ?? 0
+            let stageAfter = engine.record(
+                wordId: wordId,
+                correct: correct,
+                quizType: quiz.type,
+                kind: kind,
+                now: clock()
+            )
+            if kind == .new, !stats.learnedWordIds.contains(wordId) {
+                stats.learnedWordIds.append(wordId)
+            }
+            if previousStage < SRS.maxStage, stageAfter >= SRS.maxStage,
+               !stats.blossomedWordIds.contains(wordId) {
+                stats.blossomedWordIds.append(wordId)
+            }
         }
 
         // 間違えたカードはセッションの最後にもう一度（同一カード 2 回まで）
@@ -147,7 +183,7 @@ final class SessionRunner {
 
     /// 「もう知ってる」。直後クイズを飛ばして次へ進む
     func markKnown() {
-        guard case .present(let word) = step else { return }
+        guard mode == .learning, case .present(let word) = step else { return }
         engine.markKnown(wordId: word.id, now: clock())
         queue.removeAll { $0 == .quiz(wordId: word.id, kind: .new) }
         if !stats.knownWordIds.contains(word.id) {

@@ -13,7 +13,7 @@ struct SessionRunnerTests {
 
     init() throws {
         let container = try ModelContainer(
-            for: WordProgress.self, AnswerLog.self,
+            for: WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         context = ModelContext(container)

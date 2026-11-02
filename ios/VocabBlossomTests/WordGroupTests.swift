@@ -1,0 +1,446 @@
+import Foundation
+import SwiftData
+import Testing
+
+@testable import VocabBlossom
+
+private func makeContext() throws -> ModelContext {
+    let container = try ModelContainer(
+        for: WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return ModelContext(container)
+}
+
+private func customEntry(_ id: String, word: String, pos: PartOfSpeech = .noun) -> WordEntry {
+    WordEntry(
+        id: id, word: word, pos: pos, level: nil, meaning: "\(word) の意味",
+        example: "", exampleJa: ""
+    )
+}
+
+@Suite("自作語を重ねた索引")
+struct WordStoreCustomTests {
+    let base = WordStore.shared
+
+    @Test("自作語を ID で引け、全語の末尾に並ぶ")
+    func customWordsResolve() {
+        let custom = customEntry("custom-1", word: "homeroom")
+        let store = base.including(customWords: [custom])
+
+        #expect(store.word(id: "custom-1") == custom)
+        #expect(store.word(id: "a1-0001") == base.word(id: "a1-0001"))
+        #expect(store.allWords.count == base.allWords.count + 1)
+        #expect(store.allWords.last == custom)
+        #expect(store.customWords == [custom])
+        #expect(base.word(id: "custom-1") == nil)
+    }
+
+    @Test("自作語はレベル別プール・デッキに混ざらない（毎日のおまかせに出ない）")
+    func customWordsStayOutOfDailyPool() {
+        let store = base.including(customWords: [customEntry("custom-1", word: "homeroom")])
+        #expect(store.words(level: .a1).count == base.words(level: .a1).count)
+        #expect(!store.newWordPool(level: .a1, order: .test).contains { $0.isCustom })
+        #expect(store.decks == base.decks)
+        #expect(store.deck(of: "custom-1") == nil)
+    }
+
+    @Test("差し替えても同梱語は重複しない")
+    func replacingCustomWords() {
+        let first = base.including(customWords: [customEntry("custom-1", word: "a")])
+        let second = first.including(customWords: [customEntry("custom-2", word: "b")])
+        #expect(second.allWords.count == base.allWords.count + 1)
+        #expect(second.word(id: "custom-1") == nil)
+        #expect(second.word(id: "custom-2") != nil)
+    }
+
+    @Test("ID の並びを引き直すと、見つからない ID は落ちる")
+    func wordsByIds() {
+        let words = base.words(ids: ["a1-0002", "custom-gone", "a1-0001"])
+        #expect(words.map(\.id) == ["a1-0002", "a1-0001"])
+    }
+
+    @Test("同じ綴りの同梱語を大小文字・空白を無視して探す")
+    func bundledWordLookup() throws {
+        let action = try #require(base.word(id: "a1-0004"))
+        #expect(base.bundledWord(spelledLike: "  \(action.word.uppercased()) ")?.id == action.id)
+        #expect(base.bundledWord(spelledLike: "zzzz-not-a-word") == nil)
+        #expect(base.bundledWord(spelledLike: " ") == nil)
+    }
+}
+
+@Suite("グループ単位の学習の出題")
+struct GroupStudyTests {
+    let now = TestDate.at(2026, 8, 14)
+    let store = WordStore.shared
+
+    private func snapshot(_ id: String, stage: Int, dueOffset: Int) -> ProgressSnapshot {
+        ProgressSnapshot(
+            wordId: id, stage: stage, dueAt: DateUtil.startOfDay(DateUtil.addDays(now, dueOffset))
+        )
+    }
+
+    private func plan(words: [String], progress: [ProgressSnapshot], limit: Int = 10) -> SessionPlan {
+        GroupStudy.plan(
+            GroupStudy.Input(
+                now: now,
+                words: store.words(ids: words),
+                progress: progress,
+                newWordsLimit: limit,
+                reviewLimit: 60,
+                order: .test
+            )
+        )
+    }
+
+    @Test("グループ内の期限が来た復習と未学習語だけが出る")
+    func onlyGroupWords() {
+        let result = plan(
+            words: ["a1-0001", "a1-0002", "a1-0003", "a1-0004"],
+            progress: [
+                snapshot("a1-0001", stage: 2, dueOffset: -1),  // 期限切れ → 復習
+                snapshot("a1-0002", stage: 3, dueOffset: 3),  // 期限前 → 出ない
+                snapshot("a1-0100", stage: 2, dueOffset: -1),  // グループ外 → 出ない
+            ]
+        )
+        #expect(result.reviewWordIds == ["a1-0001"])
+        #expect(result.newWordIds == ["a1-0003", "a1-0004"])
+        #expect(result.deferredReviewCount == 0)
+    }
+
+    @Test("新規語は追加順で、1 回の上限まで")
+    func newWordsInOrderUpToLimit() {
+        let ids = ["a1-0010", "a1-0003", "a1-0007", "a1-0001"]
+        let result = plan(words: ids, progress: [], limit: 3)
+        #expect(result.newWordIds == ["a1-0010", "a1-0003", "a1-0007"])
+    }
+
+    @Test("集計: 語数・学習済み・期限・開花")
+    func summaryCounts() {
+        let progress = [
+            snapshot("a1-0001", stage: 5, dueOffset: 30),
+            snapshot("a1-0002", stage: 2, dueOffset: 0),
+            snapshot("a1-0100", stage: 2, dueOffset: -1),
+        ]
+        let summary = GroupStudy.summary(
+            wordIds: ["a1-0001", "a1-0002", "a1-0003"],
+            progressByWordId: Dictionary(uniqueKeysWithValues: progress.map { ($0.wordId, $0) }),
+            now: now
+        )
+        #expect(summary == GroupStudy.Summary(total: 3, learned: 2, due: 1, blossomed: 1))
+        #expect(summary.unlearned == 1)
+    }
+}
+
+@Suite("グループと自作語の編集")
+struct GroupEditorTests {
+    let now = TestDate.at(2026, 8, 14)
+    let context: ModelContext
+    let editor: GroupEditor
+
+    init() throws {
+        context = try makeContext()
+        editor = GroupEditor(context: context)
+    }
+
+    @Test("空の名前は既定名になり、前後の空白は落とす")
+    func groupName() {
+        #expect(editor.createGroup(name: "  ", now: now).name == "新しいグループ")
+        #expect(editor.createGroup(name: " Unit 3 ", now: now).name == "Unit 3")
+    }
+
+    @Test("追加は末尾に、重複は入れない。外すと消える")
+    func addAndRemove() {
+        let group = editor.createGroup(name: "g", now: now)
+        editor.add(wordIds: ["a1-0002", "a1-0001"], to: group, now: now)
+        editor.add(wordIds: ["a1-0001", "a1-0003", "a1-0003"], to: group, now: now)
+        #expect(group.wordIds == ["a1-0002", "a1-0001", "a1-0003"])
+
+        editor.remove(wordIds: ["a1-0001"], from: group, now: now)
+        #expect(group.wordIds == ["a1-0002", "a1-0003"])
+    }
+
+    @Test("選択画面の結果: 残す語の順番は保ち、新しい語は選んだ順で末尾へ")
+    func setMembership() {
+        let group = editor.createGroup(name: "g", now: now)
+        editor.add(wordIds: ["a", "b", "c"], to: group, now: now)
+        editor.setMembership(["c", "x", "a", "y"], for: group, now: now)
+        #expect(group.wordIds == ["a", "c", "x", "y"])
+    }
+
+    @Test("自作語を作るとグループの末尾に入り、索引から引ける")
+    func createCustomWord() throws {
+        let group = editor.createGroup(name: "g", now: now)
+        editor.add(wordIds: ["a1-0001"], to: group, now: now)
+        let custom = editor.createCustomWord(
+            GroupEditor.WordDraft(
+                word: "  take care of ", meaning: " 〜の世話をする ", pos: .phrase,
+                example: "I take care of my dog.", exampleJa: "私は犬の世話をします。"
+            ),
+            addingTo: group,
+            now: now
+        )
+
+        #expect(CustomWord.isCustom(custom.wordId))
+        #expect(custom.word == "take care of")
+        #expect(custom.meaning == "〜の世話をする")
+        #expect(group.wordIds == ["a1-0001", custom.wordId])
+        #expect(editor.customWord(id: custom.wordId) === custom)
+
+        let store = WordStore.shared.including(customWords: [custom.entry])
+        #expect(store.word(id: custom.wordId)?.isCustom == true)
+    }
+
+    @Test("英語と意味が無ければ保存できない。空白入りは熟語と推測する")
+    func draftValidation() {
+        #expect(!GroupEditor.WordDraft(word: "dog", meaning: " ").isValid)
+        #expect(!GroupEditor.WordDraft(word: " ", meaning: "犬").isValid)
+        #expect(GroupEditor.WordDraft(word: "dog", meaning: "犬").isValid)
+        #expect(GroupEditor.WordDraft.guessedPos(for: "look after") == .phrase)
+        #expect(GroupEditor.WordDraft.guessedPos(for: "dog ") == .noun)
+    }
+
+    @Test("自作語を編集できる")
+    func updateCustomWord() {
+        let custom = editor.createCustomWord(
+            GroupEditor.WordDraft(word: "dog", meaning: "猫"), now: now
+        )
+        var draft = custom.draft
+        draft.meaning = "犬"
+        editor.update(custom, with: draft, now: now)
+        #expect(custom.meaning == "犬")
+    }
+
+    @Test("自作語を消すと、グループ・進捗・回答ログからも消える")
+    func deleteCustomWord() throws {
+        let first = editor.createGroup(name: "1", now: now)
+        let second = editor.createGroup(name: "2", now: now)
+        let custom = editor.createCustomWord(
+            GroupEditor.WordDraft(word: "homeroom", meaning: "ホームルーム"),
+            addingTo: first,
+            now: now
+        )
+        let wordId = custom.wordId
+        editor.add(wordIds: ["a1-0001", wordId], to: second, now: now)
+        let engine = LearningEngine(context: context)
+        engine.record(wordId: wordId, correct: true, quizType: .enToJa, kind: .new, now: now)
+        engine.record(wordId: "a1-0001", correct: true, quizType: .enToJa, kind: .new, now: now)
+
+        editor.deleteCustomWord(id: wordId)
+
+        #expect(editor.customWord(id: wordId) == nil)
+        #expect(first.wordIds.isEmpty)
+        #expect(second.wordIds == ["a1-0001"])
+        #expect(engine.progress(for: wordId) == nil)
+        let logs = try context.fetch(FetchDescriptor<AnswerLog>())
+        #expect(logs.map(\.wordId) == ["a1-0001"])
+        // ほかの語の進捗は残る
+        #expect(engine.progress(for: "a1-0001") != nil)
+    }
+
+    @Test("グループを消しても進捗と自作語は残る")
+    func deleteGroupKeepsWords() throws {
+        let group = editor.createGroup(name: "g", now: now)
+        let custom = editor.createCustomWord(
+            GroupEditor.WordDraft(word: "homeroom", meaning: "ホームルーム"),
+            addingTo: group,
+            now: now
+        )
+        LearningEngine(context: context).record(
+            wordId: custom.wordId, correct: true, quizType: .enToJa, kind: .new, now: now
+        )
+        editor.delete(group)
+
+        #expect(try context.fetch(FetchDescriptor<WordGroup>()).isEmpty)
+        #expect(editor.customWord(id: custom.wordId) != nil)
+        #expect(LearningEngine(context: context).progress(for: custom.wordId) != nil)
+    }
+}
+
+@Suite("ドリル（進捗を動かさない練習）")
+struct DrillTests {
+    let now = TestDate.at(2026, 8, 14)
+    let context: ModelContext
+    let engine: LearningEngine
+
+    init() throws {
+        context = try makeContext()
+        engine = LearningEngine(context: context)
+    }
+
+    private func drill(_ ids: [String], store: WordStore = .shared) -> SessionRunner {
+        SessionRunner(
+            drillWordIds: ids, engine: engine, store: store, rng: SeededRNG(seed: 7), clock: { now }
+        )
+    }
+
+    private func answer(_ runner: SessionRunner, correct: Bool) throws -> String {
+        guard case .quiz(let quiz, _) = runner.step else {
+            Issue.record("クイズではなく \(runner.step) が表示されている")
+            throw CancellationError()
+        }
+        let index = correct ? quiz.answerIndex : (quiz.answerIndex + 1) % quiz.choices.count
+        runner.answer(choiceIndex: index)
+        runner.next()
+        return quiz.word.id
+    }
+
+    @Test("全語がクイズで出て、進捗もログも増えない")
+    func drillDoesNotRecord() throws {
+        let ids = ["a1-0001", "a1-0002", "a1-0003"]
+        let runner = drill(ids)
+        #expect(runner.mode == .drill)
+        #expect(runner.remainingCount == 3)
+
+        var asked: [String] = []
+        for _ in ids { asked.append(try answer(runner, correct: true)) }
+
+        #expect(asked == ids)
+        #expect(runner.isFinished)
+        #expect(runner.stats.answered == 3)
+        #expect(runner.stats.correct == 3)
+        #expect(runner.stats.learnedWordIds.isEmpty)
+        #expect(try context.fetch(FetchDescriptor<WordProgress>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<AnswerLog>()).isEmpty)
+    }
+
+    @Test("間違えた語は末尾で再出題され、間違えた語として残る")
+    func missedWordsRequeue() throws {
+        let runner = drill(["a1-0001", "a1-0002"])
+        let missed = try answer(runner, correct: false)
+        _ = try answer(runner, correct: true)
+
+        guard case .quiz(let quiz, let kind) = runner.step else {
+            Issue.record("再出題が無い")
+            return
+        }
+        #expect(quiz.word.id == missed)
+        #expect(kind == .requeue)
+        _ = try answer(runner, correct: true)
+        #expect(runner.isFinished)
+        #expect(runner.stats.missedWordIds == [missed])
+        #expect(try context.fetch(FetchDescriptor<AnswerLog>()).isEmpty)
+    }
+
+    @Test("出題形式は今のステージで決まり、ステージは変わらない")
+    func quizTypeFollowsStage() throws {
+        engine.record(wordId: "a1-0004", correct: true, quizType: .enToJa, kind: .new, now: now)
+        let progress = try #require(engine.progress(for: "a1-0004"))
+        progress.stage = 4
+        try context.save()
+
+        let runner = drill(["a1-0004"])
+        guard case .quiz(let quiz, _) = runner.step else {
+            Issue.record("クイズが無い")
+            return
+        }
+        #expect(quiz.type == .jaToEn)
+        _ = try answer(runner, correct: false)
+        #expect(engine.progress(for: "a1-0004")?.stage == 4)
+    }
+
+    @Test("自作語もドリルで出せる（例文が無ければ穴埋めにしない）")
+    func customWordsInDrill() throws {
+        let custom = WordEntry(
+            id: "custom-1", word: "homeroom", pos: .noun, level: nil, meaning: "ホームルーム",
+            example: "", exampleJa: ""
+        )
+        let store = WordStore.shared.including(customWords: [custom])
+        var builder = QuizBuilder(store: store, rng: SeededRNG(seed: 1))
+        let quiz = builder.make(for: custom, type: .fillBlank)
+        #expect(quiz.type == .enToJa)
+        #expect(quiz.choices.count == QuizBuilder.choiceCount)
+        #expect(Set(quiz.choices.map(\.id)).count == QuizBuilder.choiceCount)
+        #expect(quiz.choices.contains(custom))
+
+        let runner = drill(["custom-1"], store: store)
+        #expect(try answer(runner, correct: true) == "custom-1")
+    }
+
+    @Test("いつもの学習では自作語も SRS に記録される")
+    func learningRecordsCustomWord() throws {
+        let custom = WordEntry(
+            id: "custom-1", word: "homeroom", pos: .noun, level: nil, meaning: "ホームルーム",
+            example: "", exampleJa: ""
+        )
+        let store = WordStore.shared.including(customWords: [custom])
+        let runner = SessionRunner(
+            plan: SessionPlan(newWordIds: ["custom-1"]),
+            engine: engine, store: store, rng: SeededRNG(seed: 1), clock: { now }
+        )
+        #expect(runner.mode == .learning)
+        guard case .present(let word) = runner.step else {
+            Issue.record("提示カードが無い")
+            return
+        }
+        #expect(word == custom)
+        runner.next()
+        _ = try answer(runner, correct: true)
+        #expect(engine.progress(for: "custom-1")?.stage == SRS.minLearnedStage)
+        #expect(runner.stats.learnedWordIds == ["custom-1"])
+    }
+}
+
+@Suite("バックアップ（グループ・自作語）")
+struct GroupBackupTests {
+    let now = TestDate.at(2026, 8, 14)
+
+    private func settings() -> AppSettings {
+        AppSettings(defaults: UserDefaults(suiteName: "group-backup-\(UUID().uuidString)")!)
+    }
+
+    @Test("グループと自作語も書き出して復元できる")
+    func roundTrip() throws {
+        let context = try makeContext()
+        let editor = GroupEditor(context: context)
+        let group = editor.createGroup(name: "Unit 3", now: now)
+        editor.add(wordIds: ["a1-0001"], to: group, now: now)
+        let custom = editor.createCustomWord(
+            GroupEditor.WordDraft(
+                word: "take care of", meaning: "〜の世話をする", pos: .phrase,
+                example: "I take care of it.", exampleJa: "私がそれの面倒を見ます。"
+            ),
+            addingTo: group,
+            now: now
+        )
+        let data = try BackupService.export(context: context, settings: settings(), now: now)
+
+        let other = try makeContext()
+        GroupEditor(context: other).createGroup(name: "消える", now: now)
+        let archive = try BackupService.restore(from: data, context: other, settings: settings())
+
+        #expect(archive.version == 2)
+        let groups = try other.fetch(FetchDescriptor<WordGroup>())
+        #expect(groups.map(\.name) == ["Unit 3"])
+        #expect(groups.first?.id == group.id)
+        #expect(groups.first?.wordIds == ["a1-0001", custom.wordId])
+        let restored = try #require(GroupEditor(context: other).customWord(id: custom.wordId))
+        #expect(restored.entry == custom.entry)
+    }
+
+    @Test("グループの無い version 1 のファイルも読める")
+    func readsVersionOne() throws {
+        let json = """
+        {
+          "version": 1,
+          "exportedAt": "2026-08-14T03:00:00Z",
+          "settings": {"level": "A1", "newWordsPerDay": 10, "reviewLimitPerDay": 60, "soundEnabled": true},
+          "progress": [{"wordId": "a1-0001", "stage": 2, "dueAt": "2026-08-15T00:00:00Z",
+                        "learnedAt": "2026-08-13T00:00:00Z", "updatedAt": "2026-08-13T00:00:00Z",
+                        "known": false}],
+          "logs": []
+        }
+        """
+        let context = try makeContext()
+        GroupEditor(context: context).createGroup(name: "既存", now: now)
+
+        let archive = try BackupService.restore(
+            from: Data(json.utf8), context: context, settings: settings()
+        )
+        #expect(archive.groups == nil)
+        #expect(archive.customWords == nil)
+        #expect(try context.fetch(FetchDescriptor<WordProgress>()).count == 1)
+        // 置き換え方式なので、今のグループは消える
+        #expect(try context.fetch(FetchDescriptor<WordGroup>()).isEmpty)
+    }
+}

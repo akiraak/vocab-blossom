@@ -5,14 +5,19 @@ import SwiftData
 ///
 /// MVP は端末間同期を持たないので、機種変更や取り違えの保険としてこの JSON を書き出す。
 /// 取り込みは「置き換え」方式（差分マージはしない）。
+///
+/// - version 1: 設定・進捗・回答ログ
+/// - version 2: グループと自作語を追加（v1 のファイルには無いので nil として読む）
 struct BackupArchive: Codable, Equatable {
-    static let currentVersion = 1
+    static let currentVersion = 2
 
     var version = currentVersion
     var exportedAt: Date
     var settings: Settings
     var progress: [Progress]
     var logs: [Log]
+    var groups: [Group]?
+    var customWords: [Custom]?
 
     struct Settings: Codable, Equatable {
         var level: CefrLevel
@@ -38,6 +43,25 @@ struct BackupArchive: Codable, Equatable {
         var quizType: QuizType
         var kind: AnswerKind
         var stageAfter: Int
+    }
+
+    struct Group: Codable, Equatable {
+        var id: UUID
+        var name: String
+        var wordIds: [String]
+        var createdAt: Date
+        var updatedAt: Date
+    }
+
+    struct Custom: Codable, Equatable {
+        var wordId: String
+        var word: String
+        var meaning: String
+        var pos: PartOfSpeech
+        var example: String
+        var exampleJa: String
+        var createdAt: Date
+        var updatedAt: Date
     }
 }
 
@@ -84,6 +108,12 @@ enum BackupService {
         let logs = try context.fetch(
             FetchDescriptor<AnswerLog>(sortBy: [SortDescriptor(\.answeredAt)])
         )
+        let groups = try context.fetch(
+            FetchDescriptor<WordGroup>(sortBy: [SortDescriptor(\.createdAt)])
+        )
+        let customWords = try context.fetch(
+            FetchDescriptor<CustomWord>(sortBy: [SortDescriptor(\.createdAt)])
+        )
         return BackupArchive(
             exportedAt: now,
             settings: BackupArchive.Settings(
@@ -103,6 +133,19 @@ enum BackupService {
                     wordId: $0.wordId, answeredAt: $0.answeredAt, dateKey: $0.dateKey,
                     correct: $0.correct, quizType: $0.quizType, kind: $0.kind,
                     stageAfter: $0.stageAfter
+                )
+            },
+            groups: groups.map {
+                BackupArchive.Group(
+                    id: $0.id, name: $0.name, wordIds: $0.wordIds,
+                    createdAt: $0.createdAt, updatedAt: $0.updatedAt
+                )
+            },
+            customWords: customWords.map {
+                BackupArchive.Custom(
+                    wordId: $0.wordId, word: $0.word, meaning: $0.meaning, pos: $0.pos,
+                    example: $0.example, exampleJa: $0.exampleJa,
+                    createdAt: $0.createdAt, updatedAt: $0.updatedAt
                 )
             }
         )
@@ -135,6 +178,8 @@ enum BackupService {
 
         try context.delete(model: WordProgress.self)
         try context.delete(model: AnswerLog.self)
+        try context.delete(model: WordGroup.self)
+        try context.delete(model: CustomWord.self)
 
         for item in archive.progress {
             context.insert(
@@ -150,6 +195,23 @@ enum BackupService {
                     wordId: item.wordId, answeredAt: item.answeredAt, dateKey: item.dateKey,
                     correct: item.correct, quizType: item.quizType, kind: item.kind,
                     stageAfter: item.stageAfter
+                )
+            )
+        }
+        for item in archive.groups ?? [] {
+            context.insert(
+                WordGroup(
+                    id: item.id, name: item.name, wordIds: item.wordIds,
+                    createdAt: item.createdAt, updatedAt: item.updatedAt
+                )
+            )
+        }
+        for item in archive.customWords ?? [] {
+            context.insert(
+                CustomWord(
+                    wordId: item.wordId, word: item.word, meaning: item.meaning, pos: item.pos,
+                    example: item.example, exampleJa: item.exampleJa,
+                    createdAt: item.createdAt, updatedAt: item.updatedAt
                 )
             )
         }

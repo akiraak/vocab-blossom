@@ -77,7 +77,7 @@ struct SettingsView: View {
                 } header: {
                     Text("データ")
                 } footer: {
-                    Text("読み込むと、いまの進捗はファイルの内容に置き換わります。")
+                    Text("読み込むと、いまの進捗・グループ・自作の単語はファイルの内容に置き換わります。")
                 }
 
                 Section("このアプリ") {
@@ -151,7 +151,8 @@ struct SettingsView: View {
             )
             message = Message(
                 title: "読み込みました",
-                detail: "\(archive.progress.count) 語の進捗と \(archive.logs.count) 件の記録を復元しました。"
+                detail: "\(archive.progress.count) 語の進捗と \(archive.logs.count) 件の記録、"
+                    + "\(archive.groups?.count ?? 0) 個のグループを復元しました。"
             )
         } catch {
             message = Message(title: "読み込めませんでした", detail: error.localizedDescription)

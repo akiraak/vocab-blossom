@@ -41,16 +41,20 @@ enum PartOfSpeech: String, Codable, CaseIterable, Sendable {
 }
 
 /// 単語 1 件。`data/decks/*.json` のエントリと 1:1 で対応する。
+/// ユーザーの自作語（`CustomWord`）もこの形に変換して同じ経路で扱う。
 struct WordEntry: Codable, Hashable, Identifiable, Sendable {
-    /// レベル別連番（例: "a1-0001"）。学習進捗のキーになるため不変。
+    /// レベル別連番（例: "a1-0001"）。自作語は "custom-<uuid>"。学習進捗のキーになるため不変。
     let id: String
     let word: String
     let pos: PartOfSpeech
-    let level: CefrLevel
+    /// 同梱語は必ず入る。自作語は nil
+    let level: CefrLevel?
     /// 日本語の意味。複数は「／」区切りで 2 個まで。
     let meaning: String
     let example: String
     let exampleJa: String
+
+    var isCustom: Bool { level == nil }
 }
 
 /// デッキ 1 つ（JSON ファイル 1 つ）。

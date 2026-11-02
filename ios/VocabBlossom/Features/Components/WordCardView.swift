@@ -29,15 +29,18 @@ struct WordCardView: View {
                     .font(.title3.weight(.medium))
             }
 
-            Divider()
+            // 自作語は例文が任意なので、無ければ区切り線ごと出さない
+            if !word.example.isEmpty {
+                Divider()
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(word.example)
-                    .font(.callout)
-                if !hidesMeaning {
-                    Text(word.exampleJa)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(word.example)
+                        .font(.callout)
+                    if !hidesMeaning, !word.exampleJa.isEmpty {
+                        Text(word.exampleJa)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

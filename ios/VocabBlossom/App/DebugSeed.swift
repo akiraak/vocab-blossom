@@ -14,6 +14,9 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=words|stats|settings`: そのタブを開いた状態で起動する
 /// - `VOCAB_DEMO_SCREEN=fresh`: オンボーディング済み・学習記録なしの状態
 /// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面
+/// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
+/// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
+/// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill`: グループの学習 / ドリルを起動直後に開く
 enum DebugSeed {
     enum Variant: String {
         case none
@@ -27,6 +30,18 @@ enum DebugSeed {
         case fresh
         /// 既知語の一括登録画面
         case knownWords = "known-words"
+        /// グループタブ
+        case groups
+        case groupDetail = "group-detail"
+        case groupLearn = "group-learn"
+        case groupDrill = "group-drill"
+
+        var seedsGroups: Bool {
+            switch self {
+            case .groups, .groupDetail, .groupLearn, .groupDrill: true
+            default: false
+            }
+        }
 
         /// 学習済みの単語を作るか
         var hasProgress: Bool { self != .fresh && self != .knownWords }
@@ -52,6 +67,11 @@ enum DebugSeed {
         }
     }
 
+    /// グループ詳細を最初から開く
+    static var opensFirstGroup: Bool {
+        [.groupDetail, .groupLearn, .groupDrill].contains(variant)
+    }
+
     /// 既知語の一括登録画面を最初から出す
     static var showsKnownWordsPicker: Bool { variant == .knownWords }
 
@@ -61,6 +81,7 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
+        case .groups, .groupDetail, .groupLearn, .groupDrill: .groups
         default: nil
         }
     }
@@ -72,6 +93,8 @@ enum DebugSeed {
 
         try? context.delete(model: WordProgress.self)
         try? context.delete(model: AnswerLog.self)
+        try? context.delete(model: WordGroup.self)
+        try? context.delete(model: CustomWord.self)
 
         guard variant.hasProgress else {
             try? context.save()
@@ -113,6 +136,10 @@ enum DebugSeed {
             }
         }
 
+        if variant.seedsGroups {
+            seedGroups(context: context, pool: pool, now: now)
+        }
+
         if variant.newWordsExhausted {
             // 今日の新規語の枠を使い切った状態にする
             for word in pool.dropFirst(45).prefix(settings.newWordsPerDay) {
@@ -139,6 +166,27 @@ enum DebugSeed {
             }
         }
         try? context.save()
+    }
+
+    /// 学習済みの語・未学習の語・自作語が混ざったグループを作る
+    private static func seedGroups(context: ModelContext, pool: [WordEntry], now: Date) {
+        let editor = GroupEditor(context: context)
+        let unit = editor.createGroup(name: "小テスト Unit 3", now: now)
+        editor.add(wordIds: pool.prefix(4).map(\.id) + pool.dropFirst(60).prefix(6).map(\.id), to: unit)
+        editor.createCustomWord(
+            GroupEditor.WordDraft(
+                word: "take care of", meaning: "〜の世話をする", pos: .phrase,
+                example: "I take care of my little sister.", exampleJa: "私は妹の世話をします。"
+            ),
+            addingTo: unit,
+            now: now
+        )
+        editor.createCustomWord(
+            GroupEditor.WordDraft(word: "homeroom", meaning: "ホームルーム", pos: .noun),
+            addingTo: unit,
+            now: now
+        )
+        editor.createGroup(name: "教科書の熟語", now: DateUtil.addDays(now, -3))
     }
 }
 #endif

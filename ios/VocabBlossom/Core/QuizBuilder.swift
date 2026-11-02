@@ -86,10 +86,11 @@ struct QuizBuilder {
         return word.example.replacingCharacters(in: range, with: Quiz.blankPlaceholder)
     }
 
-    /// 誤答肢は同レベル・同品詞から。足りなければ同レベル → 全体へ広げる
+    /// 誤答肢は同レベル・同品詞から。足りなければ同レベル → 全体へ広げる。
+    /// レベルの無い自作語は 全体の同品詞 → 全体 から選ぶ
     mutating func distractors(for word: WordEntry) -> [WordEntry] {
         let needed = Self.choiceCount - 1
-        let sameLevel = store.words(level: word.level)
+        let sameLevel = word.level.map { store.words(level: $0) } ?? store.allWords
         let pools = [
             sameLevel.filter { $0.pos == word.pos },
             sameLevel,

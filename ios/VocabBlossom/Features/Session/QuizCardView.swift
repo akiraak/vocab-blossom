@@ -4,6 +4,8 @@ import SwiftUI
 struct QuizCardView: View {
     let quiz: Quiz
     let kind: AnswerKind
+    /// ドリル（進捗を動かさない練習）なら見出しを「ドリル」にする
+    var isDrill = false
     let selectedIndex: Int?
     let onSelect: (Int) -> Void
     let onNext: () -> Void
@@ -52,18 +54,20 @@ struct QuizCardView: View {
     }
 
     private var kindLabel: String {
+        if isDrill, kind != .requeue { return "ドリル" }
         switch kind {
-        case .review: "復習"
-        case .new: "確認クイズ"
-        case .requeue: "もう一度"
+        case .review: return "復習"
+        case .new: return "確認クイズ"
+        case .requeue: return "もう一度"
         }
     }
 
     private var kindSymbol: String {
+        if isDrill, kind != .requeue { return "pencil.and.list.clipboard" }
         switch kind {
-        case .review: "arrow.clockwise"
-        case .new: "sparkles"
-        case .requeue: "arrow.uturn.left"
+        case .review: return "arrow.clockwise"
+        case .new: return "sparkles"
+        case .requeue: return "arrow.uturn.left"
         }
     }
 

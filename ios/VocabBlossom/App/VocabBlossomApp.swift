@@ -9,7 +9,9 @@ struct VocabBlossomApp: App {
 
     init() {
         do {
-            container = try ModelContainer(for: WordProgress.self, AnswerLog.self)
+            container = try ModelContainer(
+                for: WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self
+            )
         } catch {
             fatalError("学習データの保存領域を開けませんでした: \(error)")
         }
@@ -17,7 +19,9 @@ struct VocabBlossomApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            WordStoreProvider {
+                RootView()
+            }
                 .environment(settings)
                 .tint(Theme.accent)
                 .task {

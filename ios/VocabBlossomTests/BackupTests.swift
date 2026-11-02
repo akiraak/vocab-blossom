@@ -13,7 +13,7 @@ struct BackupTests {
 
     init() throws {
         let container = try ModelContainer(
-            for: WordProgress.self, AnswerLog.self,
+            for: WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         context = ModelContext(container)
@@ -41,7 +41,7 @@ struct BackupTests {
 
         // 別の端末を模して、進捗も設定も違う状態から読み込む
         let other = try ModelContainer(
-            for: WordProgress.self, AnswerLog.self,
+            for: WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let otherContext = ModelContext(other)

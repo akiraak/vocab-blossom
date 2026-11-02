@@ -28,7 +28,7 @@ struct RootView: View {
 
 struct MainTabView: View {
     enum TabId: String {
-        case home, words, stats, settings
+        case home, words, groups, stats, settings
     }
 
     @State private var selection: TabId = .home
@@ -40,6 +40,9 @@ struct MainTabView: View {
             }
             Tab("単語帳", systemImage: "book.fill", value: TabId.words) {
                 WordListView()
+            }
+            Tab("グループ", systemImage: "folder.fill", value: TabId.groups) {
+                GroupListView()
             }
             Tab("統計", systemImage: "chart.bar.fill", value: TabId.stats) {
                 StatsView()

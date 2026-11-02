@@ -6,9 +6,29 @@ import SwiftUI
 /// 何を勉強するか・どの形式で解くかはアプリが決めるので、ユーザーは
 /// 「ボタンを押す → クイズに答える」だけで進む。
 struct SessionView: View {
-    let plan: SessionPlan
+    enum Source {
+        /// いつもの学習（毎日 / グループ）
+        case plan(SessionPlan)
+        /// グループのドリル（進捗を動かさない）
+        case drill(wordIds: [String])
+    }
+
+    let source: Source
+    /// 締め画面の閉じるボタンの文言
+    var closeTitle = "庭にもどる"
+
+    init(plan: SessionPlan, closeTitle: String = "庭にもどる") {
+        source = .plan(plan)
+        self.closeTitle = closeTitle
+    }
+
+    init(drillWordIds: [String], closeTitle: String) {
+        source = .drill(wordIds: drillWordIds)
+        self.closeTitle = closeTitle
+    }
 
     @Environment(\.modelContext) private var context
+    @Environment(\.wordStore) private var store
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
 
@@ -39,7 +59,13 @@ struct SessionView: View {
         }
         .task {
             if runner == nil {
-                runner = SessionRunner(plan: plan, engine: LearningEngine(context: context))
+                let engine = LearningEngine(context: context)
+                switch source {
+                case .plan(let plan):
+                    runner = SessionRunner(plan: plan, engine: engine, store: store)
+                case .drill(let wordIds):
+                    runner = SessionRunner(drillWordIds: wordIds, engine: engine, store: store)
+                }
             }
         }
         .onDisappear { SpeechService.shared.stop() }
@@ -72,12 +98,17 @@ struct SessionView: View {
             QuizCardView(
                 quiz: quiz,
                 kind: kind,
+                isDrill: runner.mode == .drill,
                 selectedIndex: runner.selectedIndex,
                 onSelect: { runner.answer(choiceIndex: $0) },
                 onNext: { runner.next() }
             )
         case .summary:
-            SessionSummaryView(stats: runner.stats) { dismiss() }
+            SessionSummaryView(
+                stats: runner.stats,
+                mode: runner.mode,
+                closeTitle: closeTitle
+            ) { dismiss() }
         }
     }
 

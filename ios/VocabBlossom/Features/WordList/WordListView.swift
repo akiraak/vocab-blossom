@@ -8,22 +8,23 @@ struct WordListView: View {
     @State private var query = ""
     @State private var selectedDeckId: String?
 
-    private let store = WordStore.shared
+    @Environment(\.wordStore) private var store
+
+    /// 自作語のチップの ID（同梱デッキの ID と衝突しない値）
+    private static let customDeckId = "custom"
 
     private var progressByWordId: [String: WordProgress] {
         Dictionary(progresses.map { ($0.wordId, $0) }, uniquingKeysWith: { first, _ in first })
     }
 
     private var words: [WordEntry] {
-        let base = selectedDeckId.flatMap { id in store.decks.first { $0.id == id }?.words }
-            ?? store.allWords
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return base }
-        return base.filter {
-            $0.word.localizedCaseInsensitiveContains(trimmed)
-                || $0.meaning.localizedCaseInsensitiveContains(trimmed)
-                || $0.example.localizedCaseInsensitiveContains(trimmed)
+        let base: [WordEntry]
+        switch selectedDeckId {
+        case nil: base = store.allWords
+        case Self.customDeckId: base = store.customWords
+        case let id?: base = store.decks.first { $0.id == id }?.words ?? store.allWords
         }
+        return WordStore.filter(base, query: query)
     }
 
     var body: some View {
@@ -57,6 +58,10 @@ struct WordListView: View {
             .navigationTitle("単語帳")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, prompt: "単語・意味・例文を検索")
+            .onChange(of: store.customWords.isEmpty) { _, isEmpty in
+                // 自作語を全部消したら「マイ単語」チップも消えるので選択を戻す
+                if isEmpty, selectedDeckId == Self.customDeckId { selectedDeckId = nil }
+            }
         }
     }
 
@@ -66,6 +71,9 @@ struct WordListView: View {
                 chip(title: "すべて", deckId: nil)
                 ForEach(store.decks) { deck in
                     chip(title: deck.name, deckId: deck.id)
+                }
+                if !store.customWords.isEmpty {
+                    chip(title: "マイ単語", deckId: Self.customDeckId)
                 }
             }
             .padding(.horizontal, 16)

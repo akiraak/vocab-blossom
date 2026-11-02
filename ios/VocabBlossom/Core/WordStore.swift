@@ -14,22 +14,52 @@ final class WordStore {
     static let bundleSubdirectory = "decks"
 
     let decks: [Deck]
+    /// ユーザーの自作語（作成順）。デッキ・レベル別プールには含めない
+    let customWords: [WordEntry]
+    /// 同梱語 → 自作語 の順
     let allWords: [WordEntry]
 
     private let byId: [String: WordEntry]
+    private let customById: [String: WordEntry]
     private let deckIdByWordId: [String: String]
     private let wordsByLevel: [CefrLevel: [WordEntry]]
 
-    init(decks: [Deck]) {
+    init(decks: [Deck], customWords: [WordEntry] = []) {
         self.decks = decks
         let words = decks.flatMap(\.words)
-        allWords = words
         byId = Dictionary(words.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         deckIdByWordId = Dictionary(
             decks.flatMap { deck in deck.words.map { ($0.id, deck.id) } },
             uniquingKeysWith: { first, _ in first }
         )
-        wordsByLevel = Dictionary(grouping: words, by: \.level)
+        wordsByLevel = Dictionary(
+            grouping: words.filter { $0.level != nil },
+            by: { $0.level ?? .a1 }
+        )
+        self.customWords = customWords
+        customById = Dictionary(
+            customWords.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first }
+        )
+        allWords = words + customWords
+    }
+
+    /// 同梱語の索引を使い回し、自作語を重ねた索引を作る（画面の再描画ごとに呼んでも軽いように）
+    private init(base: WordStore, customWords: [WordEntry]) {
+        decks = base.decks
+        byId = base.byId
+        deckIdByWordId = base.deckIdByWordId
+        wordsByLevel = base.wordsByLevel
+        self.customWords = customWords
+        customById = Dictionary(
+            customWords.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first }
+        )
+        let bundled = base.allWords.prefix(base.allWords.count - base.customWords.count)
+        allWords = Array(bundled) + customWords
+    }
+
+    /// 自作語を差し替えた索引。同梱語の部分はそのまま
+    func including(customWords: [WordEntry]) -> WordStore {
+        WordStore(base: self, customWords: customWords)
     }
 
     /// アプリバンドルから全デッキを読み込む。データ不備は起動時に落として気付けるようにする。
@@ -52,7 +82,10 @@ final class WordStore {
         return WordStore(decks: decks)
     }
 
-    func word(id: String) -> WordEntry? { byId[id] }
+    func word(id: String) -> WordEntry? { byId[id] ?? customById[id] }
+
+    /// ID の並びを単語に引き直す。見つからない ID（削除済みの自作語など）は飛ばす
+    func words(ids: [String]) -> [WordEntry] { ids.compactMap(word(id:)) }
 
     func deck(of wordId: String) -> Deck? {
         guard let deckId = deckIdByWordId[wordId] else { return nil }
@@ -71,12 +104,24 @@ final class WordStore {
 
     /// 単語・意味・例文の部分一致検索（大小文字無視）。
     func search(_ query: String) -> [WordEntry] {
+        Self.filter(allWords, query: query)
+    }
+
+    /// 単語・意味・例文の部分一致で絞り込む。空の検索語なら全件
+    static func filter(_ words: [WordEntry], query: String) -> [WordEntry] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return allWords }
-        return allWords.filter {
+        guard !trimmed.isEmpty else { return words }
+        return words.filter {
             $0.word.localizedCaseInsensitiveContains(trimmed)
                 || $0.meaning.localizedCaseInsensitiveContains(trimmed)
                 || $0.example.localizedCaseInsensitiveContains(trimmed)
         }
+    }
+
+    /// 綴りが同じ同梱語（大小文字・前後の空白は無視）。自作語の重複登録の案内に使う
+    func bundledWord(spelledLike text: String) -> WordEntry? {
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !normalized.isEmpty else { return nil }
+        return allWords.first { !$0.isCustom && $0.word.lowercased() == normalized }
     }
 }
