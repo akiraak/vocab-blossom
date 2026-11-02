@@ -52,7 +52,7 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
 
 ## Cloudflare（akiraak の手作業）
 
-ホスト名: `vocab.chobi.me`（未設定）
+ホスト名: `vocab.chobi.me`（2026-11-02 設定済み・公開）
 
 順序は「Access → `.env` → Tunnel hostname」。公開前に `vocab.chobi.me` を DNS で引かない
 （LAN の DNS が NXDOMAIN を最大 30 分キャッシュする）。
