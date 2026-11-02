@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import Database from 'better-sqlite3'
+import { SYNC_MIGRATION } from './sync/store.ts'
 
 export type DB = Database.Database
 
@@ -10,8 +11,8 @@ export type Migration = {
   up: (db: DB) => void
 }
 
-// 適用済みのものは書き換えない。変更は末尾に足す（Phase 2 でグループ・自作語・削除記録を足す）
-export const MIGRATIONS: Migration[] = []
+// 適用済みのものは書き換えない。変更は末尾に足す
+export const MIGRATIONS: Migration[] = [SYNC_MIGRATION]
 
 export function openDatabase(dbPath: string): DB {
   if (dbPath !== ':memory:') {

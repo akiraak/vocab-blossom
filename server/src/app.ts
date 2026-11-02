@@ -5,6 +5,8 @@ import { isSafeMethod, isSameOrigin } from './http/csrf.ts'
 import { html, layout } from './http/html.ts'
 import { htmlPage, json, notFound, redirect, text } from './http/responses.ts'
 import { type Route, Router } from './http/router.ts'
+import { syncHandler } from './sync/api.ts'
+import { SyncStore } from './sync/store.ts'
 
 // サーバー本体。Web 標準の Request を受けて Response を返す関数（handle）として書き、
 // node:http との変換は http/adapter.ts に閉じ込める。テストは handle(new Request(...)) で書く。
@@ -32,12 +34,14 @@ function isUnder(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`)
 }
 
-export function createApp({ config, logger = consoleLogger, now = Date.now }: AppDeps): Handle {
+export function createApp({ config, db, logger = consoleLogger, now = Date.now }: AppDeps): Handle {
+  const store = new SyncStore(db)
   const routes: Route[] = [
     { method: 'GET', pattern: '/health', handler: () => json({ ok: true }) },
 
-    // iOS 用 API（Bearer 必須）。設定の確認用に ping だけ置く。同期は Phase 2
+    // iOS 用 API（Bearer 必須）。ping は設定の確認用
     { method: 'GET', pattern: '/api/ping', handler: () => json({ ok: true }) },
+    { method: 'POST', pattern: '/api/sync', handler: syncHandler(store) },
 
     // 管理画面（Cloudflare Access + ADMIN_ENABLED=on）。画面は Phase 3
     { method: 'GET', pattern: '/admin', handler: () => redirect('/admin/groups', 302) },

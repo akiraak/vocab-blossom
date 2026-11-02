@@ -112,6 +112,48 @@ AI タイポチェック（TODO の別タスク）はこのサーバーに API �
 5. **iOS の同期**: `ServerConfig.plist`・API クライアント・削除記録（SwiftData に追加）・同期のタイミング・
    受け取った変更の反映・設定画面に同期の状態（最後に同期した時刻・エラー）
 
+### Phase 2 の詳細（データと同期 API）
+
+- **テーブル**（マイグレーション 1 本目 `sync-tables`）
+  - `groups`（`id` / `name` / `word_ids`（JSON 配列）/ `created_at` / `updated_at` / `rev`）
+  - `custom_words`（`word_id` / `word` / `meaning` / `pos` / `example` / `example_ja` / `created_at` / `updated_at` / `rev`）
+  - `deletions`（削除記録。`kind`（`group` / `customWord`）+ `id` が主キー / `deleted_at` / `rev`）
+  - `sync_meta`（`key` = `rev` に最後に振った通し番号）
+  - 生きているレコードと削除記録は同じ ID で同時に存在しない（復活したら削除記録を消す）
+- **日時は API でも DB でもミリ秒の整数**（UNIX エポック）。iOS は `JSONDecoder.dateDecodingStrategy = .millisecondsSince1970`。
+  ISO 8601 の小数秒の扱いの差で `updatedAt` の比較がずれるのを避ける
+- **ID の正規化**: グループの ID は UUID の形式だけ受け付け、小文字にそろえる（Swift の `UUID` は大文字で書き出すため）。
+  自作語の ID は `custom-` で始まる文字列
+- **ぶつかったときの規則**（`updatedAt` / `deletedAt` の新しい方。同じ時刻なら手元＝サーバーにあるものを残す・削除が勝つ）
+  - 更新: サーバーの同じレコードの `updatedAt` 以上、または削除記録の `deletedAt` 以上なら捨てる
+  - 削除: サーバーのレコードの `updatedAt` の方が新しければ捨てる
+  - 何も変わらないときは `rev` を進めない（同じ内容を 2 回送っても壊れない）
+- **自作語の削除はグループからも外す**: その語を含むグループから ID を抜き、グループの `updatedAt` を
+  `max(今の updatedAt, deletedAt)` にして `rev` を振る（端末の LWW でもこちらが勝つように）。
+  グループを受け取ったときも、削除記録のある自作語の ID は抜いて保存する
+  （Phase 5 の iOS 側も `deleteCustomWord` でグループの `updatedAt` を進める）
+- **`POST /api/sync`**（Bearer 必須。本文は 5MB まで、超えたら 413。形が違えば 400 で何も保存しない）
+
+  ```jsonc
+  // 送る（配列は省略可）
+  { "cursor": 0,
+    "groups": [{ "id": "uuid", "name": "…", "wordIds": ["…"], "createdAt": 0, "updatedAt": 0 }],
+    "customWords": [{ "wordId": "custom-…", "word": "…", "meaning": "…", "pos": "noun",
+                      "example": "", "exampleJa": "", "createdAt": 0, "updatedAt": 0 }],
+    "deletions": [{ "kind": "group" | "customWord", "id": "…", "deletedAt": 0 }] }
+  // 受け取る
+  { "cursor": 12, "reset": false, "groups": [...], "customWords": [...], "deletions": [...] }
+  ```
+
+  - 1 回の同期は 1 トランザクション。自作語 → グループ → 削除記録の順に当てる
+  - 返すのは「`rev` が `cursor` より後のもの」＋「送られてきたレコードのサーバーでの今の状態」（採用されなかった変更も
+    サーバーの値で上書きできるように）。`rev` の順
+  - `cursor` がサーバーの最新より大きい（サーバーの DB を作り直した）ときは `cursor` = 0 として全件を返し、
+    `reset: true` を付ける。端末は全件を送り直す
+- **構成**: `server/src/sync/`（`types.ts` 型と入力の検証 / `store.ts` DB の読み書きと LWW / `api.ts` ハンドラ）。
+  Phase 3 の管理画面も `store.ts` の同じ関数（`updatedAt` = 今）で書く
+- 削除記録は消さない（1 人分なので量は小さい）
+
 Cloudflare の設定は自動化できないので、Phase 4 で手順を出してユーザーに依頼する。
 順序は「Access アプリ（`/api` と `/health` の Bypass → ルートの Allow）→ `.env` → Tunnel hostname」。
 公開前に `vocab.chobi.me` を DNS で引かない（LAN の DNS が NXDOMAIN を最大 30 分キャッシュする）。
