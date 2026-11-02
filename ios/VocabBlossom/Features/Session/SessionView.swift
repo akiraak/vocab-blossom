@@ -60,11 +60,17 @@ struct SessionView: View {
         .task {
             if runner == nil {
                 let engine = LearningEngine(context: context)
+                // 自作語の誤答肢を同じグループの語から選ぶため、グループの並びを渡す
+                let groups = ((try? context.fetch(FetchDescriptor<WordGroup>())) ?? []).map(\.wordIds)
                 switch source {
                 case .plan(let plan):
-                    runner = SessionRunner(plan: plan, engine: engine, store: store)
+                    runner = SessionRunner(
+                        plan: plan, engine: engine, store: store, groups: groups
+                    )
                 case .drill(let wordIds):
-                    runner = SessionRunner(drillWordIds: wordIds, engine: engine, store: store)
+                    runner = SessionRunner(
+                        drillWordIds: wordIds, engine: engine, store: store, groups: groups
+                    )
                 }
             }
         }

@@ -84,6 +84,22 @@ struct GroupEditor {
             )
         }
 
+        /// 例文は入っているのに、その中に英語（活用形を含む）が見つからない。
+        /// このときは穴埋め問題にならない（英→日などにフォールバックする）
+        var exampleMissesWord: Bool {
+            let value = trimmed
+            guard !value.word.isEmpty, !value.example.isEmpty else { return false }
+            return Inflector.findHeadword(in: value.example, headword: value.word) == nil
+        }
+
+        /// 単語帳の検索語から作る下書き。英語（ASCII だけ）なら英語欄に、日本語などなら意味欄に入れる
+        static func prefilled(fromSearch query: String) -> WordDraft {
+            let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { return WordDraft() }
+            guard text.unicodeScalars.allSatisfy(\.isASCII) else { return WordDraft(meaning: text) }
+            return WordDraft(word: text, pos: guessedPos(for: text))
+        }
+
         /// 空白を含む英語は熟語とみなす（品詞を選ぶ前の初期値）
         static func guessedPos(for word: String) -> PartOfSpeech {
             word.trimmingCharacters(in: .whitespacesAndNewlines).contains(" ") ? .phrase : .noun

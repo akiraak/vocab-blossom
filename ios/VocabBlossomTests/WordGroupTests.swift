@@ -200,6 +200,35 @@ struct GroupEditorTests {
         #expect(GroupEditor.WordDraft.guessedPos(for: "dog ") == .noun)
     }
 
+    @Test("例文に英語が見つからないときだけ「穴埋めにならない」と判定する")
+    func exampleMissesWord() {
+        func draft(_ word: String, _ example: String) -> GroupEditor.WordDraft {
+            GroupEditor.WordDraft(word: word, meaning: "意味", example: example)
+        }
+        #expect(draft("homeroom", "We have homeroom at 8.").exampleMissesWord == false)
+        // 活用形・熟語の活用でも見つかれば穴埋めにできる
+        #expect(draft("commute", "She commutes by train.").exampleMissesWord == false)
+        #expect(draft("look after", "He looked after the dog.").exampleMissesWord == false)
+        #expect(draft("homeroom", "We meet in the morning.").exampleMissesWord)
+        // 例文・英語が空なら案内しない
+        #expect(draft("homeroom", " ").exampleMissesWord == false)
+        #expect(draft(" ", "We have homeroom.").exampleMissesWord == false)
+    }
+
+    @Test("検索語から下書きを作る: 英語は英語欄、日本語は意味欄へ")
+    func prefilledFromSearch() {
+        let english = GroupEditor.WordDraft.prefilled(fromSearch: " take care of ")
+        #expect(english.word == "take care of")
+        #expect(english.meaning.isEmpty)
+        #expect(english.pos == .phrase)
+
+        let japanese = GroupEditor.WordDraft.prefilled(fromSearch: "学級会")
+        #expect(japanese.word.isEmpty)
+        #expect(japanese.meaning == "学級会")
+
+        #expect(GroupEditor.WordDraft.prefilled(fromSearch: "  ") == GroupEditor.WordDraft())
+    }
+
     @Test("自作語を編集できる")
     func updateCustomWord() {
         let custom = editor.createCustomWord(
@@ -355,6 +384,21 @@ struct DrillTests {
 
         let runner = drill(["custom-1"], store: store)
         #expect(try answer(runner, correct: true) == "custom-1")
+    }
+
+    @Test("グループを渡すと、自作語の誤答肢に同じグループの語が入る")
+    func drillUsesGroupForCustomDistractors() throws {
+        let store = WordStore.shared.including(customWords: [customEntry("custom-1", word: "homeroom")])
+        let runner = SessionRunner(
+            drillWordIds: ["custom-1"], engine: engine, store: store,
+            groups: [["custom-1", "a1-0004", "a1-0005", "a1-0006"]],
+            rng: SeededRNG(seed: 7), clock: { now }
+        )
+        guard case .quiz(let quiz, _) = runner.step else {
+            Issue.record("クイズが無い")
+            return
+        }
+        #expect(Set(quiz.choices.map(\.id)) == ["custom-1", "a1-0004", "a1-0005", "a1-0006"])
     }
 
     @Test("いつもの学習では自作語も SRS に記録される")

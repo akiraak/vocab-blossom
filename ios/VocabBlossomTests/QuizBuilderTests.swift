@@ -59,6 +59,68 @@ struct QuizBuilderTests {
         #expect(quiz.choices.contains(target))
     }
 
+    @Test("同じ綴りの同梱語がある自作語でも、選択肢に同じ綴りが 2 つ並ばない")
+    func sameSpellingIsNotADistractor() throws {
+        let custom = WordEntry(
+            id: "custom-1", word: " Action ", pos: .noun, level: nil, meaning: "アクション（映画）",
+            example: "I like action movies.", exampleJa: "アクション映画が好きです。"
+        )
+        let store = store.including(customWords: [custom])
+        for seed in 1...30 {
+            var builder = QuizBuilder(store: store, rng: SeededRNG(seed: UInt64(seed)))
+            for type in [QuizType.jaToEn, .fillBlank] {
+                let quiz = builder.make(for: custom, type: type)
+                let spellings = quiz.choices.map { WordStore.normalizedSpelling($0.word) }
+                #expect(Set(spellings).count == QuizBuilder.choiceCount)
+                #expect(!quiz.choices.contains { $0.id == "a1-0004" })
+            }
+        }
+    }
+
+    @Test("同梱データの全語で、誤答肢どうしも綴り・意味が重ならない")
+    func distractorsAreDistinctOnBundledData() {
+        var builder = builder(seed: 11)
+        for word in store.allWords {
+            let choices = builder.distractors(for: word) + [word]
+            #expect(choices.count == QuizBuilder.choiceCount)
+            #expect(Set(choices.map { WordStore.normalizedSpelling($0.word) }).count == choices.count)
+            #expect(Set(choices.map(\.meaning)).count == choices.count)
+        }
+    }
+
+    @Test("自作語の誤答肢は、同じグループの語とほかの自作語から優先して選ぶ")
+    func customDistractorsPreferGroupAndCustomWords() throws {
+        let custom = customEntry("custom-1", word: "homeroom")
+        let otherCustom = customEntry("custom-2", word: "lunchbox")
+        let store = store.including(customWords: [custom, otherCustom])
+        // グループ外の語（a1-0006 actor）は選ばれない
+        let groups = [["a1-0001", "custom-1", "a1-0004"], ["a1-0006"]]
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: store, groups: groups, rng: SeededRNG(seed: UInt64(seed)))
+            let ids = Set(builder.distractors(for: custom).map(\.id))
+            #expect(ids == ["a1-0001", "a1-0004", "custom-2"])
+        }
+    }
+
+    @Test("グループの語が足りなければ、残りを全体から埋める")
+    func customDistractorsFillFromAllWords() throws {
+        let custom = customEntry("custom-1", word: "homeroom")
+        let store = store.including(customWords: [custom])
+        var builder = QuizBuilder(store: store, groups: [["custom-1", "a2-0001"]], rng: SeededRNG(seed: 5))
+        let picked = builder.distractors(for: custom)
+        #expect(picked.count == QuizBuilder.choiceCount - 1)
+        #expect(picked.contains { $0.id == "a2-0001" })
+        // 足りない分は同品詞から
+        #expect(picked.filter { $0.id != "a2-0001" }.allSatisfy { $0.pos == custom.pos })
+    }
+
+    private func customEntry(_ id: String, word: String) -> WordEntry {
+        WordEntry(
+            id: id, word: word, pos: .noun, level: nil, meaning: "\(word) の意味",
+            example: "", exampleJa: ""
+        )
+    }
+
     @Test("穴埋めは例文中の該当語を空欄にする")
     func fillBlankMasksHeadword() throws {
         var builder = builder()

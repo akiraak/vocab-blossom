@@ -5,6 +5,9 @@ struct CustomWordEditorView: View {
     enum Mode {
         /// 新しく作る。グループを渡すとそこにも入れる
         case create(addingTo: WordGroup?)
+        /// 「単語帳から追加」の画面から作る。入力済みの下書きで開き、作った語（または案内した同梱語）の
+        /// ID を `onPick` で返す。グループへの反映は呼び出し側の選択に任せる
+        case pick(prefill: GroupEditor.WordDraft, onPick: (String) -> Void)
         case edit(CustomWord)
     }
 
@@ -53,7 +56,10 @@ struct CustomWordEditorView: View {
                 } header: {
                     Text("必須")
                 } footer: {
-                    duplicateHint
+                    VStack(alignment: .leading, spacing: 8) {
+                        posHint
+                        duplicateHint
+                    }
                 }
 
                 Section {
@@ -65,7 +71,7 @@ struct CustomWordEditorView: View {
                 } header: {
                     Text("例文（任意）")
                 } footer: {
-                    Text("例文に単語がそのまま含まれていると、穴埋め問題でも出題されます。")
+                    exampleHint
                 }
             }
             .navigationTitle(isEditing ? "単語を編集" : "単語を作る")
@@ -81,11 +87,19 @@ struct CustomWordEditorView: View {
             }
         }
         .onAppear {
-            if case .edit(let custom) = mode {
+            switch mode {
+            case .edit(let custom):
                 draft = custom.draft
                 posTouched = true
-            } else {
+            case .pick(let prefill, _):
+                draft = prefill
+                // 英語が入っていれば次は意味、意味だけなら英語を入れてもらう
+                focusedField = prefill.word.isEmpty ? .word : .meaning
+            case .create:
                 focusedField = .word
+                #if DEBUG
+                if DebugSeed.variant == .wordEditor { draft = DebugSeed.demoDraft }
+                #endif
             }
         }
         .onChange(of: draft.word) { _, word in
@@ -103,13 +117,43 @@ struct CustomWordEditorView: View {
         )
     }
 
+    /// 品詞が自動で決めたままなら見直しを促す（名詞のまま動詞を登録すると、
+    /// 誤答肢が名詞ばかりになり、穴埋めでは文法だけで答えが分かってしまう）
+    @ViewBuilder
+    private var posHint: some View {
+        if !posTouched, !draft.trimmed.word.isEmpty {
+            Text("品詞は自動で「\(draft.pos.label)」にしています。違うときは選び直してください。選択肢は同じ品詞の語から選ばれます。")
+        }
+    }
+
+    /// 例文に単語が見つからないときは、穴埋め問題にならないことを伝える
+    @ViewBuilder
+    private var exampleHint: some View {
+        if draft.exampleMissesWord {
+            Label {
+                Text("例文に「\(draft.trimmed.word)」が見つからないため、穴埋め問題にはなりません。英語と例文の綴り、品詞を見直してください。")
+            } icon: {
+                Image(systemName: "exclamationmark.triangle.fill")
+            }
+            .foregroundStyle(.orange)
+        } else {
+            Text("例文に単語が含まれていると、穴埋め問題でも出題されます。")
+        }
+    }
+
     /// 同じ綴りの同梱語があれば、自作せずにそちらを使えるよう案内する
     @ViewBuilder
     private var duplicateHint: some View {
         if !isEditing, let bundled = store.bundledWord(spelledLike: draft.word) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("「\(bundled.word)」（\(bundled.meaning)）は単語帳にあります。")
-                if let group = targetGroup {
+                if case .pick(_, let onPick) = mode {
+                    Button("単語帳の「\(bundled.word)」を選ぶ") {
+                        onPick(bundled.id)
+                        dismiss()
+                    }
+                    .font(.footnote.weight(.semibold))
+                } else if let group = targetGroup {
                     Button("単語帳の「\(bundled.word)」をグループに追加する") {
                         GroupEditor(context: context).add(wordIds: [bundled.id], to: group)
                         dismiss()
@@ -125,6 +169,8 @@ struct CustomWordEditorView: View {
         switch mode {
         case .create(let group):
             editor.createCustomWord(draft, addingTo: group)
+        case .pick(_, let onPick):
+            onPick(editor.createCustomWord(draft).wordId)
         case .edit(let custom):
             editor.update(custom, with: draft)
         }

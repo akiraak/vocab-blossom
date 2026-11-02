@@ -120,8 +120,13 @@ final class WordStore {
 
     /// 綴りが同じ同梱語（大小文字・前後の空白は無視）。自作語の重複登録の案内に使う
     func bundledWord(spelledLike text: String) -> WordEntry? {
-        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let normalized = Self.normalizedSpelling(text)
         guard !normalized.isEmpty else { return nil }
-        return allWords.first { !$0.isCustom && $0.word.lowercased() == normalized }
+        return allWords.first { !$0.isCustom && Self.normalizedSpelling($0.word) == normalized }
+    }
+
+    /// 綴りの比較用（前後の空白を落として小文字にする）
+    static func normalizedSpelling(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 }

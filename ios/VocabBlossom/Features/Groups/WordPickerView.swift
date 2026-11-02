@@ -15,6 +15,13 @@ struct WordPickerView: View {
     @State private var selectedIds: [String] = []
     @State private var selectedSet: Set<String> = []
     @State private var showsSelectedOnly = false
+    /// 見つからなかった検索語から自作語を作る
+    @State private var creatingDraft: CreatingDraft?
+
+    private struct CreatingDraft: Identifiable {
+        let id = UUID()
+        let draft: GroupEditor.WordDraft
+    }
 
     private var words: [WordEntry] {
         let base = showsSelectedOnly ? store.words(ids: selectedIds) : store.allWords
@@ -38,8 +45,10 @@ struct WordPickerView: View {
                 if words.isEmpty {
                     if query.isEmpty {
                         ContentUnavailableView("選んだ単語はありません", systemImage: "checklist")
-                    } else {
+                    } else if showsSelectedOnly {
                         ContentUnavailableView.search(text: query)
+                    } else {
+                        notFound
                     }
                 }
             }
@@ -69,6 +78,29 @@ struct WordPickerView: View {
         .onAppear {
             selectedIds = group.wordIds
             selectedSet = Set(group.wordIds)
+        }
+        #if DEBUG
+        .task {
+            if DebugSeed.variant == .wordPicker { query = DebugSeed.demoMissingQuery }
+        }
+        #endif
+        .sheet(item: $creatingDraft) { item in
+            CustomWordEditorView(mode: .pick(prefill: item.draft, onPick: select))
+        }
+    }
+
+    /// 単語帳に無いときは、検索語を入れた状態で自作語のエディタを開けるようにする
+    private var notFound: some View {
+        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return ContentUnavailableView {
+            Label("「\(text)」は見つかりません", systemImage: "magnifyingglass")
+        } description: {
+            Text("単語帳に無い単語は、自分で作って追加できます。")
+        } actions: {
+            Button("「\(text)」を自分で作って追加する") {
+                creatingDraft = CreatingDraft(draft: .prefilled(fromSearch: text))
+            }
+            .buttonStyle(.borderedProminent)
         }
     }
 
@@ -103,6 +135,13 @@ struct WordPickerView: View {
         .buttonStyle(.plain)
         .accessibilityLabel("\(word.word)、\(word.meaning)")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+
+    /// 選択に加える（すでに選んでいれば何もしない）。「完了」でグループに反映される
+    private func select(_ wordId: String) {
+        if selectedSet.insert(wordId).inserted {
+            selectedIds.append(wordId)
+        }
     }
 
     private func toggle(_ wordId: String) {

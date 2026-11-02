@@ -17,6 +17,8 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill`: グループの学習 / ドリルを起動直後に開く
+/// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語帳から追加」を、単語帳に無い語で検索した状態で開く
+/// - `VOCAB_DEMO_SCREEN=word-editor`: グループの「自分で単語を作る」を、例文に単語が無い下書きで開く
 enum DebugSeed {
     enum Variant: String {
         case none
@@ -35,10 +37,12 @@ enum DebugSeed {
         case groupDetail = "group-detail"
         case groupLearn = "group-learn"
         case groupDrill = "group-drill"
+        case wordPicker = "word-picker"
+        case wordEditor = "word-editor"
 
         var seedsGroups: Bool {
             switch self {
-            case .groups, .groupDetail, .groupLearn, .groupDrill: true
+            case .groups, .groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor: true
             default: false
             }
         }
@@ -69,7 +73,7 @@ enum DebugSeed {
 
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
-        [.groupDetail, .groupLearn, .groupDrill].contains(variant)
+        [.groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor].contains(variant)
     }
 
     /// 既知語の一括登録画面を最初から出す
@@ -81,10 +85,19 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
-        case .groups, .groupDetail, .groupLearn, .groupDrill: .groups
+        case .groups, .groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor: .groups
         default: nil
         }
     }
+
+    /// `word-picker` で検索しておく語（単語帳に無い）
+    static let demoMissingQuery = "commute"
+
+    /// `word-editor` で入れておく下書き（例文に単語が無く、品詞は自動推測のまま）
+    static let demoDraft = GroupEditor.WordDraft(
+        word: "commute", meaning: "通学する", pos: .noun,
+        example: "I go to school by bus.", exampleJa: "私はバスで通学します。"
+    )
 
     /// 学習途中の状態（庭に花が咲き、復習も溜まっている）を作る。
     static func apply(context: ModelContext, settings: AppSettings, now: Date = .now) {

@@ -74,6 +74,7 @@ final class SessionRunner {
         plan: SessionPlan,
         engine: LearningEngine,
         store: WordStore = .shared,
+        groups: [[String]] = [],
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
@@ -81,7 +82,7 @@ final class SessionRunner {
         self.store = store
         self.clock = clock
         mode = .learning
-        builder = QuizBuilder(store: store, rng: rng)
+        builder = QuizBuilder(store: store, groups: groups, rng: rng)
 
         var items: [Item] = plan.reviewWordIds.map { .quiz(wordId: $0, kind: .review) }
         // 新規学習は 5 語ずつ「まとめて提示 → まとめて直後クイズ」
@@ -98,6 +99,7 @@ final class SessionRunner {
         drillWordIds: [String],
         engine: LearningEngine,
         store: WordStore = .shared,
+        groups: [[String]] = [],
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
@@ -105,7 +107,7 @@ final class SessionRunner {
         self.store = store
         self.clock = clock
         mode = .drill
-        builder = QuizBuilder(store: store, rng: rng)
+        builder = QuizBuilder(store: store, groups: groups, rng: rng)
         queue = drillWordIds.map { .quiz(wordId: $0, kind: .review) }
         advance()
     }

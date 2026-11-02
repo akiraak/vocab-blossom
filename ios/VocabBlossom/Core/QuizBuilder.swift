@@ -48,10 +48,17 @@ struct QuizBuilder {
     static let choiceCount = 4
 
     let store: WordStore
+    /// グループごとの単語 ID の並び。自作語の誤答肢を同じグループの語から優先して選ぶのに使う
+    let groups: [[String]]
     var rng: any RandomNumberGenerator
 
-    init(store: WordStore, rng: any RandomNumberGenerator = SystemRandomNumberGenerator()) {
+    init(
+        store: WordStore,
+        groups: [[String]] = [],
+        rng: any RandomNumberGenerator = SystemRandomNumberGenerator()
+    ) {
         self.store = store
+        self.groups = groups
         self.rng = rng
     }
 
@@ -86,21 +93,57 @@ struct QuizBuilder {
         return word.example.replacingCharacters(in: range, with: Quiz.blankPlaceholder)
     }
 
-    /// 誤答肢は同レベル・同品詞から。足りなければ同レベル → 全体へ広げる。
-    /// レベルの無い自作語は 全体の同品詞 → 全体 から選ぶ
+    /// 誤答肢を 3 つ選ぶ。優先するプールから取れるだけ取り、足りない分を次のプールで埋める。
+    ///
+    /// - 同梱語: 同レベル・同品詞 → 同レベル → 全体
+    /// - 自作語: 同じグループの語とほかの自作語（同品詞 → 全品詞）→ 全体の同品詞 → 全体
+    ///   （同梱語は A1〜A2 のやさしい語なので、そこからだけ選ぶと消去法で当たってしまう）
+    ///
+    /// 正解と綴り・意味が同じ語は入れない（同じ綴りが 2 つ並ぶと片方が不正解になってしまう）。
+    /// 誤答肢どうしも綴り・意味が重ならないようにする
     mutating func distractors(for word: WordEntry) -> [WordEntry] {
         let needed = Self.choiceCount - 1
-        let sameLevel = word.level.map { store.words(level: $0) } ?? store.allWords
-        let pools = [
-            sameLevel.filter { $0.pos == word.pos },
-            sameLevel,
-            store.allWords,
-        ]
-        for pool in pools {
-            let candidates = pool.filter { $0.id != word.id && $0.meaning != word.meaning }
-            guard candidates.count >= needed else { continue }
-            return Array(candidates.shuffled(using: &rng).prefix(needed))
+        let pools: [[WordEntry]]
+        if word.isCustom {
+            let related = relatedWords(for: word)
+            pools = [
+                related.filter { $0.pos == word.pos },
+                related,
+                store.allWords.filter { $0.pos == word.pos },
+                store.allWords,
+            ]
+        } else {
+            let sameLevel = word.level.map { store.words(level: $0) } ?? store.allWords
+            pools = [
+                sameLevel.filter { $0.pos == word.pos },
+                sameLevel,
+                store.allWords,
+            ]
         }
-        return []
+
+        var picked: [WordEntry] = []
+        var spellings: Set<String> = [WordStore.normalizedSpelling(word.word)]
+        var meanings: Set<String> = [word.meaning]
+        for pool in pools {
+            for candidate in pool.shuffled(using: &rng) {
+                guard picked.count < needed else { return picked }
+                let spelling = WordStore.normalizedSpelling(candidate.word)
+                guard !spellings.contains(spelling), !meanings.contains(candidate.meaning) else {
+                    continue
+                }
+                picked.append(candidate)
+                spellings.insert(spelling)
+                meanings.insert(candidate.meaning)
+            }
+            if picked.count >= needed { return picked }
+        }
+        return picked
+    }
+
+    /// 自作語と関係の近い語: その語が入っているグループの語 ＋ ほかの自作語（重複なし・本人を除く）
+    func relatedWords(for word: WordEntry) -> [WordEntry] {
+        let groupIds = groups.filter { $0.contains(word.id) }.flatMap { $0 }
+        var seen: Set<String> = [word.id]
+        return (store.words(ids: groupIds) + store.customWords).filter { seen.insert($0.id).inserted }
     }
 }

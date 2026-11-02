@@ -117,6 +117,8 @@ struct GroupDetailView: View {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
+            case .wordPicker: isPickingWords = true
+            case .wordEditor: isCreatingWord = true
             default: break
             }
         }
