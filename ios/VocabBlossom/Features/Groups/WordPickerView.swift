@@ -15,6 +15,7 @@ struct WordPickerView: View {
     @State private var selectedIds: [String] = []
     @State private var selectedSet: Set<String> = []
     @State private var showsSelectedOnly = false
+    @FocusState private var isSearchFocused: Bool
     /// 見つからなかった検索語から自作語を作る
     @State private var creatingDraft: CreatingDraft?
 
@@ -57,6 +58,10 @@ struct WordPickerView: View {
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "単語・意味・例文を検索"
             )
+            .searchFocused($isSearchFocused)
+            // 検索欄に入力している間もナビゲーションバー（キャンセル・完了）を隠さない。
+            // 既定では隠れてしまい、チェックを付けたあとに押すボタンが見当たらなくなる
+            .searchPresentationToolbarBehavior(.avoidHidingContent)
             .navigationTitle("単語帳から追加")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -81,7 +86,10 @@ struct WordPickerView: View {
         }
         #if DEBUG
         .task {
-            if DebugSeed.variant == .wordPicker { query = DebugSeed.demoMissingQuery }
+            if DebugSeed.variant == .wordPicker {
+                query = DebugSeed.demoSearchQuery ?? DebugSeed.demoMissingQuery
+                isSearchFocused = DebugSeed.demoSearchQuery != nil
+            }
         }
         #endif
         .sheet(item: $creatingDraft) { item in
