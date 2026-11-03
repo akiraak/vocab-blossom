@@ -4,4 +4,4 @@
   - [x] Phase 1: サーバーの `POST /api/word-assist`（AI 呼び出し・同梱語との照合・回数制限・テスト）
   - [x] Phase 2: iOS の自作語エディタに AI チェック
   - [x] Phase 3: 管理画面のフォームに AI チェック
-  - [ ] Phase 4: g3plus へ反映（`ANTHROPIC_API_KEY` を設定して再ビルド）
+  - [x] Phase 4: g3plus へ反映（`ANTHROPIC_API_KEY` を設定して再ビルド）
