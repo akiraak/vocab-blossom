@@ -1,5 +1,5 @@
 // 同期するデータの型と、端末から届いた JSON の検証。
-// 日時はすべてミリ秒の整数（UNIX エポック）。設計は docs/plans/admin-server.md の「Phase 2 の詳細」。
+// 日時はすべてミリ秒の整数（UNIX エポック）。設計は docs/plans/archive/admin-server.md の「Phase 2 の詳細」。
 
 /** iOS の `PartOfSpeech` と同じ並び */
 export const PARTS_OF_SPEECH = [

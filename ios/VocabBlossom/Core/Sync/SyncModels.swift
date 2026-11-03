@@ -40,7 +40,7 @@ nonisolated extension UUID {
     var syncId: String { uuidString.lowercased() }
 }
 
-/// `POST /api/sync` の型。日時はミリ秒の整数で送受信する（docs/plans/admin-server.md の Phase 2）
+/// `POST /api/sync` の型。日時はミリ秒の整数で送受信する（docs/plans/archive/admin-server.md の Phase 2）
 nonisolated enum SyncAPI {
     struct Group: Codable, Equatable, Sendable {
         var id: String

@@ -4,7 +4,7 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
 デプロイ設定の正本は `g3plus-ops/vocab-blossom/`（`docker-compose.yml` / `Dockerfile` / `.env` / `.env.example`）。
 運用手順は `g3plus-ops/docs/workflows/vocab-blossom.md`。**契約が変わったらそちらを追従させる。**
 
-全体の設計は [docs/plans/admin-server.md](../plans/admin-server.md)。
+全体の設計は [docs/plans/archive/admin-server.md](../plans/archive/admin-server.md)。
 
 ## 契約
 

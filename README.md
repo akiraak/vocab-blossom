@@ -82,7 +82,7 @@ cp ios/VocabBlossom/Resources/ServerConfig.example.plist ios/VocabBlossom/Resour
   入れたことのある端末（アプリを入れ直すまで）も同期しない
 - plist を置いた・消したときは `xcodegen generate` をやり直す（プロジェクトにファイルの参照が入るため）
 - ローカルのサーバーで試すときは `BASE_URL` を `http://<Mac の IP>:3015`（シミュレータなら `http://127.0.0.1:3015`）にする
-- 仕組みは [docs/plans/admin-server.md](docs/plans/admin-server.md) の「Phase 5 の詳細」
+- 仕組みは [docs/plans/archive/admin-server.md](docs/plans/archive/admin-server.md) の「Phase 5 の詳細」
 
 ### 画面確認用のダミーデータ（DEBUG ビルドのみ）
 
@@ -122,4 +122,4 @@ API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3
 ```
 
 デプロイ契約（env・ポート・永続化先）は [docs/specs/deploy-g3plus.md](docs/specs/deploy-g3plus.md)、
-全体のプランは [docs/plans/admin-server.md](docs/plans/admin-server.md)。
+全体のプランは [docs/plans/archive/admin-server.md](docs/plans/archive/admin-server.md)。

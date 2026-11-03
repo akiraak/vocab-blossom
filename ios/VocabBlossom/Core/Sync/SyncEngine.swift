@@ -3,7 +3,7 @@ import SwiftData
 
 /// 同期の中身（通信しない部分）。送る差分を組み立て、サーバーから返ってきた変更を SwiftData に当てる。
 ///
-/// 規則はサーバーと同じ（docs/plans/admin-server.md の Phase 2 / Phase 5）
+/// 規則はサーバーと同じ（docs/plans/archive/admin-server.md の Phase 2 / Phase 5）
 /// - 送るのは `syncedUpdatedAt` と `updatedAt` が食い違うグループ・自作語と、まだ送っていない削除記録
 /// - 受け取ったレコードは、手元に無いか、手元より新しいときだけ当てる（手元の方が新しければ次の同期で送る）
 /// - 手元にまだ送っていない削除記録があり、その方が新しければ受け取ったレコードは当てない
