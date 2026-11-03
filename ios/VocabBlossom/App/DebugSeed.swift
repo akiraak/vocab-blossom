@@ -103,6 +103,8 @@ enum DebugSeed {
     static func apply(context: ModelContext, settings: AppSettings, now: Date = .now) {
         let variant = variant
         settings.hasOnboarded = true
+        // ダミーデータを入れた端末は、この後ふつうに起動してもサーバーと同期しない（本番にダミーを送らない）
+        UserDefaults.standard.set(true, forKey: SyncService.Key.disabledByDebugSeed)
 
         try? context.delete(model: WordProgress.self)
         try? context.delete(model: AnswerLog.self)

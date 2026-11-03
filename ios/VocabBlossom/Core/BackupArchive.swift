@@ -180,6 +180,8 @@ enum BackupService {
         try context.delete(model: AnswerLog.self)
         try context.delete(model: WordGroup.self)
         try context.delete(model: CustomWord.self)
+        // 復元より前の削除記録は捨てる（復元後は全件を送り直し、サーバーの全件も受け取り直す: SyncService.resendAll）
+        try context.delete(model: SyncDeletion.self)
 
         for item in archive.progress {
             context.insert(

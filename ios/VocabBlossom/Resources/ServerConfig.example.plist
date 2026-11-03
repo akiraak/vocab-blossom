@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  管理画面サーバーとの同期の設定。このファイルを ServerConfig.plist という名前でコピーして値を入れる。
+  ServerConfig.plist は git 管理外（リポジトリが public なので API_KEY は絶対にコミットしない）。
+  ServerConfig.plist が無ければ同期せず、アプリは端末の中だけで動く。
+
+  BASE_URL: 本番は https://vocab.chobi.me（ローカルのサーバーなら http://<Mac の IP>:3015）
+  API_KEY:  サーバーの API_SHARED_SECRET と同じ値
+  追加・変更したら xcodegen generate をやり直す（バンドルに入れるため）
+-->
+<plist version="1.0">
+<dict>
+	<key>BASE_URL</key>
+	<string>https://vocab.chobi.me</string>
+	<key>API_KEY</key>
+	<string></string>
+</dict>
+</plist>

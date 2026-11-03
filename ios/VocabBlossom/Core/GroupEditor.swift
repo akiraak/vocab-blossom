@@ -1,7 +1,14 @@
 import Foundation
 import SwiftData
 
+extension Notification.Name {
+    /// グループ・自作語を変えて保存した。`SyncService` が少し待ってから同期する
+    static let syncableDataDidChange = Notification.Name("syncableDataDidChange")
+}
+
 /// グループと自作語の読み書き。`LearningEngine` と同じく SwiftData に触る処理をここへ集める。
+///
+/// 書き込みは `updatedAt` を進める（同期で送る差分はそれで見分ける）。削除は削除記録（`SyncDeletion`）を残す。
 struct GroupEditor {
     let context: ModelContext
 
@@ -22,7 +29,8 @@ struct GroupEditor {
     }
 
     /// グループだけを消す。中の単語・進捗・自作語は残す
-    func delete(_ group: WordGroup) {
+    func delete(_ group: WordGroup, now: Date = .now) {
+        recordDeletion(.group, id: group.id.syncId, at: now)
         context.delete(group)
         save()
     }
@@ -151,23 +159,49 @@ struct GroupEditor {
         return (try? context.fetch(descriptor))?.first
     }
 
-    /// 自作語を消す。解決できない ID を残さないよう、グループ・進捗・回答ログからも消す
-    func deleteCustomWord(id wordId: String) {
-        if let custom = customWord(id: wordId) {
+    /// 自作語を消す。解決できない ID を残さないよう、グループ・進捗・回答ログからも消す。
+    /// 外したグループの `updatedAt` も進める（サーバーも同じように進めるので、同期でぶつかってもそろう）
+    func deleteCustomWord(id wordId: String, now: Date = .now) {
+        recordDeletion(.customWord, id: wordId, at: now)
+        Self.purgeCustomWord(id: wordId, in: context, groupsUpdatedAt: now)
+        save()
+    }
+
+    /// 自作語とその痕跡（グループの中の ID・進捗・回答ログ）を消す。削除記録は作らない（同期で届いた削除にも使う）
+    ///
+    /// - Parameter groupsUpdatedAt: 外したグループの `updatedAt` をここまで進める。nil なら変えない
+    static func purgeCustomWord(id wordId: String, in context: ModelContext, groupsUpdatedAt: Date?) {
+        var descriptor = FetchDescriptor<CustomWord>(predicate: #Predicate { $0.wordId == wordId })
+        descriptor.fetchLimit = 1
+        if let custom = (try? context.fetch(descriptor))?.first {
             context.delete(custom)
         }
         let groups = (try? context.fetch(FetchDescriptor<WordGroup>())) ?? []
         for group in groups where group.wordIds.contains(wordId) {
             group.wordIds.removeAll { $0 == wordId }
+            if let groupsUpdatedAt, groupsUpdatedAt > group.updatedAt {
+                group.updatedAt = groupsUpdatedAt
+            }
         }
         try? context.delete(model: WordProgress.self, where: #Predicate { $0.wordId == wordId })
         try? context.delete(model: AnswerLog.self, where: #Predicate { $0.wordId == wordId })
-        save()
+    }
+
+    private func recordDeletion(_ kind: SyncKind, id recordId: String, at now: Date) {
+        let existing = (try? context.fetch(FetchDescriptor<SyncDeletion>(
+            predicate: #Predicate { $0.recordId == recordId }
+        ))) ?? []
+        if let deletion = existing.first(where: { $0.kind == kind }) {
+            deletion.deletedAt = max(deletion.deletedAt, now)
+        } else {
+            context.insert(SyncDeletion(kind: kind, recordId: recordId, deletedAt: now))
+        }
     }
 
     private func save() {
         do {
             try context.save()
+            NotificationCenter.default.post(name: .syncableDataDidChange, object: nil)
         } catch {
             assertionFailure("グループの保存に失敗しました: \(error)")
         }

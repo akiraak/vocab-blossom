@@ -24,6 +24,9 @@ targets:
     platform: iOS
     sources:
       - path: VocabBlossom
+        # サーバー設定の見本はバンドルに入れない（実物の ServerConfig.plist は git 管理外で、あれば同梱される）
+        excludes:
+          - "**/*.example.plist"
       # 単語データ（data/decks）はフォルダ参照でバンドルへ同梱する。
       # Node/Python 側の整備パイプラインと同じ実体を参照するため、コピーを持たない。
       - path: ../data/decks
@@ -48,6 +51,9 @@ targets:
           - UIInterfaceOrientationPortrait
         UIRequiresFullScreen: true
         ITSAppUsesNonExemptEncryption: false
+        # ローカルの管理画面サーバー（http://<Mac の IP>:3015）で同期を試せるようにする。本番は https
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
 
   VocabBlossomTests:
     type: bundle.unit-test

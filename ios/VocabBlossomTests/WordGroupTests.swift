@@ -6,7 +6,7 @@ import Testing
 
 private func makeContext() throws -> ModelContext {
     let container = try ModelContainer(
-        for: WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self,
+        for: AppModel.schema,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
     return ModelContext(container)

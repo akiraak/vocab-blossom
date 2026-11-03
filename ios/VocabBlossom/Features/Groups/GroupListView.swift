@@ -4,6 +4,7 @@ import SwiftUI
 /// グループ一覧。自分で決めた範囲（小テスト・教科書の Unit など）をまとめて覚えるための入口。
 struct GroupListView: View {
     @Environment(\.modelContext) private var context
+    @Environment(SyncService.self) private var sync
     @Query(sort: \WordGroup.createdAt, order: .reverse) private var groups: [WordGroup]
     @Query private var progresses: [WordProgress]
 
@@ -99,6 +100,10 @@ struct GroupListView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .refreshable {
+            // サーバーが無ければ何もしない（引っ張ってもすぐ戻る）
+            await sync.syncNow()
+        }
     }
 
     private var emptyState: some View {

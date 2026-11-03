@@ -6,6 +6,9 @@ dist/
 # 管理画面サーバーの SQLite（ローカル開発用。本番は g3plus の volume）
 server/data/
 
+# iOS の同期の接続先と API キー（public リポジトリなので絶対にコミットしない。見本は ServerConfig.example.plist）
+ios/VocabBlossom/Resources/ServerConfig.plist
+
 # Xcode
 ios/VocabBlossom.xcodeproj/
 ios/VocabBlossom/Info.plist

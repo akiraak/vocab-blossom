@@ -68,6 +68,22 @@ IOS_CONSOLE=1 ./run-ios-device.sh                # 起動後にログを流す
 - 署名チームは `DEVELOPMENT_TEAM` 環境変数で差し替えられる（既定は手元の Apple Development 証明書のチーム）
 - Xcode がプロビジョニングの更新を求めるときは Xcode > Settings > Accounts でのログインが必要
 
+### 管理画面サーバーとの同期
+
+グループと自作語は管理画面のサーバー（`vocab.chobi.me`）と同期する（学習の記録は端末の中だけ）。
+接続先は `ios/VocabBlossom/Resources/ServerConfig.plist`（**git 管理外**。リポジトリが public なので API キーはコミットしない）。
+
+```bash
+cp ios/VocabBlossom/Resources/ServerConfig.example.plist ios/VocabBlossom/Resources/ServerConfig.plist
+# BASE_URL と API_KEY（サーバーの API_SHARED_SECRET）を入れてから xcodegen generate / ./run-ios-device.sh
+```
+
+- ファイルが無ければ同期せず、端末の中だけで動く。テストの実行中と、`VOCAB_SEED_DEMO=1` でダミーデータを
+  入れたことのある端末（アプリを入れ直すまで）も同期しない
+- plist を置いた・消したときは `xcodegen generate` をやり直す（プロジェクトにファイルの参照が入るため）
+- ローカルのサーバーで試すときは `BASE_URL` を `http://<Mac の IP>:3015`（シミュレータなら `http://127.0.0.1:3015`）にする
+- 仕組みは [docs/plans/admin-server.md](docs/plans/admin-server.md) の「Phase 5 の詳細」
+
 ### 画面確認用のダミーデータ（DEBUG ビルドのみ）
 
 環境変数を渡すと、学習途中の状態を作った上で目的の画面を開いた状態で起動できる。

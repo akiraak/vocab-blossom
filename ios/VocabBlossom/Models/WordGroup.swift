@@ -13,6 +13,8 @@ final class WordGroup {
     var wordIds: [String]
     var createdAt: Date
     var updatedAt: Date
+    /// サーバーと一致していると分かっている `updatedAt`。`updatedAt` と違えば次の同期で送る（nil は未送信）
+    var syncedUpdatedAt: Date?
 
     init(
         id: UUID = UUID(),
@@ -26,5 +28,10 @@ final class WordGroup {
         self.wordIds = wordIds
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    /// 前回の同期のあとに手元で変わった
+    var needsSync: Bool {
+        syncedUpdatedAt?.syncMillis != updatedAt.syncMillis
     }
 }

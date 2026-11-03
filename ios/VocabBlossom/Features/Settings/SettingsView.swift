@@ -2,9 +2,10 @@ import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 設定。初学者が迷わないよう、項目は学習・音声・データの 3 つに絞る。
+/// 設定。初学者が迷わないよう、項目は学習・音声・データ（+ サーバーとの同期）に絞る。
 struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
+    @Environment(SyncService.self) private var sync
     @Environment(\.modelContext) private var context
 
     @State private var exportDocument: BackupDocument?
@@ -77,8 +78,19 @@ struct SettingsView: View {
                 } header: {
                     Text("データ")
                 } footer: {
-                    Text("読み込むと、いまの進捗・グループ・自作の単語はファイルの内容に置き換わります。")
+                    if sync.isEnabled {
+                        Text(
+                            """
+                            読み込むと、いまの進捗はファイルの内容に置き換わります。\
+                            グループ・自作の単語はサーバーの内容と合わせ、新しい方が残ります。
+                            """
+                        )
+                    } else {
+                        Text("読み込むと、いまの進捗・グループ・自作の単語はファイルの内容に置き換わります。")
+                    }
                 }
+
+                SyncSection()
 
                 Section("このアプリ") {
                     LabeledContent("バージョン", value: appVersion)
@@ -149,6 +161,7 @@ struct SettingsView: View {
             let archive = try BackupService.restore(
                 from: data, context: context, settings: settings
             )
+            sync.resendAll()
             message = Message(
                 title: "読み込みました",
                 detail: "\(archive.progress.count) 語の進捗と \(archive.logs.count) 件の記録、"
@@ -156,6 +169,52 @@ struct SettingsView: View {
             )
         } catch {
             message = Message(title: "読み込めませんでした", detail: error.localizedDescription)
+        }
+    }
+}
+
+/// サーバー（管理画面）との同期の状態。グループと自作の単語だけを同期する
+private struct SyncSection: View {
+    @Environment(SyncService.self) private var sync
+
+    var body: some View {
+        Section {
+            if let config = sync.config {
+                LabeledContent("サーバー", value: config.displayHost)
+                LabeledContent("最後に同期") {
+                    if let date = sync.lastSyncedAt {
+                        Text(date, format: .relative(presentation: .named))
+                    } else {
+                        Text("まだ同期していません")
+                    }
+                }
+                if let error = sync.lastError {
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
+                Button {
+                    Task { await sync.syncNow() }
+                } label: {
+                    HStack {
+                        Label("今すぐ同期", systemImage: "arrow.triangle.2.circlepath")
+                        Spacer()
+                        if sync.isSyncing {
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(sync.isSyncing)
+            } else {
+                Text("サーバーの設定が無いため、この端末の中だけに保存しています。")
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("同期")
+        } footer: {
+            if sync.isEnabled {
+                Text("グループと自分で作った単語を、管理画面と同期します。学習の記録はこの端末の中だけに残ります。")
+            }
         }
     }
 }

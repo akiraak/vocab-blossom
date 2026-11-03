@@ -206,6 +206,46 @@ Cloudflare の設定は自動化できないので、Phase 4 で手順を出し�
 順序は「Access アプリ（`/api` と `/health` の Bypass → ルートの Allow）→ `.env` → Tunnel hostname」。
 公開前に `vocab.chobi.me` を DNS で引かない（LAN の DNS が NXDOMAIN を最大 30 分キャッシュする）。
 
+### Phase 5 の詳細（iOS の同期）
+
+- **サーバーの設定**: `ios/VocabBlossom/Resources/ServerConfig.plist`（git 管理外。`BASE_URL` / `API_KEY`）。
+  `ServerConfig.example.plist` だけコミットし、バンドルには入れない（`project.yml` で除外）。
+  ファイルが無い・値が空なら同期しない（今までどおりオフライン）。テストの実行中（`XCTestConfigurationFilePath`）と
+  `DebugSeed` の起動中、ダミーデータを一度でも入れた端末（`UserDefaults` の印。アプリを入れ直すまで）も同期しない
+  （本番サーバーにテスト・ダミーのデータを送らない）
+- **送る差分の見分け方**: `WordGroup` / `CustomWord` に `syncedUpdatedAt: Date?`（サーバーと一致していると分かっている
+  `updatedAt`）を足す。`updatedAt` とミリ秒で比べて違えば未送信。既存のデータは nil なので初回の同期で全件送られる。
+  `GroupEditor` の書き込みは今までどおり `updatedAt` を進めるだけでよい
+- **削除記録**: 新モデル `SyncDeletion`（`kind` / `id` / `deletedAt`）。`GroupEditor.delete` と `deleteCustomWord` で作る
+  （サーバー未設定でも作る。量は小さい）。送ってサーバーの状態が返ってきたら消す。
+  `deleteCustomWord` は語を含むグループの `updatedAt` も進める（サーバーと同じ）
+- **日時はミリ秒**で送受信する（`JSONEncoder` / `JSONDecoder` の `.millisecondsSince1970`）。比較もミリ秒の整数にそろえる。
+  グループの ID は小文字で送る
+- **受け取った変更の反映**（`SyncEngine`。自作語 → グループ → 削除の順。サーバーの値が手元より新しいか、手元に無いときだけ当てる）
+  - 当てたら `syncedUpdatedAt` をサーバーの `updatedAt` にする。手元の方が新しい（通信中に編集した）なら手元を残し、次の同期で送る
+  - 手元に送っていない削除記録があり、その方が新しければ受け取ったレコードは当てない
+  - グループの削除: グループだけ消す。自作語の削除: 自作語・グループの中の ID・進捗・回答ログを消す（削除記録は作らない）
+  - `reset: true`（サーバーの DB が作り直された）なら、反映したあと全件を未送信に戻して続けてもう一度同期する
+  - `cursor` は `UserDefaults` に `BASE_URL` と組で持つ。`BASE_URL` が変わったら `cursor` = 0・全件を未送信に戻す
+- **同期のタイミング**（`SyncService`。`@Observable`、同時に 1 本だけ。走っている間に頼まれたら終わってからもう 1 回）
+  - 起動時・アプリに戻ったとき（`scenePhase` が `.active`）
+  - グループ・自作語を変えた 2 秒後（`GroupEditor` の保存で通知を出し、まとめて 1 回にする）
+  - グループ一覧の引っ張って更新、設定画面の「今すぐ同期」
+- **バックアップからの復元**: 今は置き換え方式だが、サーバーがハブなので「復元した内容を全件送り直し、`cursor` = 0 で
+  サーバーの全件も受け取って新しい方を採用する」（サーバーにだけある語は消さずに戻ってくる）。手元の削除記録は捨てる
+- **設定画面**: 「同期」セクション。サーバーのホスト名・最後に同期した時刻・直前のエラー・「今すぐ同期」。
+  未設定なら「この端末の中だけに保存しています」
+- **構成**: `Core/Sync/`（`ServerConfig.swift` / `SyncModels.swift`（API の型と `SyncDeletion`）/ `SyncClient.swift` /
+  `SyncEngine.swift`（差分の組み立てと反映。通信なしでテストできる）/ `SyncService.swift`）
+- **ATS**: ローカルのサーバー（`http://<Mac の IP>:3015`）で試せるよう `NSAllowsLocalNetworking` を入れる
+
+#### Phase 5 の Step
+
+1. 土台: `ServerConfig`・`SyncDeletion`・`syncedUpdatedAt`・`GroupEditor` の削除記録、テスト
+2. `SyncEngine` と `SyncClient`（送る差分・受け取った変更の反映・`reset`）、テスト（`URLProtocol` のスタブ）
+3. `SyncService` と同期のタイミング・設定画面・復元後の送り直し
+4. 結合確認: ローカルのサーバー + シミュレータ → 本番（`vocab.chobi.me`）+ 実機
+
 ## 影響範囲
 
 - 新規: `server/`、`docs/specs/deploy-g3plus.md`、`ios/VocabBlossom/Resources/ServerConfig.example.plist`
