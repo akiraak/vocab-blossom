@@ -8,6 +8,7 @@ struct WordPickerView: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.wordStore) private var store
+    @Environment(\.wordAssist) private var assistClient
     @Environment(\.dismiss) private var dismiss
 
     @State private var query = ""
@@ -103,9 +104,11 @@ struct WordPickerView: View {
         return ContentUnavailableView {
             Label("「\(text)」は見つかりません", systemImage: "magnifyingglass")
         } description: {
-            Text("単語帳に無い単語は、自分で作って追加できます。")
+            Text(assistClient == nil
+                ? "単語帳に無い単語は、自分で作って追加できます。"
+                : "AI が打ち間違いや変化した形を確かめ、単語帳に無い語は意味と例文を下書きします。")
         } actions: {
-            Button("「\(text)」を自分で作って追加する") {
+            Button(assistClient == nil ? "「\(text)」を自分で作って追加する" : "「\(text)」を AI で調べて追加する") {
                 creatingDraft = CreatingDraft(draft: .prefilled(fromSearch: text))
             }
             .buttonStyle(.borderedProminent)

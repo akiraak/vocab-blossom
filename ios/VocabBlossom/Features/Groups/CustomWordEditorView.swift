@@ -15,14 +15,24 @@ struct CustomWordEditorView: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.wordStore) private var store
+    @Environment(\.wordAssist) private var assistClient
     @Environment(\.dismiss) private var dismiss
 
     @State private var draft = GroupEditor.WordDraft()
     /// 品詞を自分で選んだか。選ぶまでは英語の入力から自動で推測する
     @State private var posTouched = false
     @FocusState private var focusedField: Field?
+    @State private var assist: AssistState = .idle
 
     private enum Field { case word, meaning, example, exampleJa }
+
+    /// AI チェックの状態。`text` は AI に送った文字列（入力が変わったら調べ直せるようにする）
+    private enum AssistState: Equatable {
+        case idle
+        case loading(text: String)
+        case done(text: String, candidates: [WordAssistAPI.Candidate])
+        case failed(text: String, message: String)
+    }
 
     private var isEditing: Bool {
         if case .edit = mode { return true }
@@ -62,6 +72,10 @@ struct CustomWordEditorView: View {
                     }
                 }
 
+                if showsAssist {
+                    assistSection
+                }
+
                 Section {
                     TextField("例文（英語）", text: $draft.example, axis: .vertical)
                         .textInputAutocapitalization(.sentences)
@@ -93,8 +107,13 @@ struct CustomWordEditorView: View {
                 posTouched = true
             case .pick(let prefill, _):
                 draft = prefill
-                // 英語が入っていれば次は意味、意味だけなら英語を入れてもらう
-                focusedField = prefill.word.isEmpty ? .word : .meaning
+                if showsAssist {
+                    // 単語帳に無かった検索語なので、まず AI に打ち間違い・変化形・意味を聞く
+                    runAssist()
+                } else {
+                    // 英語が入っていれば次は意味、意味だけなら英語を入れてもらう
+                    focusedField = prefill.word.isEmpty ? .word : .meaning
+                }
             case .create:
                 focusedField = .word
                 #if DEBUG
@@ -162,6 +181,148 @@ struct CustomWordEditorView: View {
                 }
             }
         }
+    }
+
+    // MARK: - AI チェック
+
+    /// 新しく作るときだけ（編集では同梱語への置き換えができないので出さない）
+    private var showsAssist: Bool {
+        assistClient != nil && !isEditing
+    }
+
+    /// AI に送る文字列。英語があれば英語、無ければ意味（日本語から探す）
+    private var assistText: String {
+        let value = draft.trimmed
+        return value.word.isEmpty ? value.meaning : value.word
+    }
+
+    @ViewBuilder
+    private var assistSection: some View {
+        Section {
+            switch assist {
+            case .idle:
+                assistButton("AI で調べる")
+            case .loading:
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("AI で調べています…")
+                        .foregroundStyle(.secondary)
+                }
+            case .done(let text, let candidates):
+                ForEach(candidates) { candidate in
+                    candidateRow(candidate)
+                }
+                if text != assistText {
+                    assistButton("「\(assistText)」で調べ直す")
+                }
+            case .failed(_, let message):
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .font(.footnote)
+                assistButton("もう一度調べる")
+            }
+        } header: {
+            Text("AI チェック")
+        } footer: {
+            Text("打ち間違いや変化した形なら単語帳の語を案内し、単語帳に無い語は意味・品詞・例文を下書きします。内容は確かめてから追加してください。")
+        }
+    }
+
+    private func assistButton(_ title: String) -> some View {
+        Button {
+            runAssist()
+        } label: {
+            Label(title, systemImage: "sparkles")
+        }
+        .disabled(assistText.isEmpty)
+    }
+
+    @ViewBuilder
+    private func candidateRow(_ candidate: WordAssistAPI.Candidate) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(candidate.word)
+                    .font(.body.weight(.semibold))
+                Text(candidate.pos.label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if candidate.bundled != nil {
+                    Text("単語帳にあります")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
+            Text(candidate.bundled?.meaning ?? candidate.meaning)
+                .font(.subheadline)
+            if let reason = candidate.reason.label {
+                Text(reason)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+            if candidate.bundled == nil, !candidate.example.isEmpty {
+                Text(candidate.example)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            candidateAction(candidate)
+                .font(.footnote.weight(.semibold))
+                .buttonStyle(.borderless)
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// 同梱語なら（自作せずに）それを使う。無ければ下書きに入れる
+    @ViewBuilder
+    private func candidateAction(_ candidate: WordAssistAPI.Candidate) -> some View {
+        if let bundled = candidate.bundled {
+            if case .pick(_, let onPick) = mode {
+                Button("単語帳の「\(bundled.word)」を選ぶ") {
+                    onPick(bundled.id)
+                    dismiss()
+                }
+            } else if let group = targetGroup {
+                Button("単語帳の「\(bundled.word)」をグループに追加する") {
+                    GroupEditor(context: context).add(wordIds: [bundled.id], to: group)
+                    dismiss()
+                }
+            } else {
+                Text("単語帳にあるので、作らなくても学習できます")
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            Button("この内容を入れる") {
+                posTouched = true
+                draft = draft.applying(candidate, onlyEmpty: false)
+            }
+        }
+    }
+
+    private func runAssist() {
+        guard let assistClient else { return }
+        let text = assistText
+        guard !text.isEmpty else { return }
+        assist = .loading(text: text)
+        Task {
+            do {
+                let response = try await assistClient.suggest(text)
+                assist = .done(text: text, candidates: response.candidates)
+                autofill(from: response.candidates)
+            } catch {
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                assist = .failed(text: text, message: message)
+            }
+        }
+    }
+
+    /// 入力がそのまま正しい単語帳に無い語なら、空いている欄だけ AI の下書きで埋める。
+    /// 打ち間違い・変化形・日本語からの候補は、どれにするか選んでもらう
+    private func autofill(from candidates: [WordAssistAPI.Candidate]) {
+        guard let first = candidates.first, first.reason == .exact, first.bundled == nil else { return }
+        let keptPos = posTouched ? draft.pos : nil
+        posTouched = true
+        var filled = draft.applying(first, onlyEmpty: true)
+        if let keptPos { filled.pos = keptPos }
+        draft = filled
     }
 
     private func save() {

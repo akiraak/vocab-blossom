@@ -29,6 +29,7 @@ struct VocabBlossomApp: App {
             }
                 .environment(settings)
                 .environment(sync)
+                .environment(\.wordAssist, sync.config.map { WordAssistClient(config: $0) })
                 .tint(Theme.accent)
                 .task {
                     #if DEBUG
