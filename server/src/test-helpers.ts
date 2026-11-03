@@ -2,6 +2,7 @@ import { type Handle, type Logger, createApp } from './app.ts'
 import type { Config } from './config.ts'
 import { type DB, migrate, openDatabase } from './db.ts'
 import { BundledWords } from './words/bundled.ts'
+import type { WordAssistant } from './ai/word-assist.ts'
 
 // テスト用: サーバーを起動せずに handle(new Request(...)) で叩く
 
@@ -15,6 +16,7 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     adminEnabled: true,
     dbPath: ':memory:',
     anthropicApiKey: undefined,
+    anthropicModel: undefined,
     ...overrides,
   }
 }
@@ -35,7 +37,7 @@ export type TestApp = {
 
 export function createTestApp(
   overrides: Partial<Config> = {},
-  { now }: { now?: () => number } = {},
+  { now, assistant = null }: { now?: () => number; assistant?: WordAssistant | null } = {},
 ): TestApp {
   const db = openDatabase(':memory:')
   migrate(db)
@@ -45,7 +47,14 @@ export function createTestApp(
     info: (message) => logs.push(message),
     error: (message) => errors.push(message),
   }
-  const handle = createApp({ config: testConfig(overrides), db, logger, now, bundled: testBundled() })
+  const handle = createApp({
+    config: testConfig(overrides),
+    db,
+    logger,
+    now,
+    bundled: testBundled(),
+    assistant,
+  })
   return { handle, db, logs, errors }
 }
 

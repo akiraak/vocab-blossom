@@ -11,6 +11,8 @@ export type Config = {
   dbPath: string
   /** 未設定なら AI 機能だけ使えない */
   anthropicApiKey: string | undefined
+  /** 自作語の AI チェックに使うモデル（未設定なら ai/claude.ts の既定） */
+  anthropicModel: string | undefined
 }
 
 export const DEFAULT_PORT = 3015
@@ -36,5 +38,6 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     adminEnabled: env.ADMIN_ENABLED?.trim() === 'on',
     dbPath: env.VOCAB_DB_PATH?.trim() || DEFAULT_DB_PATH,
     anthropicApiKey: env.ANTHROPIC_API_KEY?.trim() || undefined,
+    anthropicModel: env.ANTHROPIC_MODEL?.trim() || undefined,
   }
 }

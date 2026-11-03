@@ -9,6 +9,14 @@ import { SyncStore } from './sync/store.ts'
 import { adminRoutes } from './admin/routes.ts'
 import { AdminService } from './admin/service.ts'
 import { BundledWords } from './words/bundled.ts'
+import { createClaudeWordAssistant } from './ai/claude.ts'
+import {
+  RATE_LIMIT,
+  RATE_WINDOW_MS,
+  RateLimiter,
+  type WordAssistant,
+  wordAssistHandler,
+} from './ai/word-assist.ts'
 
 // サーバー本体。Web 標準の Request を受けて Response を返す関数（handle）として書き、
 // node:http との変換は http/adapter.ts に閉じ込める。テストは handle(new Request(...)) で書く。
@@ -30,6 +38,8 @@ export type AppDeps = {
   now?: () => number
   /** 同梱語。省略時は data/decks/*.json を読む */
   bundled?: BundledWords
+  /** 自作語の AI チェック。省略時は ANTHROPIC_API_KEY があれば Claude、無ければ null（503） */
+  assistant?: WordAssistant | null
 }
 
 export type Handle = (request: Request) => Promise<Response>
@@ -44,18 +54,36 @@ export function createApp({
   logger = consoleLogger,
   now = Date.now,
   bundled = BundledWords.load(),
+  assistant,
 }: AppDeps): Handle {
   const store = new SyncStore(db)
   const service = new AdminService({ db, store, bundled, now })
+  const wordAssistant =
+    assistant !== undefined
+      ? assistant
+      : config.anthropicApiKey
+        ? createClaudeWordAssistant({ apiKey: config.anthropicApiKey, model: config.anthropicModel, bundled })
+        : null
+  const wordAssist = wordAssistHandler({
+    assistant: wordAssistant,
+    bundled,
+    // iOS と管理画面で 1 つの枠を共有する
+    limiter: new RateLimiter(RATE_LIMIT, RATE_WINDOW_MS, now),
+    logError: (message, error) => logger.error(message, error),
+  })
   const routes: Route[] = [
     { method: 'GET', pattern: '/health', handler: () => json({ ok: true }) },
 
     // iOS 用 API（Bearer 必須）。ping は設定の確認用
     { method: 'GET', pattern: '/api/ping', handler: () => json({ ok: true }) },
     { method: 'POST', pattern: '/api/sync', handler: syncHandler(store) },
+    { method: 'POST', pattern: '/api/word-assist', handler: wordAssist },
+
+    // 管理画面のフォームから呼ぶ AI チェック（Access + ADMIN_ENABLED + Origin の確認は関所で）
+    { method: 'POST', pattern: '/admin/word-assist', handler: wordAssist },
 
     // 管理画面（Cloudflare Access + ADMIN_ENABLED=on）
-    ...adminRoutes({ service, bundled }),
+    ...adminRoutes({ service, bundled, aiEnabled: wordAssistant !== null }),
   ]
   const router = new Router(routes)
 

@@ -98,9 +98,14 @@ const STYLE = `
   button.small { padding: 0 8px; font-size: 0.85rem; }
   button:disabled { opacity: 0.4; cursor: default; }
   .danger-zone { margin-top: 40px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .assist { max-width: 560px; margin: 8px 0 12px; }
+  .assist .inline-row { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .assist .candidate { background: var(--bg-soft); border-left: 4px solid var(--accent); padding: 6px 12px; margin: 8px 0; }
+  .assist .candidate p { margin: 2px 0; }
+  .assist .candidate form { margin: 4px 0 0; }
 `
 
-// 画面の動きはこれだけ: 削除の確認と、日時を端末の時刻で表示する
+// 画面の動きはこれだけ: 削除の確認、日時を端末の時刻で表示する、自作語のフォームの AI チェック
 const SCRIPT = `
   document.addEventListener('submit', (event) => {
     const message = event.target.getAttribute('data-confirm')
@@ -111,6 +116,98 @@ const SCRIPT = `
     if (!Number.isNaN(d.getTime())) {
       el.textContent = d.toLocaleString('ja-JP', { dateStyle: 'short', timeStyle: 'short' })
     }
+  }
+
+  // AI チェック: /admin/word-assist の候補を並べる。値は textContent で入れる（HTML として解釈しない）
+  const ASSIST_REASONS = {
+    typo: '綴りの誤りかもしれません',
+    inflection: '変化した形のもとの形です',
+    variant: '綴り・言い方の違いです',
+    translation: '日本語から探しました',
+  }
+  const ASSIST_ERRORS = {
+    'ai-unavailable': 'サーバーで AI が使えません（ANTHROPIC_API_KEY が未設定）',
+    'rate-limited': 'AI を短い間に使いすぎました。少し待ってからもう一度試してください',
+    'ai-failed': 'AI が答えられませんでした。もう一度試すか、そのまま入力してください',
+  }
+  function el(tag, className, text) {
+    const node = document.createElement(tag)
+    if (className) node.className = className
+    if (text !== undefined) node.textContent = text
+    return node
+  }
+  for (const box of document.querySelectorAll('[data-assist]')) {
+    const form = box.parentElement.querySelector('form[data-word-form]')
+    const field = (name) => form.elements.namedItem(name)
+    const button = box.querySelector('[data-assist-run]')
+    const status = box.querySelector('[data-assist-status]')
+    const results = box.querySelector('[data-assist-results]')
+    const addAction = box.getAttribute('data-add-action')
+    const posLabels = JSON.parse(box.getAttribute('data-pos-labels'))
+
+    const candidateView = (c) => {
+      const item = el('div', 'candidate')
+      const head = el('p')
+      head.append(el('strong', '', c.word), ' ', el('span', 'muted', posLabels[c.pos] || c.pos))
+      if (c.bundled) head.append(el('span', 'tag custom', '単語帳にあります'))
+      item.append(head, el('p', '', c.bundled ? c.bundled.meaning : c.meaning))
+      if (ASSIST_REASONS[c.reason]) item.append(el('p', 'muted', ASSIST_REASONS[c.reason]))
+      if (c.bundled) {
+        if (addAction) {
+          const add = el('form')
+          add.method = 'post'
+          add.action = addAction
+          const id = el('input')
+          id.type = 'hidden'
+          id.name = 'wordId'
+          id.value = c.bundled.id
+          const submit = el('button', 'primary', '単語帳の「' + c.bundled.word + '」を追加する')
+          submit.type = 'submit'
+          add.append(id, submit)
+          item.append(add)
+        } else {
+          item.append(el('p', 'muted', '単語帳にあるので、作らなくてもアプリで学習できます'))
+        }
+      } else {
+        if (c.example) item.append(el('p', 'muted', c.example))
+        const fill = el('button', '', 'この内容を入れる')
+        fill.type = 'button'
+        fill.addEventListener('click', () => {
+          for (const name of ['word', 'meaning', 'pos', 'example', 'exampleJa']) field(name).value = c[name]
+        })
+        item.append(fill)
+      }
+      return item
+    }
+
+    button.addEventListener('click', async () => {
+      const text = field('word').value.trim() || field('meaning').value.trim()
+      if (!text) {
+        status.textContent = '英語か意味を入れてください'
+        return
+      }
+      button.disabled = true
+      status.textContent = 'AI で調べています…'
+      results.replaceChildren()
+      try {
+        const res = await fetch('/admin/word-assist', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text }),
+        })
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          status.textContent = ASSIST_ERRORS[body.error] || 'エラーが起きました（' + res.status + '）'
+          return
+        }
+        status.textContent = '「' + body.text + '」の候補:'
+        results.append(...body.candidates.map(candidateView))
+      } catch {
+        status.textContent = 'サーバーにつながりませんでした'
+      } finally {
+        button.disabled = false
+      }
+    })
   }
 `
 

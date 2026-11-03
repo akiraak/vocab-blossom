@@ -33,3 +33,11 @@ describe('html', () => {
     expect(page.startsWith('<!doctype html>')).toBe(true)
   })
 })
+
+describe('layout の JS', () => {
+  it('構文エラーにならない', () => {
+    const page = layout({ title: 't', nav: 'groups', body: html`` }).value
+    const script = page.split('<script>')[1].split('</script>')[0]
+    expect(() => new Function(script)).not.toThrow()
+  })
+})

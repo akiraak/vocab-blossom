@@ -27,7 +27,9 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
 - **任意 env**:
   - `ADMIN_ENABLED=on` — 管理画面（`/admin/*`）を有効にする。`on` 以外・未設定なら `/admin/*` はすべて 404（fail-safe）。
     Cloudflare Access を設定し終えてから `on` にする
-  - `ANTHROPIC_API_KEY` — Claude API（AI タイポチェック。未実装）。未設定でも他の機能は動く
+  - `ANTHROPIC_API_KEY` — Claude API。自作語を作る前の AI チェック（`POST /api/word-assist`・`POST /admin/word-assist`。
+    打ち間違い・変化形を同梱語に寄せ、無い語は意味・例文を下書き）に使う。未設定なら AI チェックだけ 503 で、他の機能は動く
+  - `ANTHROPIC_MODEL` — AI チェックのモデル（既定 `claude-opus-5-5`。安くしたいときは `claude-haiku-5-5` など）
   - `PORT` — 既定 3015
 - **永続化**: SQLite（`VOCAB_DB_PATH` のディレクトリ）。volume `/home/ubuntu/vocab-blossom/server/data:/app/server/data`。
   `/app/data` は同梱の単語 JSON の置き場所なので volume にしない。
@@ -44,6 +46,9 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
 | `/api/*`（iOS 用） | `Authorization: Bearer <API_SHARED_SECRET>`（無い・違うと 401） | Bypass（Everyone） |
 | `/admin/*`（管理画面） | `ADMIN_ENABLED=on` のときだけ有効。POST などは `Origin` のホストが `Host` と一致しないと 403 | Allow（Google IdP / Emails） |
 | `/health` | なし | Bypass |
+
+- `/api/word-assist` と `/admin/word-assist` は合わせてサーバー全体で 10 分に 60 回まで（超えると 429）。
+  iOS に入れた共有シークレットが漏れても Claude API の請求が膨らまないようにするため
 
 - cloudflared は **Host ヘッダを書き換えない**こと（`originRequest.httpHostHeader` を設定しない）。
   管理画面の `Origin` 確認が `Host` と比べるため

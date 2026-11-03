@@ -75,7 +75,16 @@ export function safeBack(value: string | null, fallback: string): string {
 
 const badRequest = (body: SafeHtml) => htmlPage(body, 400)
 
-export function adminRoutes({ service, bundled }: { service: AdminService; bundled: BundledWords }): Route[] {
+export function adminRoutes({
+  service,
+  bundled,
+  aiEnabled = false,
+}: {
+  service: AdminService
+  bundled: BundledWords
+  /** 自作語のフォームに「AI で調べる」を出す */
+  aiEnabled?: boolean
+}): Route[] {
   // --- 画面の組み立て ---
 
   function searchResults(groupId: string, query: string): SearchResult[] {
@@ -109,6 +118,7 @@ export function adminRoutes({ service, bundled }: { service: AdminService; bundl
       entries: service.entries(group),
       query,
       results: searchResults(group.id, query),
+      aiEnabled,
       ...extra,
     })
   }
@@ -117,6 +127,7 @@ export function adminRoutes({ service, bundled }: { service: AdminService; bundl
     return customWordsPage({
       words: service.listCustomWords(),
       groupsByWord: service.groupsByCustomWord(),
+      aiEnabled,
       ...extra,
     })
   }

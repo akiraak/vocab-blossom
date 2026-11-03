@@ -54,9 +54,28 @@ type WordFormOptions = {
   duplicate?: DuplicateHint
   /** 送信後に戻る先（編集画面） */
   back?: string
+  /** AI チェックを出す（新しく作るフォームで、サーバーに ANTHROPIC_API_KEY があるとき） */
+  assist?: AssistOptions
 }
 
-function wordForm({ action, draft, submitLabel, error, duplicate, back }: WordFormOptions): SafeHtml {
+export type AssistOptions = {
+  /** グループの画面なら、AI が見つけた同梱語を追加するフォームの送り先 */
+  addAction?: string
+}
+
+/** AI チェックの欄。動きは http/html.ts の SCRIPT（/admin/word-assist を呼んで候補を並べる） */
+function assistBox({ addAction }: AssistOptions): SafeHtml {
+  return html`<div class="assist" data-assist data-add-action="${addAction ?? ''}"
+  data-pos-labels="${JSON.stringify(POS_LABELS)}">
+  <div class="inline-row">
+    <button type="button" data-assist-run>AI で調べる</button>
+    <span class="muted" data-assist-status>英語（または意味）を入れて押すと、打ち間違い・変化した形を確かめ、意味と例文を下書きします。</span>
+  </div>
+  <div data-assist-results></div>
+</div>`
+}
+
+function wordForm({ action, draft, submitLabel, error, duplicate, back, assist }: WordFormOptions): SafeHtml {
   const duplicateNotice = duplicate
     ? html`<div class="notice">
         <p>「${duplicate.bundled.word}」（${duplicate.bundled.meaning}）は単語帳にあります。
@@ -72,7 +91,9 @@ function wordForm({ action, draft, submitLabel, error, duplicate, back }: WordFo
       </div>`
     : ''
   return html`${errorLine(error)}${duplicateNotice}
-<form method="post" action="${action}" class="stack">
+<div class="word-form">
+${assist ? assistBox(assist) : ''}
+<form method="post" action="${action}" class="stack" data-word-form>
   ${back ? html`<input type="hidden" name="back" value="${back}">` : ''}
   ${duplicate ? html`<input type="hidden" name="allowDuplicate" value="1">` : ''}
   <label>英語（必須）<input type="text" name="word" value="${draft.word}" required maxlength="200"
@@ -86,7 +107,8 @@ function wordForm({ action, draft, submitLabel, error, duplicate, back }: WordFo
   <label>例文の訳（任意）<textarea name="exampleJa" maxlength="1000">${draft.exampleJa}</textarea></label>
   <p class="muted">例文に英語（活用形を含む）が入っていると、穴埋め問題でも出題されます。</p>
   <div><button type="submit" class="primary">${duplicate ? 'それでも自作語として作る' : submitLabel}</button></div>
-</form>`
+</form>
+</div>`
 }
 
 // --- グループ一覧 ---
@@ -147,6 +169,15 @@ export type GroupDetailOptions = {
   duplicate?: DuplicateHint
   renameError?: string
   addError?: string
+  aiEnabled?: boolean
+}
+
+/** 単語帳で見つからなかった検索語をフォームに入れる（英語なら英語欄、日本語などなら意味欄） */
+export function draftFromQuery(query: string): WordDraft {
+  const text = query.trim()
+  if (text === '') return EMPTY_DRAFT
+  if ([...text].every((ch) => ch.charCodeAt(0) < 0x80)) return { ...EMPTY_DRAFT, word: text, pos: text.includes(' ') ? 'phrase' : 'noun' }
+  return { ...EMPTY_DRAFT, meaning: text }
 }
 
 function entryRow(group: Group, entry: GroupEntry, index: number, count: number): SafeHtml {
@@ -232,7 +263,9 @@ ${
   query.trim() === ''
     ? ''
     : results.length === 0
-      ? html`<p class="muted">「${query}」は見つかりませんでした。下のフォームでマイ単語として作れます。</p>`
+      ? html`<p class="muted">「${query}」は見つかりませんでした。下のフォームでマイ単語として作れます${
+          options.aiEnabled ? '（「AI で調べる」で打ち間違い・変化した形なら単語帳の語が見つかります）' : ''
+        }。</p>`
       : html`<table>
           <thead><tr><th>英語</th><th>意味</th><th>品詞</th><th></th></tr></thead>
           <tbody>${resultRows}</tbody>
@@ -242,10 +275,11 @@ ${
 <h2 id="new-word">マイ単語を作って追加</h2>
 ${wordForm({
   action: `${path}/custom-words`,
-  draft: options.draft ?? EMPTY_DRAFT,
+  draft: options.draft ?? (query.trim() !== '' && results.length === 0 ? draftFromQuery(query) : EMPTY_DRAFT),
   submitLabel: '作って追加',
   error: options.wordError,
   duplicate: options.duplicate,
+  assist: options.aiEnabled ? { addAction: `${path}/words` } : undefined,
 })}
 
 <h2 id="rename">名前の変更</h2>
@@ -277,9 +311,17 @@ export type CustomWordsOptions = {
   draft?: WordDraft
   error?: string
   duplicate?: DuplicateHint
+  aiEnabled?: boolean
 }
 
-export function customWordsPage({ words, groupsByWord, draft, error, duplicate }: CustomWordsOptions): SafeHtml {
+export function customWordsPage({
+  words,
+  groupsByWord,
+  draft,
+  error,
+  duplicate,
+  aiEnabled,
+}: CustomWordsOptions): SafeHtml {
   const rows = words.map(
     (w) => html`<tr>
       <td><a href="${customWordPath(w.wordId)}">${w.word}</a></td>
@@ -310,7 +352,14 @@ ${
 }
 
 <h2 id="new-word">マイ単語を作る</h2>
-${wordForm({ action: '/admin/custom-words', draft: draft ?? EMPTY_DRAFT, submitLabel: '作る', error, duplicate })}`,
+${wordForm({
+  action: '/admin/custom-words',
+  draft: draft ?? EMPTY_DRAFT,
+  submitLabel: '作る',
+  error,
+  duplicate,
+  assist: aiEnabled ? {} : undefined,
+})}`,
   )
 }
 
