@@ -42,11 +42,12 @@ enum DebugSeed {
         case wordPicker = "word-picker"
         case wordEditor = "word-editor"
         case wordEditorLoading = "word-editor-loading"
+        case wordAssistResult = "word-assist-result"
 
         var seedsGroups: Bool {
             switch self {
             case .groups, .groupDetail, .groupLearn, .groupDrill,
-                 .wordPicker, .wordEditor, .wordEditorLoading:
+                 .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult:
                 true
             default: false
             }
@@ -78,7 +79,8 @@ enum DebugSeed {
 
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
-        [.groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor, .wordEditorLoading]
+        [.groupDetail, .groupLearn, .groupDrill,
+         .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult]
             .contains(variant)
     }
 
@@ -92,7 +94,7 @@ enum DebugSeed {
         case .stats: .stats
         case .settings: .settings
         case .groups, .groupDetail, .groupLearn, .groupDrill,
-             .wordPicker, .wordEditor, .wordEditorLoading:
+             .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult:
             .groups
         default: nil
         }
@@ -104,6 +106,20 @@ enum DebugSeed {
     static var demoSearchQuery: String? {
         ProcessInfo.processInfo.environment["VOCAB_DEMO_QUERY"]
     }
+
+    /// `word-assist-result` で出す AI の結果（サーバーに聞かずに、調べ終わった状態を見る）
+    static let demoCandidates: [WordAssistAPI.Candidate] = [
+        WordAssistAPI.Candidate(
+            word: "commute", pos: .verb, meaning: "通勤する、通学する",
+            example: "I commute to school by bus.", exampleJa: "私はバスで通学します。",
+            reason: .exact, bundled: nil
+        ),
+        WordAssistAPI.Candidate(
+            word: "commute", pos: .noun, meaning: "通勤、通学",
+            example: "My commute takes an hour.", exampleJa: "私の通勤には 1 時間かかります。",
+            reason: .exact, bundled: nil
+        ),
+    ]
 
     /// `word-editor` で入れておく下書き（例文に単語が無く、品詞は自動推測のまま）
     static let demoDraft = GroupEditor.WordDraft(

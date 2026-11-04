@@ -121,7 +121,7 @@ struct GroupDetailView: View {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
-            case .wordPicker, .wordEditor, .wordEditorLoading: isPickingWords = true
+            case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult: isPickingWords = true
             default: break
             }
         }

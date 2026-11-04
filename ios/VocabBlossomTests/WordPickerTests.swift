@@ -36,8 +36,8 @@ struct WordPickerTests {
     func titleDependsOnAssist() throws {
         let withAI = try #require(action("commute"))
         let withoutAI = try #require(action("commute", ai: false))
-        #expect(withAI.title == "「commute」を AI で調べて追加する")
-        #expect(withoutAI.title == "「commute」を自分で作って追加する")
+        #expect(withAI.title == "「commute」を AI で調べる")
+        #expect(withoutAI.title == "「commute」を自分で作る")
     }
 
     @Test("同じ綴りの語が結果にあれば、そちらを選ぶよう補足する（大小文字は無視）")

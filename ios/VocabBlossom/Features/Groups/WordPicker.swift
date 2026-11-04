@@ -21,7 +21,7 @@ enum WordPicker {
     ) -> CreateAction? {
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
-        let title = assistAvailable ? "「\(text)」を AI で調べて追加する" : "「\(text)」を自分で作って追加する"
+        let title = assistAvailable ? "「\(text)」を AI で調べる" : "「\(text)」を自分で作る"
         let spelling = WordStore.normalizedSpelling(text)
         let hasSameSpelling = results.contains { WordStore.normalizedSpelling($0.word) == spelling }
         let note = hasSameSpelling ? "「\(text)」は上の一覧にあります。ふつうはそちらを選んでください。" : nil
