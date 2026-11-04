@@ -9,7 +9,7 @@
     エディタの「追加」→ ピッカーに戻る → **ピッカーの「完了」** → グループ詳細に戻る
   - 確定ボタンが 2 回（エディタの「追加」とピッカーの「完了」）あり、シートが 2 枚重なる
 - 見出しの「N 語を選択中」が、グループに元から入っている語も数えるので「選んでいないのに 1 語選択中」に見える
-  （[word-assist-double-select](../word-assist-double-select.md) の Step 1 で判明）
+  （[word-assist-double-select](word-assist-double-select.md) の Step 1 で判明）
 - ユーザーが求める流れ:
   1. 追加ボタンを押す
   2. 単語を入れる
