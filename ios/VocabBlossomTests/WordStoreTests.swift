@@ -70,6 +70,16 @@ struct WordStoreTests {
         #expect(store.search(" Home ").first?.word == "home")
     }
 
+    @Test("大文字小文字は区別しない（英語・意味・例文とも、並びも同じ）")
+    func searchIgnoresCase() {
+        let lower = store.search("home").map(\.id)
+        #expect(!lower.isEmpty)
+        #expect(store.search("Home").map(\.id) == lower)
+        #expect(store.search("HOME").map(\.id) == lower)
+        // 例文だけに出てくる語も大小文字を無視して見つかる（例文の文頭は大文字）
+        #expect(store.search("i").count == store.search("I").count)
+    }
+
     @Test("完全一致 → 前方一致 → 英語の部分一致 → 意味 → 例文の順。同じ順位の中は元の並び")
     func filterRanking() {
         func entry(_ id: String, _ word: String, meaning: String = "意味", example: String = "") -> WordEntry {
