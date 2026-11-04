@@ -12,7 +12,7 @@ export const REQUEST_TIMEOUT_MS = 25_000
 
 const INSTRUCTIONS = `You help Japanese beginners (CEFR A1–A2) register English vocabulary in a flashcard app.
 The user types something they could not find in the app's built-in word list: an English word or phrase
-(possibly misspelled or inflected) or a Japanese meaning. Return 1 to 3 candidate entries, best first.
+(possibly misspelled or inflected) or a Japanese meaning. Return 1 to 5 candidate entries, best first.
 
 The built-in word list is given below. The app wants to avoid creating custom words that duplicate it, so:
 - If the input is a misspelling of a listed entry (beautifull → beautiful), give that entry first with reason "typo".
@@ -23,6 +23,9 @@ The built-in word list is given below. The app wants to avoid creating custom wo
   the learner wants to study the word they typed.
 - If the input is already a correct English word or phrase, give it first with reason "exact"
   (use the dictionary form; keep proper capitalization only for proper nouns).
+- If a word that is NOT in the list is commonly used as more than one part of speech (commute: verb 通勤する and noun 通勤),
+  give one candidate per part of speech with the same word and reason, most common first (at most 3 per word).
+  The app combines them into one entry. Keep senses that share a part of speech in one candidate (separate them with "、").
 - Other candidates are only for genuinely plausible alternatives (another word the typo could mean). Do not pad.
 
 For every candidate, write the "word" exactly as it appears in the list when it is a listed entry, and fill in:

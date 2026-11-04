@@ -124,6 +124,15 @@
 - g3plus へ反映済み（2026-11-03。`1fd395a`。マイグレーション無し）。healthy、`/health` 200・`/api/ping` 401（Bearer ありで 200）・
   `/admin/custom-words` は外から Access へ 302、コンテナ内から 200（意味の欄が出る）
 
+### 実機確認で見つかった不具合（2026-11-03）
+
+- 実機で commute を追加したら動詞しか出なかった。原因はサーバー: `resolveCandidates`（`ai/word-assist.ts`）が
+  同じ綴りの候補を最初の 1 つしか残しておらず、さらに AI への指示でも品詞ごとに分けるよう求めていなかった
+  （「Do not pad」だけで、本番の AI は commute に動詞 1 つしか返していなかった）。調査結果の「AI は品詞ごとに候補を返すので、そのまま使える」は誤りだった
+- 修正: 単語帳に無い語は綴り・品詞ごとに候補を残す（単語帳の語の案内は綴りごとに 1 つ）。候補の上限を 3 → 5。
+  AI への指示に「単語帳に無い語が複数の品詞でよく使われるなら、品詞ごとに候補を返す（1 語 3 つまで）」を追加
+- ローカルで本番と同じモデルに聞いて確認: commute → 動詞・名詞の 2 つ。cram → 動詞と cream（打ち間違い候補）。beautifull・hobby は従来どおり
+
 ## 影響範囲
 
 - iOS: `Models/WordEntry.swift`・`CustomWord.swift`、`Core/GroupEditor.swift`・`QuizBuilder.swift`・`BackupArchive.swift`、

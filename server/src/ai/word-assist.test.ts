@@ -86,9 +86,34 @@ describe('resolveCandidates', () => {
     expect(result[0].bundled).not.toBeNull()
   })
 
-  it('最大 3 件', () => {
-    const result = resolveCandidates(['a1', 'b2', 'c3', 'd4'].map((w) => candidate(w)), bundled)
-    expect(result).toHaveLength(3)
+  it('単語帳に無い語は品詞の違う候補を残し、同じ品詞の重複は落とす', () => {
+    const result = resolveCandidates(
+      [
+        candidate('commute', { pos: 'verb', meaning: '通勤する' }),
+        candidate('Commute', { pos: 'noun', meaning: '通勤' }),
+        candidate('commute', { pos: 'verb', meaning: '通う' }),
+      ],
+      bundled,
+    )
+    expect(result.map((c) => [c.word, c.pos, c.meaning])).toEqual([
+      ['commute', 'verb', '通勤する'],
+      ['Commute', 'noun', '通勤'],
+    ])
+    expect(result.every((c) => c.bundled === null)).toBe(true)
+  })
+
+  it('単語帳にある語は、品詞が違っても案内は 1 つ', () => {
+    const result = resolveCandidates(
+      [candidate('beautiful', { pos: 'adjective' }), candidate('beautiful', { pos: 'adverb' })],
+      bundled,
+    )
+    expect(result).toHaveLength(1)
+    expect(result[0].bundled).not.toBeNull()
+  })
+
+  it('最大 5 件', () => {
+    const result = resolveCandidates(['a1', 'b2', 'c3', 'd4', 'e5', 'f6'].map((w) => candidate(w)), bundled)
+    expect(result).toHaveLength(5)
   })
 })
 

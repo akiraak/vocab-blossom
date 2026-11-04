@@ -11,7 +11,8 @@ import { type BundledWords, normalizeSpelling } from '../words/bundled.ts'
 
 export const WORD_ASSIST_BODY_LIMIT = 4 * 1024
 export const MAX_INPUT_LENGTH = 60
-export const MAX_CANDIDATES = 3
+/** 品詞の違う候補（commute の動詞・名詞）も 1 件と数えるので、別の語の候補と合わせて入るよう 5 件まで */
+export const MAX_CANDIDATES = 5
 
 export const ASSIST_REASONS = ['exact', 'typo', 'inflection', 'variant', 'translation'] as const
 export type AssistReason = (typeof ASSIST_REASONS)[number]
@@ -64,7 +65,10 @@ export function parseAssistInput(body: unknown): string {
 }
 
 /**
- * AI の候補を同梱語と綴りで照合する。同じ綴りの候補は最初の 1 つだけ残す。
+ * AI の候補を同梱語と綴りで照合する。
+ *
+ * 単語帳に無い語は、品詞の違う候補（commute の動詞・名詞）を残す（アプリが 1 つの自作語の意味としてまとめる）。
+ * 同じ綴り・同じ品詞の候補と、単語帳にある語の 2 つ目以降の候補（案内は 1 つで足りる）は落とす。
  * AI が「単語帳にある」と言っても、照合できなければ自作語の候補として扱う（同梱語の ID を AI に作らせない）
  */
 export function resolveCandidates(candidates: readonly AiCandidate[], bundled: BundledWords): AssistCandidate[] {
@@ -72,10 +76,13 @@ export function resolveCandidates(candidates: readonly AiCandidate[], bundled: B
   const resolved: AssistCandidate[] = []
   for (const candidate of candidates) {
     const word = candidate.word.trim()
-    const key = normalizeSpelling(word)
-    if (key === '' || seen.has(key)) continue
-    seen.add(key)
+    const spelling = normalizeSpelling(word)
+    if (spelling === '') continue
     const hit = bundled.findBySpelling(word)
+    // 単語帳の語は綴りごとに 1 つ、単語帳に無い語は綴り・品詞ごとに 1 つ
+    const key = hit ? spelling : `${spelling} ${candidate.pos}`
+    if (seen.has(key)) continue
+    seen.add(key)
     resolved.push({
       ...candidate,
       word,
