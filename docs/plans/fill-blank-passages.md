@@ -88,6 +88,13 @@
 
 - サーバーを g3plus へ反映し（マイグレーションがあるので、アプリより先に）、実機でグループの穴埋めを確かめる
 
+#### Phase 3 の結果
+
+- g3plus へ反映済み（2026-11-04。`c820d88`）。反映前に DB をバックアップ（`server/data/vocab-blossom.backup-20261104.db`、版 2）。
+  起動ログ `[db] マイグレーションを 1 件適用した`（版 3）・`admin: on, ai: on`、healthy。
+  `/health` 200・`/api/ping` 401・`/api/sync` 200（Bearer あり）・`/admin/groups` は外から Access へ 302
+- 本番の `POST /api/passages` に borrow（verb）1 語: 約 5 秒で 3 パターン（傘・図書館・ドレス）が返った
+
 ## 影響範囲
 
 - server: `words/inflect.ts`（移動）、`ai/passages.ts`・`ai/claude-passages.ts`（新規）、`db.ts`（マイグレーション）、`app.ts`（ルート）
