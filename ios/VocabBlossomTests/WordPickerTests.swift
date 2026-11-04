@@ -45,6 +45,20 @@ struct WordPickerTests {
         let results = WordStore.filter(store.allWords, query: "Take")
         #expect(results.contains { $0.word == "take" })
         let sameSpelling = try #require(action("Take", results: results))
-        #expect(sameSpelling.note != nil)
+        #expect(sameSpelling.note == "「Take」は上の一覧にあります。ふつうはそちらを選んでください。")
+    }
+
+    @Test("同じ綴りのマイ単語があれば、作り直すと置き換えになることを伝える")
+    func noteWhenSameSpellingCustomWordExists() throws {
+        let custom = WordEntry(
+            id: "custom-1", word: "commute", pos: .verb, level: nil,
+            meaning: "通勤する", example: "", exampleJa: ""
+        )
+        let withAI = try #require(action("Commute", results: [custom]))
+        let expected = "「Commute」はマイ単語にあります。"
+            + "AI で調べ直して追加すると、そのマイ単語の内容を置き換えます（学習の記録は残ります）。"
+        #expect(withAI.note == expected)
+        let withoutAI = try #require(action("commute", results: [custom], ai: false))
+        #expect(withoutAI.note?.contains("自分で作り直して追加すると") == true)
     }
 }

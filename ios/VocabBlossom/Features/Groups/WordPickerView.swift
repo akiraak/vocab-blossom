@@ -228,7 +228,11 @@ struct WordPickerView: View {
             }
         } footer: {
             if !session.newWords.isEmpty {
-                Text("「新しく作る」の語は、選んで「追加」するとマイ単語になります。意味が複数あるときは、入れる意味だけにチェックを付けてください。違うところは「直す」で直せます。")
+                Text(
+                    "「新しく作る」の語は、選んで「追加」するとマイ単語になります。"
+                        + "「置き換える」の語は、同じ綴りのマイ単語の内容をこの内容に置き換えます。"
+                        + "意味が複数あるときは、入れる意味だけにチェックを付けてください。違うところは「直す」で直せます。"
+                )
             }
         }
     }
@@ -252,7 +256,7 @@ struct WordPickerView: View {
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
-                                badge("新しく作る")
+                                badge(replacesCustomWord(draft) ? "置き換える" : "新しく作る")
                             }
                             if !newWord.hasMultipleSenses {
                                 senseText(draft.primarySense)
@@ -338,7 +342,13 @@ struct WordPickerView: View {
     private func newWordLabel(_ newWord: WordAddSession.NewWord) -> String {
         let draft = newWord.draft
         let senses = draft.senses.map { "\($0.pos.label)、\($0.meaning)" }.joined(separator: "、")
-        return "\(draft.word)、\(senses)、新しく作る"
+        return "\(draft.word)、\(senses)、\(replacesCustomWord(draft) ? "マイ単語を置き換える" : "新しく作る")"
+    }
+
+    /// 同じ綴りのマイ単語がある（確定するとそのマイ単語の内容を置き換える）
+    private func replacesCustomWord(_ draft: GroupEditor.WordDraft) -> Bool {
+        let spelling = WordStore.normalizedSpelling(draft.word)
+        return store.customWords.contains { WordStore.normalizedSpelling($0.word) == spelling }
     }
 
     private func makeYourselfButton(_ text: String) -> some View {
@@ -418,8 +428,11 @@ struct WordPickerView: View {
 
     private func commit() {
         let editor = GroupEditor(context: context)
-        let wordIds = session.commit { editor.createCustomWord($0).wordId }
-        editor.add(wordIds: wordIds, to: group)
+        // 同じ綴りのマイ単語があれば、新しく作らずに置き換える（マイ単語は綴りごとに 1 つ）
+        let wordIds = session.commit { editor.upsertCustomWord($0).wordId }
+        // 寄せて消した同じ綴りのマイ単語を一覧から選んでいたときは、その ID を入れない
+        let existing = wordIds.filter { !CustomWord.isCustom($0) || editor.customWord(id: $0) != nil }
+        editor.add(wordIds: existing, to: group)
         dismiss()
     }
 

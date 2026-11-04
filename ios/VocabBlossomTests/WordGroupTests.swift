@@ -321,6 +321,59 @@ struct GroupEditorTests {
         #expect(engine.progress(for: "a1-0001") != nil)
     }
 
+    @Test("「単語を追加」の保存: 同じ綴りのマイ単語が無ければ作り、あれば ID を変えずに内容を置き換える")
+    func upsertReplacesSameSpelling() throws {
+        let created = editor.upsertCustomWord(
+            GroupEditor.WordDraft(word: "commute", meaning: "通勤する", pos: .verb), now: now
+        )
+        let wordId = created.wordId
+        let engine = LearningEngine(context: context)
+        engine.record(wordId: wordId, correct: true, quizType: .enToJa, kind: .new, now: now)
+
+        var draft = GroupEditor.WordDraft(word: " Commute ", meaning: "通勤する、通学する", pos: .verb)
+        draft.extraSenses = [WordSense(pos: .noun, meaning: "通勤")]
+        let later = now.addingTimeInterval(60)
+        let replaced = editor.upsertCustomWord(draft, now: later)
+
+        #expect(replaced.wordId == wordId)
+        #expect(try context.fetch(FetchDescriptor<CustomWord>()).count == 1)
+        #expect(replaced.meaning == "通勤する、通学する")
+        #expect(replaced.extraSenses == [WordSense(pos: .noun, meaning: "通勤")])
+        #expect(replaced.updatedAt == later)
+        // 学習の記録は残る
+        #expect(engine.progress(for: wordId) != nil)
+    }
+
+    @Test("同じ綴りのマイ単語が複数あれば、いちばん新しいものに寄せ、グループでの位置を引き継いでほかは消す")
+    func upsertMergesDuplicates() throws {
+        let old = editor.createCustomWord(
+            GroupEditor.WordDraft(word: "commute", meaning: "古い", pos: .verb), now: now
+        )
+        let newer = editor.createCustomWord(
+            GroupEditor.WordDraft(word: "commute", meaning: "新しい", pos: .verb),
+            now: now.addingTimeInterval(10)
+        )
+        let onlyOld = editor.createGroup(name: "古い方だけ", now: now)
+        editor.add(wordIds: ["a1-0001", old.wordId, "a1-0002"], to: onlyOld, now: now)
+        let both = editor.createGroup(name: "両方", now: now)
+        editor.add(wordIds: [old.wordId, newer.wordId], to: both, now: now)
+
+        let later = now.addingTimeInterval(60)
+        let kept = editor.upsertCustomWord(
+            GroupEditor.WordDraft(word: "commute", meaning: "通勤する", pos: .verb), now: later
+        )
+
+        #expect(kept.wordId == newer.wordId)
+        #expect(try context.fetch(FetchDescriptor<CustomWord>()).map(\.wordId) == [newer.wordId])
+        #expect(kept.meaning == "通勤する")
+        #expect(onlyOld.wordIds == ["a1-0001", newer.wordId, "a1-0002"])
+        #expect(both.wordIds == [newer.wordId])
+        #expect(onlyOld.updatedAt == later)
+        // 消した方は削除記録が残り、同期でほかの端末・サーバーからも消える
+        let deletions = try context.fetch(FetchDescriptor<SyncDeletion>())
+        #expect(deletions.map(\.recordId) == [old.wordId])
+    }
+
     @Test("グループを消しても進捗と自作語は残る")
     func deleteGroupKeepsWords() throws {
         let group = editor.createGroup(name: "g", now: now)

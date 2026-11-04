@@ -9,7 +9,7 @@ enum WordPicker {
         /// 前後の空白を落とした検索語。エディタの下書きに入れる
         let text: String
         let title: String
-        /// 補足（同じ綴りの語が結果にあるとき、そちらを選ぶよう促す）
+        /// 補足（同じ綴りの語が結果にあるとき。単語帳の語ならそちらを選ぶよう促し、マイ単語なら置き換えになると伝える）
         let note: String?
     }
 
@@ -23,8 +23,17 @@ enum WordPicker {
         guard !text.isEmpty else { return nil }
         let title = assistAvailable ? "「\(text)」を AI で調べる" : "「\(text)」を自分で作る"
         let spelling = WordStore.normalizedSpelling(text)
-        let hasSameSpelling = results.contains { WordStore.normalizedSpelling($0.word) == spelling }
-        let note = hasSameSpelling ? "「\(text)」は上の一覧にあります。ふつうはそちらを選んでください。" : nil
+        let sameSpelling = results.filter { WordStore.normalizedSpelling($0.word) == spelling }
+        let note: String?
+        if sameSpelling.contains(where: { !$0.isCustom }) {
+            note = "「\(text)」は上の一覧にあります。ふつうはそちらを選んでください。"
+        } else if !sameSpelling.isEmpty {
+            // マイ単語は綴りごとに 1 つ。作り直すと、そのマイ単語の内容を置き換える（学習の記録は残る）
+            let how = assistAvailable ? "AI で調べ直して" : "自分で作り直して"
+            note = "「\(text)」はマイ単語にあります。\(how)追加すると、そのマイ単語の内容を置き換えます（学習の記録は残ります）。"
+        } else {
+            note = nil
+        }
         return CreateAction(text: text, title: title, note: note)
     }
 }

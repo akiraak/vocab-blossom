@@ -180,6 +180,38 @@ struct GroupEditor {
         return custom
     }
 
+    /// 「単語を追加」で新しく作る語を保存する。同じ綴りのマイ単語は 1 つだけにする。
+    ///
+    /// 同じ綴り（大小文字・前後の空白は無視）のマイ単語が無ければ作る。あればいちばん新しく更新したものの内容を置き換え
+    /// （ID はそのままなので学習の記録は残る）、ほかの同じ綴りのマイ単語は、グループでの位置を寄せる先に引き継いでから消す
+    @discardableResult
+    func upsertCustomWord(_ draft: WordDraft, now: Date = .now) -> CustomWord {
+        let spelling = WordStore.normalizedSpelling(draft.word)
+        let sameSpelling = ((try? context.fetch(FetchDescriptor<CustomWord>())) ?? [])
+            .filter { WordStore.normalizedSpelling($0.word) == spelling }
+            .sorted { $0.updatedAt > $1.updatedAt }
+        guard let kept = sameSpelling.first else { return createCustomWord(draft, now: now) }
+        for duplicate in sameSpelling.dropFirst() {
+            mergeIntoGroups(duplicate.wordId, keeping: kept.wordId, now: now)
+            deleteCustomWord(id: duplicate.wordId, now: now)
+        }
+        update(kept, with: draft, now: now)
+        return kept
+    }
+
+    /// グループの中の `wordId` を `keptId` に置き換える（すでに `keptId` があるグループでは外すだけ）
+    private func mergeIntoGroups(_ wordId: String, keeping keptId: String, now: Date) {
+        let groups = (try? context.fetch(FetchDescriptor<WordGroup>())) ?? []
+        for group in groups where group.wordIds.contains(wordId) {
+            if group.wordIds.contains(keptId) {
+                group.wordIds.removeAll { $0 == wordId }
+            } else {
+                group.wordIds = group.wordIds.map { $0 == wordId ? keptId : $0 }
+            }
+            group.updatedAt = max(group.updatedAt, now)
+        }
+    }
+
     func update(_ custom: CustomWord, with draft: WordDraft, now: Date = .now) {
         let value = draft.trimmed
         custom.word = value.word
