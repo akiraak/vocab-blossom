@@ -103,9 +103,16 @@ const STYLE = `
   .assist .candidate { background: var(--bg-soft); border-left: 4px solid var(--accent); padding: 6px 12px; margin: 8px 0; }
   .assist .candidate p { margin: 2px 0; }
   .assist .candidate form { margin: 4px 0 0; }
+  .assist .candidate button + button { margin-left: 8px; }
+  fieldset.sense { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; margin: 0;
+                   display: grid; gap: 8px; }
+  fieldset.sense legend { font-size: 0.9rem; font-weight: 600; padding: 0 4px; }
+  .senses { display: grid; gap: 8px; }
+  form.stack label.check { display: flex; gap: 6px; align-items: center; }
 `
 
 // 画面の動きはこれだけ: 削除の確認、日時を端末の時刻で表示する、自作語のフォームの AI チェック
+// （候補を 1 つ目の意味に入れる・2 つ目以降の意味として足す）
 const SCRIPT = `
   document.addEventListener('submit', (event) => {
     const message = event.target.getAttribute('data-confirm')
@@ -139,6 +146,22 @@ const SCRIPT = `
   for (const box of document.querySelectorAll('[data-assist]')) {
     const form = box.parentElement.querySelector('form[data-word-form]')
     const field = (name) => form.elements.namedItem(name)
+    const extraList = form.querySelector('[data-extra-senses]')
+    const senseTemplate = form.querySelector('template[data-sense-template]')
+    // 2 つ目以降の意味として足す。空の欄があればそこへ、無ければ欄を増やす
+    const addSense = (c) => {
+      let block = [...extraList.querySelectorAll('[data-extra-sense]')].find((b) =>
+        ['extraMeaning', 'extraExample', 'extraExampleJa'].every((n) => !b.querySelector('[name="' + n + '"]').value.trim()))
+      if (!block) {
+        extraList.append(senseTemplate.content.cloneNode(true))
+        block = extraList.lastElementChild
+      }
+      const set = (n, v) => { block.querySelector('[name="' + n + '"]').value = v }
+      set('extraMeaning', c.meaning)
+      set('extraPos', c.pos)
+      set('extraExample', c.example)
+      set('extraExampleJa', c.exampleJa)
+    }
     const button = box.querySelector('[data-assist-run]')
     const status = box.querySelector('[data-assist-status]')
     const results = box.querySelector('[data-assist-results]')
@@ -175,7 +198,17 @@ const SCRIPT = `
         fill.addEventListener('click', () => {
           for (const name of ['word', 'meaning', 'pos', 'example', 'exampleJa']) field(name).value = c[name]
         })
-        item.append(fill)
+        // 1 つ目の意味が入っていれば、品詞の違う意味として足せる（commute の動詞・名詞など）
+        const add = el('button', '', '意味として足す')
+        add.type = 'button'
+        add.addEventListener('click', () => {
+          if (!field('meaning').value.trim()) {
+            for (const name of ['word', 'meaning', 'pos', 'example', 'exampleJa']) field(name).value = c[name]
+          } else {
+            addSense(c)
+          }
+        })
+        item.append(fill, add)
       }
       return item
     }

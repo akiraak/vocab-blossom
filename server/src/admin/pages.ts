@@ -1,7 +1,7 @@
 import { type NavKey, type SafeHtml, html, layout, time } from '../http/html.ts'
 import { type CustomWord, type Group, PARTS_OF_SPEECH, type PartOfSpeech } from '../sync/types.ts'
 import type { BundledWord } from '../words/bundled.ts'
-import type { GroupEntry, WordDraft } from './service.ts'
+import type { GroupEntry, SenseDraft, WordDraft } from './service.ts'
 
 // 管理画面の HTML。値はすべて html`` でエスケープされる。
 
@@ -21,7 +21,14 @@ export const POS_LABELS: Record<PartOfSpeech, string> = {
   phrase: '熟語',
 }
 
-export const EMPTY_DRAFT: WordDraft = { word: '', meaning: '', pos: 'noun', example: '', exampleJa: '' }
+export const EMPTY_DRAFT: WordDraft = {
+  word: '',
+  meaning: '',
+  pos: 'noun',
+  example: '',
+  exampleJa: '',
+  extraSenses: [],
+}
 
 const groupPath = (id: string) => `/admin/groups/${encodeURIComponent(id)}`
 const customWordPath = (id: string) => `/admin/custom-words/${encodeURIComponent(id)}`
@@ -36,6 +43,28 @@ function errorLine(error: string | undefined): SafeHtml {
 
 function posLabel(pos: string): string {
   return POS_LABELS[pos as PartOfSpeech] ?? pos
+}
+
+/** 意味を持つ語（同梱語・自作語）。extraSenses は自作語の 2 つ目以降の意味 */
+type HasSenses = { meaning: string; pos: string; extraSenses?: readonly { meaning: string; pos: string }[] }
+
+/** 一覧の「意味」の列。意味が 1 つならそのまま、複数なら「動詞: 通勤する／名詞: 通勤」（iOS の meaningSummary と同じ） */
+export function meaningSummary(word: HasSenses): string {
+  const extras = word.extraSenses ?? []
+  if (extras.length === 0) return word.meaning
+  return [word, ...extras].map((s) => `${posLabel(s.pos)}: ${s.meaning}`).join('／')
+}
+
+/** 一覧の「品詞」の列。意味が複数なら「動詞・名詞」（同じ品詞は 1 回） */
+export function posSummary(word: HasSenses): string {
+  const labels = [word, ...(word.extraSenses ?? [])].map((s) => posLabel(s.pos))
+  return [...new Set(labels)].join('・')
+}
+
+/** 意味を足すときの品詞。まだ使っていない品詞（名詞 → 動詞 → 形容詞 → 副詞）。iOS の nextSensePos と同じ */
+export function nextSensePos(draft: WordDraft): string {
+  const used = new Set([draft.pos, ...draft.extraSenses.map((s) => s.pos)])
+  return (['noun', 'verb', 'adjective', 'adverb'] as const).find((pos) => !used.has(pos)) ?? 'noun'
 }
 
 // --- 自作語のフォーム ---
@@ -75,7 +104,37 @@ function assistBox({ addAction }: AssistOptions): SafeHtml {
 </div>`
 }
 
+/** 品詞の選択肢 */
+function posOptions(selected: string): SafeHtml {
+  return html`${PARTS_OF_SPEECH.map(
+    (pos) => html`<option value="${pos}"${pos === selected ? html` selected` : ''}>${POS_LABELS[pos]}</option>`,
+  )}`
+}
+
+/**
+ * 2 つ目以降の意味 1 つ分。index は送信される並びの何番目か（「この意味を消す」が使う）。
+ * index が無いのは、意味を足すための空の欄（消すチェックは出さない）
+ */
+function extraSenseFields(sense: SenseDraft, legend: string, index?: number): SafeHtml {
+  return html`<fieldset class="sense" data-extra-sense>
+    <legend>${legend}</legend>
+    <label>意味<input type="text" name="extraMeaning" value="${sense.meaning}" maxlength="500"
+      autocomplete="off" placeholder="例: 通勤"></label>
+    <label>品詞<select name="extraPos">${posOptions(sense.pos)}</select></label>
+    <label>例文（英語・任意）<textarea name="extraExample" maxlength="1000">${sense.example}</textarea></label>
+    <label>例文の訳（任意）<textarea name="extraExampleJa" maxlength="1000">${sense.exampleJa}</textarea></label>
+    ${
+      index === undefined
+        ? ''
+        : html`<label class="check"><input type="checkbox" name="extraRemove" value="${String(index)}"> この意味を消す</label>`
+    }
+  </fieldset>`
+}
+
+const BLANK_SENSE_LEGEND = '意味を追加（品詞の違う意味・任意）'
+
 function wordForm({ action, draft, submitLabel, error, duplicate, back, assist }: WordFormOptions): SafeHtml {
+  const blank: SenseDraft = { meaning: '', pos: nextSensePos(draft), example: '', exampleJa: '' }
   const duplicateNotice = duplicate
     ? html`<div class="notice">
         <p>「${duplicate.bundled.word}」（${duplicate.bundled.meaning}）は単語帳にあります。
@@ -98,14 +157,24 @@ ${assist ? assistBox(assist) : ''}
   ${duplicate ? html`<input type="hidden" name="allowDuplicate" value="1">` : ''}
   <label>英語（必須）<input type="text" name="word" value="${draft.word}" required maxlength="200"
     autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例: take care of"></label>
-  <label>意味（必須）<input type="text" name="meaning" value="${draft.meaning}" required maxlength="500"
-    autocomplete="off" placeholder="例: 〜の世話をする"></label>
-  <label>品詞<select name="pos">${PARTS_OF_SPEECH.map(
-    (pos) => html`<option value="${pos}"${pos === draft.pos ? html` selected` : ''}>${POS_LABELS[pos]}</option>`,
-  )}</select></label>
-  <label>例文（英語・任意）<textarea name="example" maxlength="1000">${draft.example}</textarea></label>
-  <label>例文の訳（任意）<textarea name="exampleJa" maxlength="1000">${draft.exampleJa}</textarea></label>
-  <p class="muted">例文に英語（活用形を含む）が入っていると、穴埋め問題でも出題されます。</p>
+  <fieldset class="sense">
+    <legend>${draft.extraSenses.length > 0 ? '意味 1' : '意味'}</legend>
+    <label>意味（必須）<input type="text" name="meaning" value="${draft.meaning}" required maxlength="500"
+      autocomplete="off" placeholder="例: 〜の世話をする"></label>
+    <label>品詞<select name="pos">${posOptions(draft.pos)}</select></label>
+    <label>例文（英語・任意）<textarea name="example" maxlength="1000">${draft.example}</textarea></label>
+    <label>例文の訳（任意）<textarea name="exampleJa" maxlength="1000">${draft.exampleJa}</textarea></label>
+  </fieldset>
+  <div class="senses" data-extra-senses>
+    ${draft.extraSenses.map((sense, i) => extraSenseFields(sense, `意味 ${i + 2}`, i))}
+    ${extraSenseFields(blank, BLANK_SENSE_LEGEND)}
+  </div>
+  <template data-sense-template>${extraSenseFields(
+    { meaning: '', pos: 'noun', example: '', exampleJa: '' },
+    BLANK_SENSE_LEGEND,
+  )}</template>
+  <p class="muted">品詞の違う意味（commute の「動詞: 通勤する」「名詞: 通勤」など）は、1 つの単語にまとめられます。
+    もっと足すときは、保存すると次の空の欄が出ます。例文に英語（活用形を含む）が入っていると、穴埋め問題でも出題されます。</p>
   <div><button type="submit" class="primary">${duplicate ? 'それでも自作語として作る' : submitLabel}</button></div>
 </form>
 </div>`
@@ -155,6 +224,8 @@ export type SearchResult = {
   word: string
   meaning: string
   pos: string
+  /** 自作語の 2 つ目以降の意味 */
+  extraSenses?: readonly { meaning: string; pos: string }[]
   level?: string
   inGroup: boolean
 }
@@ -209,8 +280,8 @@ function entryRow(group: Group, entry: GroupEntry, index: number, count: number)
   return html`<tr>
     <td class="num">${index + 1}</td>
     <td>${entry.word}${tag}</td>
-    <td>${entry.meaning}</td>
-    <td>${posLabel(entry.pos)}</td>
+    <td>${meaningSummary(entry)}</td>
+    <td>${posSummary(entry)}</td>
     <td class="actions">${actions}</td>
   </tr>`
 }
@@ -222,8 +293,8 @@ export function groupDetailPage(options: GroupDetailOptions): SafeHtml {
   const resultRows = results.map(
     (r) => html`<tr>
       <td>${r.word}${r.kind === 'custom' ? html`<span class="tag custom">マイ単語</span>` : html`<span class="tag">${r.level}</span>`}</td>
-      <td>${r.meaning}</td>
-      <td>${posLabel(r.pos)}</td>
+      <td>${meaningSummary(r)}</td>
+      <td>${posSummary(r)}</td>
       <td class="actions">${
         r.inGroup
           ? html`<span class="muted">追加済み</span>`
@@ -325,8 +396,8 @@ export function customWordsPage({
   const rows = words.map(
     (w) => html`<tr>
       <td><a href="${customWordPath(w.wordId)}">${w.word}</a></td>
-      <td>${w.meaning}</td>
-      <td>${posLabel(w.pos)}</td>
+      <td>${meaningSummary(w)}</td>
+      <td>${posSummary(w)}</td>
       <td>${groupLinks(groupsByWord.get(w.wordId) ?? [])}</td>
       <td>${time(w.updatedAt)}</td>
       <td class="actions">

@@ -10,8 +10,11 @@ const draft = (overrides: Partial<WordDraft> = {}): WordDraft => ({
   pos: 'noun',
   example: '',
   exampleJa: '',
+  extraSenses: [],
   ...overrides,
 })
+
+const sense = (meaning: string, pos = 'noun', example = '') => ({ meaning, pos, example, exampleJa: '' })
 
 let db: DB
 let store: SyncStore
@@ -128,7 +131,7 @@ describe('グループの中の語', () => {
     expect(service.entries(service.getGroup(group.id))).toEqual([
       { kind: 'bundled', id: 'a1-0001', word: 'a.m.', meaning: '午前', pos: 'adverb', level: 'A1' },
       { kind: 'unknown', id: 'custom-later' },
-      { kind: 'custom', id: custom.wordId, word: 'homeroom', meaning: 'ホームルーム', pos: 'noun' },
+      { kind: 'custom', id: custom.wordId, word: 'homeroom', meaning: 'ホームルーム', pos: 'noun', extraSenses: [] },
     ])
   })
 })
@@ -154,13 +157,43 @@ describe('自作語', () => {
     expect(store.getGroup(group.id)?.wordIds).toEqual(['a1-0001', word.wordId])
   })
 
-  it('編集しても 2 つ目以降の意味（端末で足したもの）は残す', () => {
-    const word = service.createCustomWord(draft({ word: 'commute', meaning: '通勤する', pos: 'verb' }))
-    const extraSenses = [{ pos: 'noun' as const, meaning: '通勤', example: '', exampleJa: '' }]
-    store.applyCustomWord({ ...word, extraSenses, updatedAt: word.updatedAt + 1 })
+  it('2 つ目以降の意味を作り・直し・消せる（欄がすべて空の意味は無視し、前後の空白は落とす）', () => {
+    const word = service.createCustomWord(
+      draft({
+        word: 'commute',
+        meaning: '通勤する',
+        pos: 'verb',
+        extraSenses: [sense(' 通勤 ', 'noun', ' My commute is long. '), sense('', 'adjective')],
+      }),
+    )
+    expect(store.getCustomWord(word.wordId)?.extraSenses).toEqual([
+      { pos: 'noun', meaning: '通勤', example: 'My commute is long.', exampleJa: '' },
+    ])
+
     clock = 5_000
-    service.updateCustomWord(word.wordId, draft({ word: 'commute', meaning: '通勤する、通学する', pos: 'verb' }))
-    expect(store.getCustomWord(word.wordId)).toMatchObject({ meaning: '通勤する、通学する', extraSenses })
+    service.updateCustomWord(
+      word.wordId,
+      draft({ word: 'commute', meaning: '通勤する', pos: 'verb', extraSenses: [sense('通学', 'noun')] }),
+    )
+    expect(store.getCustomWord(word.wordId)?.extraSenses).toEqual([
+      { pos: 'noun', meaning: '通学', example: '', exampleJa: '' },
+    ])
+
+    clock = 6_000
+    service.updateCustomWord(word.wordId, draft({ word: 'commute', meaning: '通勤する', pos: 'verb' }))
+    expect(store.getCustomWord(word.wordId)?.extraSenses).toEqual([])
+  })
+
+  it('2 つ目以降の意味の検証（例文だけで意味が無い・品詞が一覧に無い・数の上限）', () => {
+    expect(() => service.createCustomWord(draft({ extraSenses: [sense('', 'noun', 'An example.')] }))).toThrow(
+      '意味 2 の意味を入れてください',
+    )
+    expect(() => service.createCustomWord(draft({ extraSenses: [sense('x', 'noun'), sense('y', 'nope')] }))).toThrow(
+      '意味 3 の品詞を選んでください',
+    )
+    const many = Array.from({ length: 11 }, (_, i) => sense(`意味${i}`))
+    expect(() => service.createCustomWord(draft({ extraSenses: many }))).toThrow('意味は 11 個までです')
+    expect(store.listCustomWords()).toEqual([])
   })
 
   it('グループが無ければ自作語も作らない', () => {

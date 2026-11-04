@@ -8,6 +8,7 @@ import {
   LIMITS,
   PARTS_OF_SPEECH,
   type PartOfSpeech,
+  type WordSense,
   isCustomWordId,
 } from '../sync/types.ts'
 import type { BundledWords } from '../words/bundled.ts'
@@ -25,20 +26,26 @@ export class AdminInputError extends Error {}
 /** 対象が見つからない（404） */
 export class AdminNotFoundError extends Error {}
 
-export type WordDraft = {
-  word: string
+/** フォームの意味 1 つ分（品詞は検証前なので文字列） */
+export type SenseDraft = {
   meaning: string
   pos: string
   example: string
   exampleJa: string
 }
 
-export type ValidDraft = Omit<WordDraft, 'pos'> & { pos: PartOfSpeech }
+/** フォームの中身。meaning・pos・example・exampleJa は 1 つ目の意味、2 つ目以降は extraSenses */
+export type WordDraft = SenseDraft & {
+  word: string
+  extraSenses: SenseDraft[]
+}
+
+export type ValidDraft = Omit<WordDraft, 'pos' | 'extraSenses'> & { pos: PartOfSpeech; extraSenses: WordSense[] }
 
 /** グループの中の 1 語。解決できない ID は kind: 'unknown' */
 export type GroupEntry =
   | { kind: 'bundled'; id: string; word: string; meaning: string; pos: PartOfSpeech; level: string }
-  | { kind: 'custom'; id: string; word: string; meaning: string; pos: PartOfSpeech }
+  | { kind: 'custom'; id: string; word: string; meaning: string; pos: PartOfSpeech; extraSenses: WordSense[] }
   | { kind: 'unknown'; id: string }
 
 export type MoveDirection = 'up' | 'down'
@@ -49,27 +56,45 @@ export function normalizeGroupName(name: string): string {
   return trimmed === '' ? DEFAULT_GROUP_NAME : trimmed
 }
 
-export function validateDraft(draft: WordDraft): ValidDraft {
+/** 意味の欄がすべて空（足すための空の欄・消した欄）。品詞は選んであっても見ない */
+export function isBlankSense(sense: SenseDraft): boolean {
+  return sense.meaning.trim() === '' && sense.example.trim() === '' && sense.exampleJa.trim() === ''
+}
+
+/** 意味 1 つ分を検証する。number は 2 つ目以降の意味の番号（エラーに「意味 2 の」と添える） */
+function validateSense(sense: SenseDraft, number?: number): WordSense {
+  const prefix = number === undefined ? '' : `意味 ${number} の`
   const value = {
-    word: draft.word.trim(),
-    meaning: draft.meaning.trim(),
-    pos: draft.pos.trim(),
-    example: draft.example.trim(),
-    exampleJa: draft.exampleJa.trim(),
+    meaning: sense.meaning.trim(),
+    pos: sense.pos.trim(),
+    example: sense.example.trim(),
+    exampleJa: sense.exampleJa.trim(),
   }
-  if (value.word === '') throw new AdminInputError('英語を入れてください')
-  if (value.meaning === '') throw new AdminInputError('意味を入れてください')
+  if (value.meaning === '') throw new AdminInputError(`${prefix}意味を入れてください`)
   if (!(PARTS_OF_SPEECH as readonly string[]).includes(value.pos)) {
-    throw new AdminInputError('品詞を選んでください')
+    throw new AdminInputError(`${prefix}品詞を選んでください`)
   }
-  if (value.word.length > LIMITS.word) throw new AdminInputError(`英語は ${LIMITS.word} 文字までです`)
   if (value.meaning.length > LIMITS.meaning) {
-    throw new AdminInputError(`意味は ${LIMITS.meaning} 文字までです`)
+    throw new AdminInputError(`${prefix}意味は ${LIMITS.meaning} 文字までです`)
   }
   if (value.example.length > LIMITS.example || value.exampleJa.length > LIMITS.example) {
-    throw new AdminInputError(`例文・例文の訳は ${LIMITS.example} 文字までです`)
+    throw new AdminInputError(`${prefix}例文・例文の訳は ${LIMITS.example} 文字までです`)
   }
   return { ...value, pos: value.pos as PartOfSpeech }
+}
+
+export function validateDraft(draft: WordDraft): ValidDraft {
+  const word = draft.word.trim()
+  if (word === '') throw new AdminInputError('英語を入れてください')
+  if (word.length > LIMITS.word) throw new AdminInputError(`英語は ${LIMITS.word} 文字までです`)
+  const primary = validateSense(draft)
+  // 2 つ目以降は、欄がすべて空なら無いものとする（足すための空の欄・消した欄）
+  const extras = draft.extraSenses.filter((sense) => !isBlankSense(sense))
+  if (extras.length > LIMITS.extraSenses) {
+    throw new AdminInputError(`意味は ${LIMITS.extraSenses + 1} 個までです`)
+  }
+  const extraSenses = extras.map((sense, i) => validateSense(sense, i + 2))
+  return { word, ...primary, extraSenses }
 }
 
 export class AdminService {
@@ -117,8 +142,8 @@ export class AdminService {
       }
       const custom = isCustomWordId(id) ? this.store.getCustomWord(id) : null
       if (custom) {
-        const { word, meaning, pos } = custom
-        return { kind: 'custom', id, word, meaning, pos }
+        const { word, meaning, pos, extraSenses } = custom
+        return { kind: 'custom', id, word, meaning, pos, extraSenses }
       }
       return { kind: 'unknown', id }
     })
@@ -210,7 +235,6 @@ export class AdminService {
       const word: CustomWord = {
         wordId: CUSTOM_WORD_PREFIX + randomUUID().toLowerCase(),
         ...value,
-        extraSenses: [],
         createdAt: t,
         updatedAt: t,
       }

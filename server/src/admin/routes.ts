@@ -19,6 +19,7 @@ import {
   type AdminService,
   type MoveDirection,
   type WordDraft,
+  isBlankSense,
   validateDraft,
 } from './service.ts'
 
@@ -55,13 +56,31 @@ function field(form: URLSearchParams, name: string): string {
   return form.get(name) ?? ''
 }
 
-function draftFrom(form: URLSearchParams): WordDraft {
+/**
+ * フォームの中身。2 つ目以降の意味は extraMeaning・extraPos・extraExample・extraExampleJa が同じ数だけ並ぶ。
+ * extraRemove（何番目か）に入っている意味と、欄がすべて空の意味（足すための空の欄）は落とす
+ */
+export function draftFrom(form: URLSearchParams): WordDraft {
+  const meanings = form.getAll('extraMeaning')
+  const poses = form.getAll('extraPos')
+  const examples = form.getAll('extraExample')
+  const exampleJas = form.getAll('extraExampleJa')
+  const removed = new Set(form.getAll('extraRemove'))
+  const extraSenses = meanings
+    .map((meaning, i) => ({
+      meaning,
+      pos: poses[i] ?? '',
+      example: examples[i] ?? '',
+      exampleJa: exampleJas[i] ?? '',
+    }))
+    .filter((sense, i) => !removed.has(String(i)) && !isBlankSense(sense))
   return {
     word: field(form, 'word'),
     meaning: field(form, 'meaning'),
     pos: field(form, 'pos'),
     example: field(form, 'example'),
     exampleJa: field(form, 'exampleJa'),
+    extraSenses,
   }
 }
 
@@ -103,7 +122,15 @@ export function adminRoutes({
     const customHits: SearchResult[] = searchWords(
       service.listCustomWords().filter((w) => !inGroup.has(w.wordId)),
       query,
-    ).map((w) => ({ kind: 'custom', id: w.wordId, word: w.word, meaning: w.meaning, pos: w.pos, inGroup: false }))
+    ).map((w) => ({
+      kind: 'custom',
+      id: w.wordId,
+      word: w.word,
+      meaning: w.meaning,
+      pos: w.pos,
+      extraSenses: w.extraSenses,
+      inGroup: false,
+    }))
     return [...customHits, ...bundledHits].slice(0, SEARCH_LIMIT)
   }
 

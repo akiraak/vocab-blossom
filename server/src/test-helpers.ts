@@ -69,7 +69,8 @@ export function apiReq(path: string, init: RequestInit = {}): Request {
 }
 
 /** 管理画面のフォーム送信（自分のホストからの POST） */
-export function adminPost(path: string, fields: Record<string, string> = {}): Request {
+/** fields は同じ名前を何度も送るときは [名前, 値] の並びで渡す */
+export function adminPost(path: string, fields: Record<string, string> | [string, string][] = {}): Request {
   return req(path, {
     method: 'POST',
     headers: { origin: TEST_ORIGIN, 'content-type': 'application/x-www-form-urlencoded' },

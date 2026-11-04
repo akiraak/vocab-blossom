@@ -210,6 +210,78 @@ describe('マイ単語', () => {
     expect(evil.headers.get('location')).toBe('/admin/custom-words')
   })
 
+  it('意味を複数入れて作り、一覧に品詞ごとの意味が出る。編集で意味を消せる', async () => {
+    const { page, handle, store } = setup()
+    const res = await handle(
+      adminPost('/admin/custom-words', [
+        ['word', 'commute'],
+        ['meaning', '通勤する'],
+        ['pos', 'verb'],
+        ['example', ''],
+        ['exampleJa', ''],
+        ['extraMeaning', '通勤'],
+        ['extraPos', 'noun'],
+        ['extraExample', 'My commute is long.'],
+        ['extraExampleJa', ''],
+        // 意味を足すための空の欄
+        ['extraMeaning', ''],
+        ['extraPos', 'adjective'],
+        ['extraExample', ''],
+        ['extraExampleJa', ''],
+      ]),
+    )
+    expect(res.status).toBe(303)
+    const [word] = store.listCustomWords()
+    expect(word.extraSenses).toEqual([{ pos: 'noun', meaning: '通勤', example: 'My commute is long.', exampleJa: '' }])
+
+    const list = await page('/admin/custom-words')
+    expect(list.body).toContain('動詞: 通勤する／名詞: 通勤')
+    expect(list.body).toContain('動詞・名詞')
+
+    const edit = await page(`/admin/custom-words/${word.wordId}`)
+    expect(edit.body).toContain('意味 2')
+    expect(edit.body).toContain('name="extraRemove" value="0"')
+    // 空の欄の品詞は、まだ使っていない品詞（名詞・動詞の次の形容詞）
+    expect(edit.body).toMatch(/<option value="adjective" selected>/)
+
+    const removed = await handle(
+      adminPost(`/admin/custom-words/${word.wordId}`, [
+        ['word', 'commute'],
+        ['meaning', '通勤する'],
+        ['pos', 'verb'],
+        ['extraMeaning', '通勤'],
+        ['extraPos', 'noun'],
+        ['extraExample', ''],
+        ['extraExampleJa', ''],
+        ['extraRemove', '0'],
+      ]),
+    )
+    expect(removed.status).toBe(303)
+    expect(store.getCustomWord(word.wordId)?.extraSenses).toEqual([])
+  })
+
+  it('意味が複数の自作語は、グループ詳細の一覧・検索結果にも品詞ごとの意味が出る', async () => {
+    const { page, createGroup, handle, store } = setup()
+    const { path } = await createGroup('学校')
+    await handle(
+      adminPost('/admin/custom-words', [
+        ['word', 'commute'],
+        ['meaning', '通勤する'],
+        ['pos', 'verb'],
+        ['extraMeaning', '通勤'],
+        ['extraPos', 'noun'],
+      ]),
+    )
+    const [word] = store.listCustomWords()
+    // 2 つ目の意味でも検索できる
+    const search = await page(`${path}?q=${encodeURIComponent('通勤')}`)
+    expect(search.body).toContain('動詞: 通勤する／名詞: 通勤')
+
+    await handle(adminPost(`${path}/words`, { wordId: word.wordId }))
+    const detail = await page(path)
+    expect(detail.body).toContain('動詞: 通勤する／名詞: 通勤')
+  })
+
   it('編集で必須が空なら 400', async () => {
     const { createGroup, createWord, handle, store } = setup()
     const { id, path } = await createGroup('学校')

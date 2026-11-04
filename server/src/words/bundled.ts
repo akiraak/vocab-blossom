@@ -75,7 +75,8 @@ export class BundledWords {
   }
 }
 
-type Searchable = { word: string; meaning: string }
+/** extraSenses は自作語の 2 つ目以降の意味（意味の検索の対象にする） */
+type Searchable = { word: string; meaning: string; extraSenses?: readonly { meaning: string }[] }
 
 /** 同梱語・自作語の共通の検索。並びは「英語の前方一致 → 英語の部分一致 → 意味の部分一致」、同じ順位では元の並び */
 export function searchWords<T extends Searchable>(
@@ -91,7 +92,9 @@ export function searchWords<T extends Searchable>(
     let rank: number
     if (spelling.startsWith(q)) rank = 0
     else if (spelling.includes(q)) rank = 1
-    else if (word.meaning.toLowerCase().includes(q)) rank = 2
+    else if ([word.meaning, ...(word.extraSenses ?? []).map((s) => s.meaning)].some((m) => m.toLowerCase().includes(q))) {
+      rank = 2
+    }
     else return
     ranked.push({ word, rank, index })
   })
