@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 単語帳（同梱語 + 自作語）からグループに入れる語を選ぶ。
+/// グループに単語を入れる唯一の入口。単語帳（同梱語 + 自作語）を検索して選び、
+/// 単語帳に無い語はその場で（AI で調べて）作って選択に加える。
 ///
 /// チェックを付け外しして「完了」でまとめて反映する（新しく選んだ語は選んだ順に末尾へ入る）。
 struct WordPickerView: View {
@@ -33,13 +34,30 @@ struct WordPickerView: View {
     var body: some View {
         NavigationStack {
             let words = words
+            let createAction = showsSelectedOnly
+                ? nil
+                : WordPicker.createAction(query: query, results: words, assistAvailable: assistClient != nil)
             List {
                 Section {
+                    if query.isEmpty, !showsSelectedOnly {
+                        Text("単語帳にない単語は、検索欄に入れるとここから作れます。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                     ForEach(words) { word in
                         row(word)
                     }
                 } header: {
                     Text("\(selectedIds.count) 語を選択中")
+                }
+                if let createAction, !words.isEmpty {
+                    Section {
+                        createRow(createAction)
+                    } footer: {
+                        if let note = createAction.note {
+                            Text(note)
+                        }
+                    }
                 }
             }
             .listStyle(.plain)
@@ -47,23 +65,23 @@ struct WordPickerView: View {
                 if words.isEmpty {
                     if query.isEmpty {
                         ContentUnavailableView("選んだ単語はありません", systemImage: "checklist")
-                    } else if showsSelectedOnly {
-                        ContentUnavailableView.search(text: query)
+                    } else if let createAction {
+                        notFound(createAction)
                     } else {
-                        notFound
+                        ContentUnavailableView.search(text: query)
                     }
                 }
             }
             .searchable(
                 text: $query,
                 placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "単語・意味・例文を検索"
+                prompt: "英語か意味で検索（単語帳にない語も追加できます）"
             )
             .searchFocused($isSearchFocused)
             // 検索欄に入力している間もナビゲーションバー（キャンセル・完了）を隠さない。
             // 既定では隠れてしまい、チェックを付けたあとに押すボタンが見当たらなくなる
             .searchPresentationToolbarBehavior(.avoidHidingContent)
-            .navigationTitle("単語帳から追加")
+            .navigationTitle("単語を追加")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -85,34 +103,54 @@ struct WordPickerView: View {
             selectedIds = group.wordIds
             selectedSet = Set(group.wordIds)
         }
-        #if DEBUG
         .task {
-            if DebugSeed.variant == .wordPicker {
+            #if DEBUG
+            switch DebugSeed.variant {
+            case .wordPicker:
                 query = DebugSeed.demoSearchQuery ?? DebugSeed.demoMissingQuery
                 isSearchFocused = DebugSeed.demoSearchQuery != nil
+                return
+            case .wordEditor, .wordEditorLoading:
+                query = DebugSeed.demoMissingQuery
+                creatingDraft = CreatingDraft(draft: DebugSeed.demoDraft)
+                return
+            default:
+                break
             }
+            #endif
+            // 開いたらすぐ入力できるよう、最初から検索欄にフォーカスを当てる
+            isSearchFocused = true
         }
-        #endif
         .sheet(item: $creatingDraft) { item in
-            CustomWordEditorView(mode: .pick(prefill: item.draft, onPick: select))
+            CustomWordEditorView(mode: .create(prefill: item.draft, onPick: select))
         }
     }
 
-    /// 単語帳に無いときは、検索語を入れた状態で自作語のエディタを開けるようにする
-    private var notFound: some View {
-        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        return ContentUnavailableView {
-            Label("「\(text)」は見つかりません", systemImage: "magnifyingglass")
+    /// 単語帳に無いときは、検索語を入れた状態で自作語のエディタを開けるよう大きく案内する
+    private func notFound(_ action: WordPicker.CreateAction) -> some View {
+        ContentUnavailableView {
+            Label("「\(action.text)」は見つかりません", systemImage: "magnifyingglass")
         } description: {
             Text(assistClient == nil
                 ? "単語帳に無い単語は、自分で作って追加できます。"
                 : "AI が打ち間違いや変化した形を確かめ、単語帳に無い語は意味と例文を下書きします。")
         } actions: {
-            Button(assistClient == nil ? "「\(text)」を自分で作って追加する" : "「\(text)」を AI で調べて追加する") {
-                creatingDraft = CreatingDraft(draft: .prefilled(fromSearch: text))
-            }
-            .buttonStyle(.borderedProminent)
+            Button(action.title) { startCreating(action) }
+                .buttonStyle(.borderedProminent)
         }
+    }
+
+    /// 検索結果があるときは、一覧の最後に控えめに出す（探している語が一覧に無いとき用）
+    private func createRow(_ action: WordPicker.CreateAction) -> some View {
+        Button {
+            startCreating(action)
+        } label: {
+            Label(action.title, systemImage: assistClient == nil ? "square.and.pencil" : "sparkles")
+        }
+    }
+
+    private func startCreating(_ action: WordPicker.CreateAction) {
+        creatingDraft = CreatingDraft(draft: .prefilled(fromSearch: action.text))
     }
 
     private func row(_ word: WordEntry) -> some View {

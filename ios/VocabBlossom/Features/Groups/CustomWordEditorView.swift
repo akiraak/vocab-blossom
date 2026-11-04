@@ -3,11 +3,9 @@ import SwiftUI
 /// 自作語（単語帳に無い単語・フレーズ）の作成・編集。
 struct CustomWordEditorView: View {
     enum Mode {
-        /// 新しく作る。グループを渡すとそこにも入れる
-        case create(addingTo: WordGroup?)
-        /// 「単語帳から追加」の画面から作る。入力済みの下書きで開き、作った語（または案内した同梱語）の
+        /// 新しく作る。「単語を追加」の画面で検索語を入れた下書きで開き、作った語（または案内した同梱語）の
         /// ID を `onPick` で返す。グループへの反映は呼び出し側の選択に任せる
-        case pick(prefill: GroupEditor.WordDraft, onPick: (String) -> Void)
+        case create(prefill: GroupEditor.WordDraft, onPick: (String) -> Void)
         case edit(CustomWord)
     }
 
@@ -39,8 +37,9 @@ struct CustomWordEditorView: View {
         return false
     }
 
-    private var targetGroup: WordGroup? {
-        if case .create(let group) = mode { return group }
+    /// 新しく作るときの、語を選択に加えるコールバック
+    private var onPick: ((String) -> Void)? {
+        if case .create(_, let onPick) = mode { return onPick }
         return nil
     }
 
@@ -105,20 +104,15 @@ struct CustomWordEditorView: View {
             case .edit(let custom):
                 draft = custom.draft
                 posTouched = true
-            case .pick(let prefill, _):
+            case .create(let prefill, _):
                 draft = prefill
-                if showsAssist {
-                    // 単語帳に無かった検索語なので、まず AI に打ち間違い・変化形・意味を聞く
+                if showsAssist, !assistText.isEmpty {
+                    // 検索語から作るので、まず AI に打ち間違い・変化形・意味を聞く
                     runAssist()
                 } else {
                     // 英語が入っていれば次は意味、意味だけなら英語を入れてもらう
                     focusedField = prefill.word.isEmpty ? .word : .meaning
                 }
-            case .create:
-                focusedField = .word
-                #if DEBUG
-                if DebugSeed.variant == .wordEditor { draft = DebugSeed.demoDraft }
-                #endif
             }
         }
         .onChange(of: draft.word) { _, word in
@@ -166,15 +160,9 @@ struct CustomWordEditorView: View {
         if !isEditing, let bundled = store.bundledWord(spelledLike: draft.word) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("「\(bundled.word)」（\(bundled.meaning)）は単語帳にあります。")
-                if case .pick(_, let onPick) = mode {
+                if let onPick {
                     Button("単語帳の「\(bundled.word)」を選ぶ") {
                         onPick(bundled.id)
-                        dismiss()
-                    }
-                    .font(.footnote.weight(.semibold))
-                } else if let group = targetGroup {
-                    Button("単語帳の「\(bundled.word)」をグループに追加する") {
-                        GroupEditor(context: context).add(wordIds: [bundled.id], to: group)
                         dismiss()
                     }
                     .font(.footnote.weight(.semibold))
@@ -187,7 +175,16 @@ struct CustomWordEditorView: View {
 
     /// 新しく作るときだけ（編集では同梱語への置き換えができないので出さない）
     private var showsAssist: Bool {
-        assistClient != nil && !isEditing
+        (assistClient != nil || debugShowsAssistLoading) && !isEditing
+    }
+
+    /// 画面確認用（`VOCAB_DEMO_SCREEN=word-editor-loading`）。AI の欄を調べている途中のまま出す
+    private var debugShowsAssistLoading: Bool {
+        #if DEBUG
+        DebugSeed.variant == .wordEditorLoading
+        #else
+        false
+        #endif
     }
 
     /// AI に送る文字列。英語があれば英語、無ければ意味（日本語から探す）
@@ -202,12 +199,8 @@ struct CustomWordEditorView: View {
             switch assist {
             case .idle:
                 assistButton("AI で調べる")
-            case .loading:
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text("AI で調べています…")
-                        .foregroundStyle(.secondary)
-                }
+            case .loading(let text):
+                AssistLoadingView(text: text)
             case .done(let text, let candidates):
                 ForEach(candidates) { candidate in
                     candidateRow(candidate)
@@ -275,14 +268,9 @@ struct CustomWordEditorView: View {
     @ViewBuilder
     private func candidateAction(_ candidate: WordAssistAPI.Candidate) -> some View {
         if let bundled = candidate.bundled {
-            if case .pick(_, let onPick) = mode {
+            if let onPick {
                 Button("単語帳の「\(bundled.word)」を選ぶ") {
                     onPick(bundled.id)
-                    dismiss()
-                }
-            } else if let group = targetGroup {
-                Button("単語帳の「\(bundled.word)」をグループに追加する") {
-                    GroupEditor(context: context).add(wordIds: [bundled.id], to: group)
                     dismiss()
                 }
             } else {
@@ -298,9 +286,13 @@ struct CustomWordEditorView: View {
     }
 
     private func runAssist() {
-        guard let assistClient else { return }
         let text = assistText
         guard !text.isEmpty else { return }
+        if debugShowsAssistLoading {
+            assist = .loading(text: text)
+            return
+        }
+        guard let assistClient else { return }
         assist = .loading(text: text)
         Task {
             do {
@@ -328,9 +320,7 @@ struct CustomWordEditorView: View {
     private func save() {
         let editor = GroupEditor(context: context)
         switch mode {
-        case .create(let group):
-            editor.createCustomWord(draft, addingTo: group)
-        case .pick(_, let onPick):
+        case .create(_, let onPick):
             onPick(editor.createCustomWord(draft).wordId)
         case .edit(let custom):
             editor.update(custom, with: draft)

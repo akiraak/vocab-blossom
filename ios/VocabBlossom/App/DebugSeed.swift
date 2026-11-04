@@ -17,9 +17,10 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill`: グループの学習 / ドリルを起動直後に開く
-/// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語帳から追加」を、単語帳に無い語で検索した状態で開く
+/// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語を追加」を、単語帳に無い語で検索した状態で開く
 ///   （`VOCAB_DEMO_QUERY=proper` を足すと、その語で検索欄に入力中の状態で開く）
-/// - `VOCAB_DEMO_SCREEN=word-editor`: グループの「自分で単語を作る」を、例文に単語が無い下書きで開く
+/// - `VOCAB_DEMO_SCREEN=word-editor`: グループの「単語を追加」から、例文に単語が無い下書きで自作語のエディタを開く
+/// - `VOCAB_DEMO_SCREEN=word-editor-loading`: 上のエディタを、AI で調べている途中の表示のまま開く
 enum DebugSeed {
     enum Variant: String {
         case none
@@ -40,10 +41,13 @@ enum DebugSeed {
         case groupDrill = "group-drill"
         case wordPicker = "word-picker"
         case wordEditor = "word-editor"
+        case wordEditorLoading = "word-editor-loading"
 
         var seedsGroups: Bool {
             switch self {
-            case .groups, .groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor: true
+            case .groups, .groupDetail, .groupLearn, .groupDrill,
+                 .wordPicker, .wordEditor, .wordEditorLoading:
+                true
             default: false
             }
         }
@@ -74,7 +78,8 @@ enum DebugSeed {
 
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
-        [.groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor].contains(variant)
+        [.groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor, .wordEditorLoading]
+            .contains(variant)
     }
 
     /// 既知語の一括登録画面を最初から出す
@@ -86,7 +91,9 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
-        case .groups, .groupDetail, .groupLearn, .groupDrill, .wordPicker, .wordEditor: .groups
+        case .groups, .groupDetail, .groupLearn, .groupDrill,
+             .wordPicker, .wordEditor, .wordEditorLoading:
+            .groups
         default: nil
         }
     }

@@ -12,7 +12,6 @@ struct GroupDetailView: View {
 
     @State private var session: GroupSession?
     @State private var isPickingWords = false
-    @State private var isCreatingWord = false
     @State private var isRenaming = false
     @State private var renameText = ""
 
@@ -90,14 +89,19 @@ struct GroupDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                addMenu
+                moreMenu
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isPickingWords = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("単語を追加")
             }
         }
         .sheet(isPresented: $isPickingWords) {
             WordPickerView(group: group)
-        }
-        .sheet(isPresented: $isCreatingWord) {
-            CustomWordEditorView(mode: .create(addingTo: group))
         }
         .alert("名前を変更", isPresented: $isRenaming) {
             TextField("グループ名", text: $renameText)
@@ -117,27 +121,15 @@ struct GroupDetailView: View {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
-            case .wordPicker: isPickingWords = true
-            case .wordEditor: isCreatingWord = true
+            case .wordPicker, .wordEditor, .wordEditorLoading: isPickingWords = true
             default: break
             }
         }
         #endif
     }
 
-    private var addMenu: some View {
+    private var moreMenu: some View {
         Menu {
-            Button {
-                isPickingWords = true
-            } label: {
-                Label("単語帳から追加", systemImage: "book")
-            }
-            Button {
-                isCreatingWord = true
-            } label: {
-                Label("自分で単語を作る", systemImage: "square.and.pencil")
-            }
-            Divider()
             Button {
                 renameText = group.name
                 isRenaming = true
@@ -145,9 +137,9 @@ struct GroupDetailView: View {
                 Label("名前を変更", systemImage: "pencil")
             }
         } label: {
-            Image(systemName: "plus")
+            Image(systemName: "ellipsis.circle")
         }
-        .accessibilityLabel("単語を追加")
+        .accessibilityLabel("その他")
     }
 
     private func studyCard(
@@ -213,12 +205,10 @@ struct GroupDetailView: View {
         ContentUnavailableView {
             Label("単語がありません", systemImage: "text.badge.plus")
         } description: {
-            Text("単語帳から選ぶか、自分で単語・フレーズを作って追加しましょう。")
+            Text("覚えたい単語・フレーズを検索して追加しましょう。単語帳にない語もそのまま作れます。")
         } actions: {
-            Button("単語帳から追加") { isPickingWords = true }
+            Button("単語を追加") { isPickingWords = true }
                 .buttonStyle(.borderedProminent)
-            Button("自分で単語を作る") { isCreatingWord = true }
-                .buttonStyle(.bordered)
         }
     }
 
