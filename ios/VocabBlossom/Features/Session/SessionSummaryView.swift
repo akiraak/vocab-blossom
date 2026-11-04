@@ -96,7 +96,7 @@ struct SessionSummaryView: View {
                     HStack(spacing: 8) {
                         PlantView(stage: .blossom, size: 20)
                         Text(word.word).font(.subheadline.weight(.medium))
-                        Text(word.meaning)
+                        Text(word.meaningSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer(minLength: 0)
@@ -121,7 +121,7 @@ struct SessionSummaryView: View {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundStyle(Theme.incorrect)
                                 Text(word.word).font(.subheadline.weight(.medium))
-                                Text(word.meaning)
+                                Text(word.meaningSummary)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)

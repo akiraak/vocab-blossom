@@ -134,6 +134,11 @@ nonisolated struct WordEntry: Codable, Hashable, Identifiable, Sendable {
     /// すべての意味（1 つ目 + 2 つ目以降）
     var senses: [WordSense] { [primarySense] + extraSenses }
 
+    /// その品詞の意味（無ければ 1 つ目の意味）。誤答肢に出す意味を、出題する意味の品詞に合わせるのに使う
+    func sense(for pos: PartOfSpeech) -> WordSense {
+        senses.first { $0.pos == pos } ?? primarySense
+    }
+
     /// 一覧の 1 行に出す意味。意味が 1 つならそのまま、複数なら「動詞: 通勤する／名詞: 通勤」
     var meaningSummary: String {
         guard !extraSenses.isEmpty else { return meaning }

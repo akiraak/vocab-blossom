@@ -150,6 +150,7 @@ struct GroupDetailView: View {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
+            case .drillSenses: session = .drill(words.filter { !$0.extraSenses.isEmpty }.map(\.id))
             case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult, .wordEditorSenses:
                 isPickingWords = true
             case .wordDetailSenses:

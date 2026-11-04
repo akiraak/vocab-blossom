@@ -143,7 +143,8 @@ struct SessionView: View {
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
         }
-        speak(word: quiz.word.word, example: quiz.word.example)
+        // 意味が複数ある語は、出題した意味の例文を読む
+        speak(word: quiz.word.word, example: quiz.sense.example)
     }
 
     private func speakIfNeeded(_ step: SessionRunner.Step) {

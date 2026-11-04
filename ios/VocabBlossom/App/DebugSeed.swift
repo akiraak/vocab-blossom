@@ -48,12 +48,14 @@ enum DebugSeed {
         case wordEditorSenses = "word-editor-senses"
         /// 意味が 2 つある自作語（cram）の単語詳細
         case wordDetailSenses = "word-detail-senses"
+        /// 意味が 2 つある自作語（cram）だけのドリル
+        case drillSenses = "drill-senses"
 
         var seedsGroups: Bool {
             switch self {
             case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
                  .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
-                 .wordEditorSenses, .wordDetailSenses:
+                 .wordEditorSenses, .wordDetailSenses, .drillSenses:
                 true
             default: false
             }
@@ -87,7 +89,7 @@ enum DebugSeed {
     static var opensFirstGroup: Bool {
         [.groupDetail, .groupLearn, .groupDrill, .groupSelect,
          .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
-         .wordEditorSenses, .wordDetailSenses]
+         .wordEditorSenses, .wordDetailSenses, .drillSenses]
             .contains(variant)
     }
 
@@ -102,7 +104,7 @@ enum DebugSeed {
         case .settings: .settings
         case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
              .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
-             .wordEditorSenses, .wordDetailSenses:
+             .wordEditorSenses, .wordDetailSenses, .drillSenses:
             .groups
         default: nil
         }

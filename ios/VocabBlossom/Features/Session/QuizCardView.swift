@@ -83,11 +83,11 @@ struct QuizCardView: View {
                     .multilineTextAlignment(.center)
                 SpeakButton(word: quiz.word, size: .title2)
             case .jaToEn:
-                Text(quiz.word.meaning)
+                Text(quiz.sense.meaning)
                     .font(.title.weight(.bold))
                     .multilineTextAlignment(.center)
             case .fillBlank:
-                Text(quiz.blankedExample ?? quiz.word.example)
+                Text(quiz.blankedExample ?? quiz.sense.example)
                     .font(.title3.weight(.medium))
                     .multilineTextAlignment(.center)
                 Text("空欄に入る語は？")
@@ -95,7 +95,7 @@ struct QuizCardView: View {
                     .foregroundStyle(.secondary)
             case .listening:
                 Button {
-                    SpeechService.shared.speak(word: quiz.word.word, example: quiz.word.example)
+                    SpeechService.shared.speak(word: quiz.word.word, example: quiz.sense.example)
                 } label: {
                     VStack(spacing: 8) {
                         Image(systemName: "speaker.wave.3.fill")

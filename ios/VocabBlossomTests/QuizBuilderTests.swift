@@ -186,6 +186,112 @@ struct QuizBuilderTests {
         #expect(jaToEn.speechOnPrompt == nil)
     }
 
+    // MARK: - 意味が複数ある語
+
+    /// commute（動詞: 通勤する／名詞: 通勤）。例文で空欄にできるのは `blankable` の意味だけにできる
+    private func commute(blankable: [PartOfSpeech] = [.verb, .noun]) -> WordEntry {
+        WordEntry(
+            id: "custom-commute", word: "commute", pos: .verb, level: nil, meaning: "通勤する",
+            example: blankable.contains(.verb) ? "I commute by bus." : "I go by bus.", exampleJa: "",
+            extraSenses: [
+                WordSense(
+                    pos: .noun, meaning: "通勤",
+                    example: blankable.contains(.noun) ? "My commute is long." : "The trip is long."
+                ),
+            ]
+        )
+    }
+
+    @Test("意味が複数ある語は 1 問ごとに意味を選び、問題文・正解の選択肢はその意味で出す")
+    func multiSensePicksOneSense() throws {
+        let target = commute()
+        let store = store.including(customWords: [target])
+        var asked: Set<PartOfSpeech> = []
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: store, rng: SeededRNG(seed: UInt64(seed)))
+            let enToJa = builder.make(for: target, type: .enToJa)
+            asked.insert(enToJa.sense.pos)
+            #expect(enToJa.choiceText(target) == enToJa.sense.meaning)
+
+            let jaToEn = builder.make(for: target, type: .jaToEn)
+            #expect(jaToEn.promptText == jaToEn.sense.meaning)
+            #expect(target.senses.contains(jaToEn.sense))
+        }
+        #expect(asked == [.verb, .noun])
+    }
+
+    @Test("誤答肢は出題する意味の品詞から選び、正解の語のほかの意味は誤答肢に出さない")
+    func multiSenseDistractorsMatchSensePos() throws {
+        let target = commute()
+        let store = store.including(customWords: [target])
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: store, rng: SeededRNG(seed: UInt64(seed)))
+            let quiz = builder.make(for: target, type: .enToJa)
+            let distractors = quiz.choices.filter { $0 != target }
+            #expect(distractors.count == QuizBuilder.choiceCount - 1)
+            #expect(distractors.allSatisfy { $0.senses.contains { $0.pos == quiz.sense.pos } })
+            let texts = distractors.map { quiz.choiceText($0) }
+            #expect(!texts.contains("通勤する") && !texts.contains("通勤"))
+            #expect(Set(quiz.choices.map { quiz.choiceText($0) }).count == QuizBuilder.choiceCount)
+        }
+    }
+
+    @Test("正解の語のほかの意味と同じ意味の語は、誤答肢に入らない")
+    func otherSenseMeaningIsNotADistractor() {
+        let target = commute()
+        let others = (1...5).map { index in
+            WordEntry(
+                id: "x-\(index)", word: "w\(index)", pos: .verb, level: .a1,
+                meaning: "意味\(index)", example: "", exampleJa: ""
+            )
+        }
+        // 名詞の「通勤」と同じ意味の語
+        let trip = WordEntry(
+            id: "x-trip", word: "trip", pos: .verb, level: .a1, meaning: "通勤", example: "", exampleJa: ""
+        )
+        let deck = Deck(id: "x", name: "x", words: others + [trip])
+        let small = WordStore(decks: [deck], customWords: [target])
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: small, rng: SeededRNG(seed: UInt64(seed)))
+            let picked = builder.distractors(for: target, sense: target.primarySense)
+            #expect(!picked.contains(trip))
+        }
+    }
+
+    @Test("誤答肢の語に意味が複数あれば、出題する意味と同じ品詞の意味を見せる")
+    func distractorShowsSensesOfSamePos() {
+        let target = WordEntry(
+            id: "a1-x", word: "walk", pos: .noun, level: .a1, meaning: "散歩", example: "", exampleJa: ""
+        )
+        let quiz = Quiz(word: target, type: .enToJa, choices: [target, commute()], blankedExample: nil)
+        #expect(quiz.choiceText(commute()) == "通勤")
+        let verbQuiz = Quiz(
+            word: target, sense: WordSense(pos: .verb, meaning: "歩く"), type: .enToJa,
+            choices: [target, commute()], blankedExample: nil
+        )
+        #expect(verbQuiz.choiceText(commute()) == "通勤する")
+        #expect(verbQuiz.choiceText(target) == "歩く")
+    }
+
+    @Test("穴埋めは、空欄にできる例文のある意味を使う。どの意味でもできなければ英→日")
+    func multiSenseFillBlankUsesBlankableSense() throws {
+        let nounOnly = commute(blankable: [.noun])
+        let store = store.including(customWords: [nounOnly])
+        for seed in 1...10 {
+            var builder = QuizBuilder(store: store, rng: SeededRNG(seed: UInt64(seed)))
+            let quiz = builder.make(for: nounOnly, type: .fillBlank)
+            #expect(quiz.type == .fillBlank)
+            #expect(quiz.sense.pos == .noun)
+            #expect(quiz.blankedExample == "My \(Quiz.blankPlaceholder) is long.")
+        }
+
+        let none = commute(blankable: [])
+        var builder = QuizBuilder(store: store.including(customWords: [none]), rng: SeededRNG(seed: 3))
+        let quiz = builder.make(for: none, type: .fillBlank)
+        #expect(quiz.type == .enToJa)
+        #expect(quiz.blankedExample == nil)
+    }
+
     @Test("ステージ指定なら形式は SRS の対応表に従う")
     func makeByStageUsesSrsMapping() throws {
         var builder = builder()
