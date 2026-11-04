@@ -4,12 +4,12 @@
 
 ## 目的・背景
 
-- [unified-word-add](unified-word-add.md) の Phase 1 で入口は「単語を追加」1 つになったが、実機で使うと画面遷移が多すぎる
+- [unified-word-add](../unified-word-add.md) の Phase 1 で入口は「単語を追加」1 つになったが、実機で使うと画面遷移が多すぎる
   - 今の流れ: 「単語を追加」（シート）→ 検索 → 「AI で調べて追加する」→ **エディタのシートが重なって開く** → AI の結果を確かめる →
     エディタの「追加」→ ピッカーに戻る → **ピッカーの「完了」** → グループ詳細に戻る
   - 確定ボタンが 2 回（エディタの「追加」とピッカーの「完了」）あり、シートが 2 枚重なる
 - 見出しの「N 語を選択中」が、グループに元から入っている語も数えるので「選んでいないのに 1 語選択中」に見える
-  （[word-assist-double-select](word-assist-double-select.md) の Step 1 で判明）
+  （[word-assist-double-select](../word-assist-double-select.md) の Step 1 で判明）
 - ユーザーが求める流れ:
   1. 追加ボタンを押す
   2. 単語を入れる
@@ -70,7 +70,7 @@
 - `DebugSeed` に `word-assist-result`（サーバーに聞かずに AI の結果が出た状態）を足した。
   `word-editor-loading` は「単語を追加」の中で調べている状態、`word-editor` は「自分で作る」のエディタを開いた状態
 - Swift Testing 181 件成功・SwiftLint 警告 0。シミュレータで AI の結果・調べている途中・追加済み・エディタの表示を確認
-- 実機（AI が使える状態）での確認は未実施
+- 実機（AI が使える状態）で確認済み（2026-11-03）
 
 ## 影響範囲
 
