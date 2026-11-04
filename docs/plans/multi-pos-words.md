@@ -121,6 +121,9 @@
 - Vitest 166 件成功・型チェック OK。ローカルでサーバーを起動し、作成・編集画面・一覧の表示を確認。
   「意味として足す」は AI のキーが無いため動かしていない（JS の構文確認のみ）
 
+- g3plus へ反映済み（2026-11-03。`1fd395a`。マイグレーション無し）。healthy、`/health` 200・`/api/ping` 401（Bearer ありで 200）・
+  `/admin/custom-words` は外から Access へ 302、コンテナ内から 200（意味の欄が出る）
+
 ## 影響範囲
 
 - iOS: `Models/WordEntry.swift`・`CustomWord.swift`、`Core/GroupEditor.swift`・`QuizBuilder.swift`・`BackupArchive.swift`、

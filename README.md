@@ -123,3 +123,18 @@ API_SHARED_SECRET=dev ADMIN_ENABLED=on npm run server:dev   # http://localhost:3
 
 デプロイ契約（env・ポート・永続化先）は [docs/specs/deploy-g3plus.md](docs/specs/deploy-g3plus.md)、
 全体のプランは [docs/plans/archive/admin-server.md](docs/plans/archive/admin-server.md)。
+
+- シェルの既定の Node が 20 のままだと、better-sqlite3 が読めずにテストが落ちる。Node は fnm で入れてあるので、
+  `eval "$(fnm env)" && fnm exec --using=24 npm test`（型チェックは `npm run typecheck`）のように 24 を指定して動かす
+
+### Claude Code で作業するときの注意（macOS の「アプリ管理」と node）
+
+Claude Code は `node` の上で動くため、Claude Code が実行したコマンドは macOS から `node` の操作として扱われる。
+ほかのアプリ（`.app`）の中身を書き換えようとすると、「プライバシーとセキュリティ: "node" によるアプリ変更が Mac で阻止されました」と出る。
+
+- 2026-11-03、iOS アプリのビルド・テストと、管理画面のスクリーンショットを撮るために Google Chrome をヘッドレスで起動した作業の中で出た。
+  どちらが原因かは特定できていない（Chrome の自動更新が走った可能性がある）。止められても、ビルド・テスト・スクリーンショットはすべて終わっていた
+- システム設定 > プライバシーとセキュリティ > アプリ管理の `node` は **オフのままにする**。オンにすると Claude Code に限らず、
+  `node` で動くあらゆるスクリプトがほかのアプリを書き換え・削除できるようになる
+- 実機への書き込み（`./run-ios-device.sh`）など、必要な操作がこの保護で失敗したときだけ、一時的にオンにする
+- 画面の確認に Chrome をヘッドレスで起動するのは控え、管理画面は Chrome 拡張、iOS はシミュレータで見る
