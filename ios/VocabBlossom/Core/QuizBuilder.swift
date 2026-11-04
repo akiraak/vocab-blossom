@@ -169,9 +169,12 @@ struct QuizBuilder {
 
     /// 誤答肢を 3 つ選ぶ。優先するプールから取れるだけ取り、足りない分を次のプールで埋める。
     ///
-    /// - 同梱語: 同レベル・同品詞 → 同レベル → 全体
-    /// - 自作語: 同じグループの語とほかの自作語（同品詞 → 全品詞）→ 全体の同品詞 → 全体
+    /// - 同梱語: 同レベル・同品詞 → 同レベル → 同梱語の全体
+    /// - 自作語: 同じグループの語（同品詞 → 全品詞）→ 同梱語の同品詞 → 同梱語の全体
     ///   （同梱語は A1〜A2 のやさしい語なので、そこからだけ選ぶと消去法で当たってしまう）
+    ///
+    /// 自作語を誤答肢にするのは、出題する語と同じグループに入っているものだけ。
+    /// グループから外した自作語や、ほかのグループの自作語が選択肢に出ると不自然なため
     ///
     /// 品詞は出題する意味（`sense`。省略時は 1 つ目の意味）に合わせる。
     /// 意味が複数ある語は、どれかの意味が同じ品詞なら同品詞とみなす。
@@ -188,15 +191,15 @@ struct QuizBuilder {
             pools = [
                 related.filter(samePos),
                 related,
-                store.allWords.filter(samePos),
-                store.allWords,
+                store.bundledWords.filter(samePos),
+                store.bundledWords,
             ]
         } else {
-            let sameLevel = word.level.map { store.words(level: $0) } ?? store.allWords
+            let sameLevel = word.level.map { store.words(level: $0) } ?? store.bundledWords
             pools = [
                 sameLevel.filter(samePos),
                 sameLevel,
-                store.allWords,
+                store.bundledWords,
             ]
         }
 
@@ -221,10 +224,10 @@ struct QuizBuilder {
         return picked
     }
 
-    /// 自作語と関係の近い語: その語が入っているグループの語 ＋ ほかの自作語（重複なし・本人を除く）
+    /// 自作語と関係の近い語: その語が入っているグループの語（重複なし・本人を除く）
     func relatedWords(for word: WordEntry) -> [WordEntry] {
         let groupIds = groups.filter { $0.contains(word.id) }.flatMap { $0 }
         var seen: Set<String> = [word.id]
-        return (store.words(ids: groupIds) + store.customWords).filter { seen.insert($0.id).inserted }
+        return store.words(ids: groupIds).filter { seen.insert($0.id).inserted }
     }
 }

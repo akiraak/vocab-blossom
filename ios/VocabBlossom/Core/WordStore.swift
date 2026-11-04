@@ -18,6 +18,8 @@ final class WordStore {
     let customWords: [WordEntry]
     /// 同梱語 → 自作語 の順
     let allWords: [WordEntry]
+    /// 同梱語だけ（デッキの順）
+    let bundledWords: [WordEntry]
 
     private let byId: [String: WordEntry]
     private let customById: [String: WordEntry]
@@ -40,6 +42,7 @@ final class WordStore {
         customById = Dictionary(
             customWords.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first }
         )
+        bundledWords = words
         allWords = words + customWords
     }
 
@@ -53,8 +56,8 @@ final class WordStore {
         customById = Dictionary(
             customWords.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first }
         )
-        let bundled = base.allWords.prefix(base.allWords.count - base.customWords.count)
-        allWords = Array(bundled) + customWords
+        bundledWords = base.bundledWords
+        allWords = base.bundledWords + customWords
     }
 
     /// 自作語を差し替えた索引。同梱語の部分はそのまま
