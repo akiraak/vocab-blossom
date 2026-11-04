@@ -95,7 +95,7 @@ struct WordAssistDraftTests {
         #expect(kept.exampleJa == "")
     }
 
-    @Test("「この内容を入れる」はすべて置き換える")
+    @Test("onlyEmpty でなければ AI の候補ですべて置き換える（「単語を追加」で候補を下書きにするとき）")
     func replacesAll() {
         let draft = GroupEditor.WordDraft(
             word: "serendipty", meaning: "幸運", pos: .verb, example: "x", exampleJa: "y"
