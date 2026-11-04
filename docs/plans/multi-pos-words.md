@@ -78,7 +78,7 @@
 - iOS: `WordSense`、`WordEntry.extraSenses`・`primarySense`・`senses`（同梱語の JSON は `extraSenses` 無しで読む）、
   `CustomWord.extraSensesData`（JSON。nil は無し）と `extraSenses`、同期の `extraSenses`（無ければ空）、バックアップ v3（v2 も読める）。
   Swift Testing 188 件成功・SwiftLint 警告 0
-- 残り: サーバーを g3plus へ反映（push → g3plus で `git pull` → 再ビルド。起動時にマイグレーションが当たる）
+- g3plus へ反映済み（2026-11-03。`fa8821a`。起動ログ「マイグレーションを 1 件適用した」・healthy、`/health` 200・`/api/ping` 401（Bearer ありで 200）・`/api/sync` 200・`/admin/groups` 302）。DB のバックアップは取らずに反映した
 
 ## 影響範囲
 
