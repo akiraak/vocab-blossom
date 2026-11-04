@@ -75,10 +75,18 @@ export class BundledWords {
   }
 }
 
-/** extraSenses は自作語の 2 つ目以降の意味（意味の検索の対象にする） */
-type Searchable = { word: string; meaning: string; extraSenses?: readonly { meaning: string }[] }
+/** extraSenses は自作語の 2 つ目以降の意味（意味・例文の検索の対象にする） */
+type Searchable = {
+  word: string
+  meaning: string
+  example?: string
+  extraSenses?: readonly { meaning: string; example?: string }[]
+}
 
-/** 同梱語・自作語の共通の検索。並びは「英語の前方一致 → 英語の部分一致 → 意味の部分一致」、同じ順位では元の並び */
+/**
+ * 同梱語・自作語の共通の検索。iOS の `WordStore.filter` と同じ並び:
+ * 英語の完全一致 → 前方一致 → 部分一致 → 意味（2 つ目以降の意味も）→ 例文（同じく）。同じ順位では元の並び
+ */
 export function searchWords<T extends Searchable>(
   words: readonly T[],
   query: string,
@@ -86,15 +94,17 @@ export function searchWords<T extends Searchable>(
 ): T[] {
   const q = normalizeSpelling(query)
   if (q === '') return []
+  const contains = (text: string | undefined) => (text ?? '').toLowerCase().includes(q)
   const ranked: { word: T; rank: number; index: number }[] = []
   words.forEach((word, index) => {
     const spelling = normalizeSpelling(word.word)
+    const senses = [word, ...(word.extraSenses ?? [])]
     let rank: number
-    if (spelling.startsWith(q)) rank = 0
-    else if (spelling.includes(q)) rank = 1
-    else if ([word.meaning, ...(word.extraSenses ?? []).map((s) => s.meaning)].some((m) => m.toLowerCase().includes(q))) {
-      rank = 2
-    }
+    if (spelling === q) rank = 0
+    else if (spelling.startsWith(q)) rank = 1
+    else if (spelling.includes(q)) rank = 2
+    else if (senses.some((s) => contains(s.meaning))) rank = 3
+    else if (senses.some((s) => contains(s.example))) rank = 4
     else return
     ranked.push({ word, rank, index })
   })

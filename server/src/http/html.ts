@@ -103,7 +103,9 @@ const STYLE = `
   .assist .candidate { background: var(--bg-soft); border-left: 4px solid var(--accent); padding: 6px 12px; margin: 8px 0; }
   .assist .candidate p { margin: 2px 0; }
   .assist .candidate form { margin: 4px 0 0; }
-  .assist .candidate button + button { margin-left: 8px; }
+  .assist .candidate label.sense-pick { display: block; margin: 2px 0; }
+  .assist .candidate .example { margin-left: 1.6em; }
+  label.pick { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
   fieldset.sense { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; margin: 0;
                    display: grid; gap: 8px; }
   fieldset.sense legend { font-size: 0.9rem; font-weight: 600; padding: 0 4px; }
@@ -111,8 +113,8 @@ const STYLE = `
   form.stack label.check { display: flex; gap: 6px; align-items: center; }
 `
 
-// 画面の動きはこれだけ: 削除の確認、日時を端末の時刻で表示する、自作語のフォームの AI チェック
-// （候補を 1 つ目の意味に入れる・2 つ目以降の意味として足す）
+// 画面の動きはこれだけ: 削除の確認、日時を端末の時刻で表示する、検索結果でチェックした数の表示、
+// 自作語のフォームの AI チェック（0 件なら自動で調べる・品詞違いの候補を 1 枚にまとめる・フォームに入れる）
 const SCRIPT = `
   document.addEventListener('submit', (event) => {
     const message = event.target.getAttribute('data-confirm')
@@ -143,77 +145,121 @@ const SCRIPT = `
     if (text !== undefined) node.textContent = text
     return node
   }
+  // グループ詳細の検索結果: 「選んだ単語を追加（N）」に数を出し、1 つも選んでいなければ押せないようにする
+  for (const pick of document.querySelectorAll('form[data-pick-form]')) {
+    const submit = pick.querySelector('[data-pick-submit]')
+    if (!submit) continue
+    const update = () => {
+      const n = pick.querySelectorAll('input[name="wordId"]:checked').length
+      submit.textContent = n === 0 ? '選んだ単語を追加' : '選んだ単語を追加（' + n + '）'
+      submit.disabled = n === 0
+    }
+    pick.addEventListener('change', update)
+    update()
+  }
+
+  const spellingOf = (word) => word.trim().toLowerCase()
+  // 意味を足すための空の欄の品詞。まだ使っていない品詞（iOS の nextSensePos と同じ）
+  const nextPos = (senses) =>
+    ['noun', 'verb', 'adjective', 'adverb'].find((pos) => !senses.some((s) => s.pos === pos)) || 'noun'
+
   for (const box of document.querySelectorAll('[data-assist]')) {
     const form = box.parentElement.querySelector('form[data-word-form]')
     const field = (name) => form.elements.namedItem(name)
     const extraList = form.querySelector('[data-extra-senses]')
     const senseTemplate = form.querySelector('template[data-sense-template]')
-    // 2 つ目以降の意味として足す。空の欄があればそこへ、無ければ欄を増やす
-    const addSense = (c) => {
-      let block = [...extraList.querySelectorAll('[data-extra-sense]')].find((b) =>
-        ['extraMeaning', 'extraExample', 'extraExampleJa'].every((n) => !b.querySelector('[name="' + n + '"]').value.trim()))
-      if (!block) {
-        extraList.append(senseTemplate.content.cloneNode(true))
-        block = extraList.lastElementChild
-      }
-      const set = (n, v) => { block.querySelector('[name="' + n + '"]').value = v }
-      set('extraMeaning', c.meaning)
-      set('extraPos', c.pos)
-      set('extraExample', c.example)
-      set('extraExampleJa', c.exampleJa)
-    }
+    const primaryLegend = form.querySelector('[data-primary-sense] legend')
+    const blankLegend = senseTemplate.content.querySelector('legend').textContent
     const button = box.querySelector('[data-assist-run]')
     const status = box.querySelector('[data-assist-status]')
     const results = box.querySelector('[data-assist-results]')
     const addAction = box.getAttribute('data-add-action')
     const posLabels = JSON.parse(box.getAttribute('data-pos-labels'))
 
-    const candidateView = (c) => {
+    // フォームに入れる: 英語・1 つ目の意味・2 つ目以降の意味を差し替え、最後に意味を足すための空の欄を 1 つ残す
+    const fillForm = (word, senses) => {
+      const [first, ...rest] = senses
+      field('word').value = word
+      for (const name of ['meaning', 'pos', 'example', 'exampleJa']) field(name).value = first[name]
+      for (const block of extraList.querySelectorAll('[data-extra-sense]')) block.remove()
+      const addBlock = (sense, legend) => {
+        extraList.append(senseTemplate.content.cloneNode(true))
+        const block = extraList.lastElementChild
+        block.querySelector('legend').textContent = legend
+        const set = (name, value) => { block.querySelector('[name="' + name + '"]').value = value }
+        set('extraMeaning', sense.meaning)
+        set('extraPos', sense.pos)
+        set('extraExample', sense.example)
+        set('extraExampleJa', sense.exampleJa)
+      }
+      rest.forEach((sense, i) => addBlock(sense, '意味 ' + (i + 2)))
+      addBlock({ meaning: '', pos: nextPos(senses), example: '', exampleJa: '' }, blankLegend)
+      primaryLegend.textContent = rest.length > 0 ? '意味 1' : '意味'
+    }
+
+    // 単語帳にある語: 案内して、グループの画面ならそのまま追加できる
+    const bundledView = (c) => {
       const item = el('div', 'candidate')
       const head = el('p')
       head.append(el('strong', '', c.word), ' ', el('span', 'muted', posLabels[c.pos] || c.pos))
-      if (c.bundled) head.append(el('span', 'tag custom', '単語帳にあります'))
-      item.append(head, el('p', '', c.bundled ? c.bundled.meaning : c.meaning))
+      head.append(el('span', 'tag custom', '単語帳にあります'))
+      item.append(head, el('p', '', c.bundled.meaning))
       if (ASSIST_REASONS[c.reason]) item.append(el('p', 'muted', ASSIST_REASONS[c.reason]))
-      if (c.bundled) {
-        if (addAction) {
-          const add = el('form')
-          add.method = 'post'
-          add.action = addAction
-          const id = el('input')
-          id.type = 'hidden'
-          id.name = 'wordId'
-          id.value = c.bundled.id
-          const submit = el('button', 'primary', '単語帳の「' + c.bundled.word + '」を追加する')
-          submit.type = 'submit'
-          add.append(id, submit)
-          item.append(add)
-        } else {
-          item.append(el('p', 'muted', '単語帳にあるので、作らなくてもアプリで学習できます'))
-        }
+      if (addAction) {
+        const add = el('form')
+        add.method = 'post'
+        add.action = addAction
+        const id = el('input')
+        id.type = 'hidden'
+        id.name = 'wordId'
+        id.value = c.bundled.id
+        const submit = el('button', 'primary', '単語帳の「' + c.bundled.word + '」を追加する')
+        submit.type = 'submit'
+        add.append(id, submit)
+        item.append(add)
       } else {
-        if (c.example) item.append(el('p', 'muted', c.example))
-        const fill = el('button', '', 'この内容を入れる')
-        fill.type = 'button'
-        fill.addEventListener('click', () => {
-          for (const name of ['word', 'meaning', 'pos', 'example', 'exampleJa']) field(name).value = c[name]
-        })
-        // 1 つ目の意味が入っていれば、品詞の違う意味として足せる（commute の動詞・名詞など）
-        const add = el('button', '', '意味として足す')
-        add.type = 'button'
-        add.addEventListener('click', () => {
-          if (!field('meaning').value.trim()) {
-            for (const name of ['word', 'meaning', 'pos', 'example', 'exampleJa']) field(name).value = c[name]
-          } else {
-            addSense(c)
-          }
-        })
-        item.append(fill, add)
+        item.append(el('p', 'muted', '単語帳にあるので、作らなくてもアプリで学習できます'))
       }
       return item
     }
 
-    button.addEventListener('click', async () => {
+    // 単語帳に無い語: 同じ綴りの候補（commute の動詞・名詞）を 1 枚にまとめ、意味ごとに入れる・入れないを選ぶ
+    const newWordView = (group) => {
+      const first = group[0]
+      const item = el('div', 'candidate')
+      const head = el('p')
+      head.append(el('strong', '', first.word))
+      if (group.length === 1) head.append(' ', el('span', 'muted', posLabels[first.pos] || first.pos))
+      head.append(el('span', 'tag custom', '新しく作る'))
+      item.append(head)
+      if (ASSIST_REASONS[first.reason]) item.append(el('p', 'muted', ASSIST_REASONS[first.reason]))
+      const checks = group.map((c) => {
+        const line = el('label', 'sense-pick')
+        const check = el('input')
+        check.type = 'checkbox'
+        check.checked = true
+        if (group.length > 1) line.append(check, ' ', el('span', 'muted', posLabels[c.pos] || c.pos), ' ')
+        line.append(c.meaning)
+        item.append(line)
+        if (c.example) item.append(el('p', 'muted example', c.example))
+        return check
+      })
+      const fill = el('button', '', 'フォームに入れる')
+      fill.type = 'button'
+      fill.addEventListener('click', () => {
+        const senses = group.filter((_, i) => checks[i].checked)
+        if (senses.length === 0) {
+          status.textContent = '入れる意味を 1 つ以上選んでください'
+          return
+        }
+        fillForm(first.word, senses)
+        status.textContent = '「' + first.word + '」をフォームに入れました。内容を確かめて作ってください'
+      })
+      item.append(fill)
+      return item
+    }
+
+    const run = async () => {
       const text = field('word').value.trim() || field('meaning').value.trim()
       if (!text) {
         status.textContent = '英語か意味を入れてください'
@@ -234,13 +280,41 @@ const SCRIPT = `
           return
         }
         status.textContent = '「' + body.text + '」の候補:'
-        results.append(...body.candidates.map(candidateView))
+        // 並びは AI が返した順。単語帳に無い語は、同じ綴りが最初に出た位置に 1 枚だけ置く
+        const views = []
+        const bySpelling = new Map()
+        for (const c of body.candidates) {
+          if (c.bundled) {
+            views.push(bundledView(c))
+            continue
+          }
+          const key = spellingOf(c.word)
+          let group = bySpelling.get(key)
+          if (!group) {
+            group = []
+            bySpelling.set(key, group)
+            views.push(group)
+          }
+          if (!group.some((g) => g.pos === c.pos && g.meaning === c.meaning)) group.push(c)
+        }
+        results.append(...views.map((v) => (Array.isArray(v) ? newWordView(v) : v)))
+        // 入力どおりの綴りで単語帳に無い語が返れば、最初からフォームに入れておく（iPhone で最初から選んでおくのと同じ）。
+        // 自分で意味を入れていたら上書きしない
+        const first = body.candidates[0]
+        if (first && first.reason === 'exact' && !first.bundled && !field('meaning').value.trim()) {
+          fillForm(first.word, bySpelling.get(spellingOf(first.word)))
+          status.textContent = '「' + first.word + '」の候補をフォームに入れました。内容を確かめて作ってください'
+        }
       } catch {
         status.textContent = 'サーバーにつながりませんでした'
       } finally {
         button.disabled = false
       }
-    })
+    }
+
+    button.addEventListener('click', run)
+    // グループ詳細で検索結果が 0 件のときは、開いたらすぐ調べる
+    if (box.hasAttribute('data-assist-autorun')) run()
   }
 `
 

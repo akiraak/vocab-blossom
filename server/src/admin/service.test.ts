@@ -136,6 +136,37 @@ describe('グループの中の語', () => {
   })
 })
 
+describe('自作語を綴りごとに 1 つにする（upsertCustomWord）', () => {
+  it('同じ綴りが無ければ作り、あれば ID を変えずに内容を置き換える', () => {
+    const group = service.createGroup('学校')
+    const created = service.upsertCustomWord(draft({ word: 'commute', meaning: '通勤する', pos: 'verb' }), group.id)
+    clock = 2_000
+    const replaced = service.upsertCustomWord(draft({ word: ' Commute ', meaning: '通勤', pos: 'noun' }), group.id)
+    expect(replaced.wordId).toBe(created.wordId)
+    expect(store.listCustomWords()).toHaveLength(1)
+    expect(store.getCustomWord(created.wordId)).toMatchObject({ word: 'Commute', meaning: '通勤', pos: 'noun', updatedAt: 2_000 })
+    expect(store.getGroup(group.id)?.wordIds).toEqual([created.wordId])
+  })
+
+  it('同じ綴りが複数あれば、いちばん新しいものに寄せ、グループでの位置を引き継いでほかは消す', () => {
+    const old = service.createCustomWord(draft({ word: 'commute', meaning: '古い' }))
+    clock = 2_000
+    const newer = service.createCustomWord(draft({ word: 'commute', meaning: '新しい' }))
+    const onlyOld = service.createGroup('古い方だけ')
+    service.addWords(onlyOld.id, ['a1-0001', old.wordId, 'a1-0002'])
+    const both = service.createGroup('両方')
+    service.addWords(both.id, [old.wordId, newer.wordId])
+
+    clock = 3_000
+    const kept = service.upsertCustomWord(draft({ word: 'commute', meaning: '通勤する' }))
+    expect(kept.wordId).toBe(newer.wordId)
+    expect(store.listCustomWords().map((w) => w.wordId)).toEqual([newer.wordId])
+    expect(store.getGroup(onlyOld.id)?.wordIds).toEqual(['a1-0001', newer.wordId, 'a1-0002'])
+    expect(store.getGroup(both.id)?.wordIds).toEqual([newer.wordId])
+    expect(store.getCustomWord(newer.wordId)?.meaning).toBe('通勤する')
+  })
+})
+
 describe('自作語', () => {
   it('作ってグループの末尾に入れる（1 トランザクション）', () => {
     const group = service.createGroup('学校')

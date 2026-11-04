@@ -246,14 +246,28 @@ describe('管理画面の「AI で調べる」', () => {
     // 共通の JS にも data-assist の文字列があるので、欄そのもの（class="assist"）で見分ける
     const box = 'class="assist" data-assist'
     const withAi = createTestApp({}, { assistant: fakeAssistant([]) })
-    const { path, body } = await groupPage(withAi.handle)
+    const { path, body } = await groupPage(withAi.handle, 'zzqqxx')
     expect(body).toContain(box)
     expect(body).toContain(`data-add-action="${path}/words"`)
     expect(await (await withAi.handle(req('/admin/custom-words'))).text()).toContain(box)
 
     const withoutAi = createTestApp()
-    expect((await groupPage(withoutAi.handle)).body).not.toContain(box)
+    expect((await groupPage(withoutAi.handle, 'zzqqxx')).body).not.toContain(box)
     expect(await (await withoutAi.handle(req('/admin/custom-words'))).text()).not.toContain(box)
+  })
+
+  it('グループ詳細では、検索結果が 0 件のときだけ開いたらすぐ AI で調べる', async () => {
+    const { handle } = createTestApp({}, { assistant: fakeAssistant([]) })
+    // 共通の JS にも data-assist-autorun の文字列があるので、欄の属性の並びで見分ける
+    const autorun = /data-assist-autorun\s+data-pos-labels/
+    expect((await groupPage(handle, 'zzqqxx')).body).toMatch(autorun)
+    const found = await groupPage(handle, 'get up')
+    expect(found.body).toContain('class="assist" data-assist')
+    expect(found.body).not.toMatch(autorun)
+    // 検索語が無ければ AI の欄も作成のフォームも出さない
+    const empty = await groupPage(handle)
+    expect(empty.body).not.toContain('class="assist" data-assist')
+    expect(empty.body).not.toContain('/custom-words" class="stack"')
   })
 
   it('検索で見つからなかった語をフォームに入れておく', async () => {

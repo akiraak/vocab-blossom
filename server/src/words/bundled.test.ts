@@ -50,8 +50,22 @@ describe('searchWords', () => {
     word('5', 'deed', '行い（act）'),
   ]
 
-  it('英語の前方一致 → 英語の部分一致 → 意味の部分一致の順', () => {
-    expect(searchWords(words, 'act').map((w) => w.id)).toEqual(['2', '3', '1', '4', '5'])
+  it('英語の完全一致 → 前方一致 → 部分一致 → 意味 → 例文の順（iOS の WordStore.filter と同じ）', () => {
+    const list = [
+      word('0', 'actor', '俳優'),
+      ...words,
+      { ...word('6', 'play', '演じる'), example: 'Let us act it out.' },
+    ]
+    expect(searchWords(list, 'act').map((w) => w.id)).toEqual(['2', '0', '3', '1', '4', '5', '6'])
+  })
+
+  it('2 つ目以降の意味・例文でも探せる', () => {
+    const commute = {
+      ...word('c', 'commute', '通勤する'),
+      extraSenses: [{ meaning: '通学', example: 'My daily trip is long.' }],
+    }
+    expect(searchWords([commute], '通学').map((w) => w.id)).toEqual(['c'])
+    expect(searchWords([commute], 'daily trip').map((w) => w.id)).toEqual(['c'])
   })
 
   it('大小文字・前後の空白を無視し、日本語の意味でも探せる', () => {

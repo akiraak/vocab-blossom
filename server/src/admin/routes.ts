@@ -3,11 +3,12 @@ import type { SafeHtml } from '../http/html.ts'
 import { htmlPage, redirect, text } from '../http/responses.ts'
 import type { Handler, Route, RouteContext } from '../http/router.ts'
 import { isCustomWordId } from '../sync/types.ts'
-import { type BundledWords, SEARCH_LIMIT, searchWords } from '../words/bundled.ts'
+import { type BundledWords, searchWords } from '../words/bundled.ts'
 import {
   customWordEditPage,
   customWordsPage,
   type DuplicateHint,
+  draftFromQuery,
   groupDetailPage,
   groupsPage,
   notFoundPage,
@@ -106,32 +107,37 @@ export function adminRoutes({
 }): Route[] {
   // --- 画面の組み立て ---
 
+  /**
+   * グループ詳細の検索。同梱語 + 自作語をひとつの並び（同梱語 → 自作語。iOS の allWords と同じ）で順位づけし、件数の上限は無い。
+   * グループに入っている語は「追加済み」にする
+   */
   function searchResults(groupId: string, query: string): SearchResult[] {
+    if (query.trim() === '') return []
     const group = service.getGroup(groupId)
     const inGroup = new Set(group.wordIds)
-    const bundledHits: SearchResult[] = bundled.search(query).map((w) => ({
-      kind: 'bundled',
-      id: w.id,
-      word: w.word,
-      meaning: w.meaning,
-      pos: w.pos,
-      level: w.level,
-      inGroup: inGroup.has(w.id),
-    }))
-    // 自作語はグループに入っていないものだけ（入っているものは上の一覧にある）
-    const customHits: SearchResult[] = searchWords(
-      service.listCustomWords().filter((w) => !inGroup.has(w.wordId)),
-      query,
-    ).map((w) => ({
-      kind: 'custom',
-      id: w.wordId,
-      word: w.word,
-      meaning: w.meaning,
-      pos: w.pos,
-      extraSenses: w.extraSenses,
-      inGroup: false,
-    }))
-    return [...customHits, ...bundledHits].slice(0, SEARCH_LIMIT)
+    const words: SearchResult[] = [
+      ...bundled.all.map((w): SearchResult => ({
+        kind: 'bundled',
+        id: w.id,
+        word: w.word,
+        meaning: w.meaning,
+        pos: w.pos,
+        example: w.example,
+        level: w.level,
+        inGroup: inGroup.has(w.id),
+      })),
+      ...service.listCustomWords().map((w): SearchResult => ({
+        kind: 'custom',
+        id: w.wordId,
+        word: w.word,
+        meaning: w.meaning,
+        pos: w.pos,
+        example: w.example,
+        extraSenses: w.extraSenses,
+        inGroup: inGroup.has(w.wordId),
+      })),
+    ]
+    return searchWords(words, query, Number.POSITIVE_INFINITY)
   }
 
   function renderGroup(
@@ -140,12 +146,15 @@ export function adminRoutes({
     extra: Partial<Parameters<typeof groupDetailPage>[0]> = {},
   ): SafeHtml {
     const group = service.getGroup(groupId)
+    // 作成欄の下書き（入力の誤りで出し直すときは送られた下書き、そうでなければ検索語から）の綴りの自作語があれば、置き換えになると伝える
+    const word = extra.draft?.word ?? (query.trim() === '' ? '' : draftFromQuery(query).word)
     return groupDetailPage({
       group,
       entries: service.entries(group),
       query,
       results: searchResults(group.id, query),
       aiEnabled,
+      replaces: service.customWordsSpelledLike(word)[0],
       ...extra,
     })
   }
@@ -155,6 +164,7 @@ export function adminRoutes({
       words: service.listCustomWords(),
       groupsByWord: service.groupsByCustomWord(),
       aiEnabled,
+      replaces: extra.draft ? service.customWordsSpelledLike(extra.draft.word)[0] : undefined,
       ...extra,
     })
   }
@@ -225,13 +235,16 @@ export function adminRoutes({
       pattern: '/admin/groups/:id/words',
       handler: withForm((form, _request, { params }) => {
         const query = field(form, 'q')
+        // 検索結果でチェックした語をまとめて入れる（選んだ順。単語帳の語の案内からは 1 つだけ届く）
+        const wordIds = form.getAll('wordId').filter((id) => id !== '')
         try {
-          service.addWords(params.id, [field(form, 'wordId')])
+          if (wordIds.length === 0) throw new AdminInputError('追加する単語を選んでください')
+          service.addWords(params.id, wordIds)
         } catch (error) {
           if (!(error instanceof AdminInputError)) throw error
           return badRequest(renderGroup(params.id, query, { addError: error.message }))
         }
-        const search = query.trim() === '' ? '#words' : `?q=${encodeURIComponent(query)}#search`
+        const search = query.trim() === '' ? '#words' : `?q=${encodeURIComponent(query)}#add`
         return redirect(`${groupPath(params.id)}${search}`)
       }),
     },
@@ -259,15 +272,18 @@ export function adminRoutes({
       handler: withForm((form, _request, { params }) => {
         const group = service.getGroup(params.id)
         const draft = draftFrom(form)
+        // 出し直すときに検索結果も残す
+        const query = field(form, 'q')
         try {
           validateDraft(draft)
           const duplicate = duplicateOf(form, `${groupPath(group.id)}/words`)
-          if (duplicate) return badRequest(renderGroup(group.id, '', { draft, duplicate }))
-          service.createCustomWord(draft, group.id)
+          if (duplicate) return badRequest(renderGroup(group.id, query, { draft, duplicate }))
+          // 同じ綴りの自作語があれば置き換える（自作語は綴りごとに 1 つ）
+          service.upsertCustomWord(draft, group.id)
           return redirect(`${groupPath(group.id)}#words`)
         } catch (error) {
           if (!(error instanceof AdminInputError)) throw error
-          return badRequest(renderGroup(group.id, '', { draft, wordError: error.message }))
+          return badRequest(renderGroup(group.id, query, { draft, wordError: error.message }))
         }
       }),
     },
@@ -287,7 +303,7 @@ export function adminRoutes({
           validateDraft(draft)
           const duplicate = duplicateOf(form)
           if (duplicate) return badRequest(renderCustomWords({ draft, duplicate }))
-          service.createCustomWord(draft)
+          service.upsertCustomWord(draft)
           return redirect(CUSTOM_WORDS_PATH)
         } catch (error) {
           if (!(error instanceof AdminInputError)) throw error

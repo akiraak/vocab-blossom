@@ -80,7 +80,7 @@ describe('グループ詳細', () => {
 
     const res = await handle(adminPost(`${path}/words`, { wordId: 'ph-0001', q: 'get up' }))
     expect(res.status).toBe(303)
-    expect(res.headers.get('location')).toBe(`${path}?q=get%20up#search`)
+    expect(res.headers.get('location')).toBe(`${path}?q=get%20up#add`)
     expect(store.getGroup(id)?.wordIds).toEqual(['ph-0001'])
 
     const after = await page(`${path}?q=get%20up`)
@@ -90,7 +90,73 @@ describe('グループ詳細', () => {
   it('見つからない検索語ではマイ単語を作る案内を出す', async () => {
     const { page, createGroup } = setup()
     const { path } = await createGroup('旅行')
-    expect((await page(`${path}?q=zzzqqq`)).body).toContain('「zzzqqq」は見つかりませんでした')
+    expect((await page(`${path}?q=zzzqqq`)).body).toContain('「zzzqqq」は単語帳にありません')
+  })
+
+  it('単語を追加は 1 セクション: 検索語が無ければ作成フォームを出さず、あれば結果の下に検索語入りで出す', async () => {
+    const { page, createGroup } = setup()
+    const { path } = await createGroup('旅行')
+    const empty = await page(path)
+    expect(empty.body).toContain('id="add"')
+    expect(empty.body).not.toContain('単語帳から追加')
+    expect(empty.body).not.toContain(`action="${path}/custom-words"`)
+
+    const found = await page(`${path}?q=get%20up`)
+    expect(found.body).toContain(`action="${path}/custom-words"`)
+    expect(found.body).toContain('「get up」をマイ単語として作る')
+    expect(found.body).toContain('name="q" value="get up"')
+  })
+
+  it('検索結果でチェックした語をまとめて追加する（選んだ順）。1 つも選ばなければ 400', async () => {
+    const { createGroup, handle, store } = setup()
+    const { id, path } = await createGroup('旅行')
+    const res = await handle(
+      adminPost(`${path}/words`, [
+        ['q', 'a'],
+        ['wordId', 'a1-0002'],
+        ['wordId', 'a1-0001'],
+      ]),
+    )
+    expect(res.status).toBe(303)
+    expect(store.getGroup(id)?.wordIds).toEqual(['a1-0002', 'a1-0001'])
+
+    const none = await handle(adminPost(`${path}/words`, { q: 'a' }))
+    expect(none.status).toBe(400)
+    expect(await none.text()).toContain('追加する単語を選んでください')
+  })
+
+  it('検索は完全一致を先頭にし、グループに入っているマイ単語も「追加済み」で出す', async () => {
+    const { page, createGroup, createWord, store } = setup()
+    const { id, path } = await createGroup('学校')
+    await createWord(path, { word: 'homeroom', meaning: 'ホームルーム' })
+    const [wordId] = store.getGroup(id)?.wordIds ?? []
+
+    const search = await page(`${path}?q=homeroom#add`)
+    const row = search.body.slice(search.body.indexOf('data-pick-form'))
+    expect(row).toContain('homeroom<span class="tag custom">マイ単語</span>')
+    expect(row).toContain('追加済み')
+    expect(row).not.toContain(`value="${wordId}"`)
+
+    // home は完全一致が先（homework などの前方一致より前）
+    const home = await page(`${path}?q=home`)
+    const table = home.body.slice(home.body.indexOf('data-pick-form'))
+    const first = table.match(/name="wordId" value="([^"]+)"> ([^<]+)</)
+    expect(first?.[2]).toBe('home')
+  })
+
+  it('同じ綴りのマイ単語があれば、作ると置き換えになると伝え、作っても 1 つのまま', async () => {
+    const { page, createGroup, createWord, store } = setup()
+    const { id, path } = await createGroup('学校')
+    await createWord(path, { word: 'commute', meaning: '通勤する', pos: 'verb' })
+    const notice = await page(`${path}?q=commute`)
+    expect(notice.body).toContain('「commute」（通勤する）はマイ単語にあります')
+
+    const res = await createWord(path, { word: 'Commute', meaning: '通勤', q: 'commute' })
+    expect(res.status).toBe(303)
+    const words = store.listCustomWords()
+    expect(words).toHaveLength(1)
+    expect(words[0]).toMatchObject({ word: 'Commute', meaning: '通勤' })
+    expect(store.getGroup(id)?.wordIds).toEqual([words[0].wordId])
   })
 
   it('存在しない語の追加は 400', async () => {

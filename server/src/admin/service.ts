@@ -11,7 +11,7 @@ import {
   type WordSense,
   isCustomWordId,
 } from '../sync/types.ts'
-import type { BundledWords } from '../words/bundled.ts'
+import { type BundledWords, normalizeSpelling } from '../words/bundled.ts'
 
 // 管理画面の操作。書き込みは同期と同じ SyncStore の apply* を通す（rev が振られ、端末に届く）。
 //
@@ -149,6 +149,16 @@ export class AdminService {
     })
   }
 
+  /** 同じ綴り（大小文字・前後の空白は無視）の自作語。新しく更新した順 */
+  customWordsSpelledLike(word: string): CustomWord[] {
+    const spelling = normalizeSpelling(word)
+    if (spelling === '') return []
+    return this.store
+      .listCustomWords()
+      .filter((w) => normalizeSpelling(w.word) === spelling)
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+  }
+
   /** 自作語ごとに、入っているグループ */
   groupsByCustomWord(): Map<string, Group[]> {
     const map = new Map<string, Group[]>()
@@ -238,6 +248,42 @@ export class AdminService {
         createdAt: t,
         updatedAt: t,
       }
+      this.store.applyCustomWord(word)
+      if (groupId !== undefined) this.addWords(groupId, [word.wordId])
+      return word
+    })()
+  }
+
+  /**
+   * 自作語を作る。同じ綴りの自作語は 1 つだけにする（iOS の GroupEditor.upsertCustomWord と同じ）。
+   *
+   * 同じ綴りが無ければ作る。あればいちばん新しく更新したものの内容を置き換え（ID はそのまま。アプリの学習の記録が残る）、
+   * ほかの同じ綴りの自作語は、グループでの位置を寄せる先に引き継いでから削除記録を残して消す。
+   * groupId を渡すとそのグループの末尾にも入れる（すでに入っていれば位置は動かさない）
+   */
+  upsertCustomWord(draft: WordDraft, groupId?: string): CustomWord {
+    const value = validateDraft(draft)
+    return this.db.transaction((): CustomWord => {
+      if (groupId !== undefined) this.getGroup(groupId)
+      const [kept, ...duplicates] = this.customWordsSpelledLike(value.word)
+      if (!kept) return this.createCustomWord(draft, groupId)
+      for (const duplicate of duplicates) {
+        for (const group of this.store.listGroups()) {
+          if (!group.wordIds.includes(duplicate.wordId)) continue
+          this.updateGroup(group.id, (current) => ({
+            ...current,
+            wordIds: current.wordIds.includes(kept.wordId)
+              ? current.wordIds.filter((id) => id !== duplicate.wordId)
+              : current.wordIds.map((id) => (id === duplicate.wordId ? kept.wordId : id)),
+          }))
+        }
+        this.store.applyDeletion({
+          kind: 'customWord',
+          id: duplicate.wordId,
+          deletedAt: Math.max(this.now(), duplicate.updatedAt + 1),
+        })
+      }
+      const word: CustomWord = { ...kept, ...value, updatedAt: Math.max(this.now(), kept.updatedAt + 1) }
       this.store.applyCustomWord(word)
       if (groupId !== undefined) this.addWords(groupId, [word.wordId])
       return word
