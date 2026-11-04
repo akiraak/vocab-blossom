@@ -107,15 +107,36 @@ final class WordStore {
         Self.filter(allWords, query: query)
     }
 
-    /// 単語・意味・例文の部分一致で絞り込む。空の検索語なら全件
+    /// 単語・意味・例文の部分一致で絞り込み、検索語に近い順に並べる。空の検索語なら全件・元の順。
+    ///
+    /// 並びは「英語の完全一致 → 前方一致 → 部分一致 → 意味 → 例文」。同じ順位の中は元の並び。
+    /// 例文に検索語を含む語が多いので、並べないと探している語が後ろに埋もれる
     static func filter(_ words: [WordEntry], query: String) -> [WordEntry] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return words }
-        return words.filter {
-            $0.word.localizedCaseInsensitiveContains(trimmed)
-                || $0.meaning.localizedCaseInsensitiveContains(trimmed)
-                || $0.example.localizedCaseInsensitiveContains(trimmed)
+        let spelling = normalizedSpelling(trimmed)
+        let ranked: [(rank: Int, word: WordEntry)] = words.compactMap { word in
+            let wordSpelling = normalizedSpelling(word.word)
+            let rank: Int
+            if wordSpelling == spelling {
+                rank = 0
+            } else if wordSpelling.hasPrefix(spelling) {
+                rank = 1
+            } else if word.word.localizedCaseInsensitiveContains(trimmed) {
+                rank = 2
+            } else if word.meaning.localizedCaseInsensitiveContains(trimmed) {
+                rank = 3
+            } else if word.example.localizedCaseInsensitiveContains(trimmed) {
+                rank = 4
+            } else {
+                return nil
+            }
+            return (rank, word)
         }
+        // 安定ソートで、同じ順位の中は元の並びを保つ
+        return ranked.enumerated()
+            .sorted { ($0.element.rank, $0.offset) < ($1.element.rank, $1.offset) }
+            .map(\.element.word)
     }
 
     /// 綴りが同じ同梱語（大小文字・前後の空白は無視）。自作語の重複登録の案内に使う

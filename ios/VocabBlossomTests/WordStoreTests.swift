@@ -63,4 +63,32 @@ struct WordStoreTests {
         #expect(store.search("apple").contains { $0.word == "apple" })
         #expect(store.search("  ").count == store.allWords.count)
     }
+
+    @Test("検索語に近い語を上に出す（同梱語の home は例文に home を含む語より前）")
+    func searchPutsHeadwordFirst() {
+        #expect(store.search("home").first?.word == "home")
+        #expect(store.search(" Home ").first?.word == "home")
+    }
+
+    @Test("完全一致 → 前方一致 → 英語の部分一致 → 意味 → 例文の順。同じ順位の中は元の並び")
+    func filterRanking() {
+        func entry(_ id: String, _ word: String, meaning: String = "意味", example: String = "") -> WordEntry {
+            WordEntry(
+                id: id, word: word, pos: .noun, level: .a1,
+                meaning: meaning, example: example, exampleJa: ""
+            )
+        }
+        let words = [
+            entry("example", "door", example: "I came home late."),
+            entry("meaning", "house", meaning: "家（home）"),
+            entry("contains", "at home", meaning: "家で"),
+            entry("prefix2", "homework", meaning: "宿題"),
+            entry("exact", "Home", meaning: "家"),
+            entry("prefix1", "homeroom", meaning: "ホームルーム"),
+            entry("none", "school", meaning: "学校"),
+        ]
+        #expect(WordStore.filter(words, query: "home").map(\.id)
+            == ["exact", "prefix2", "prefix1", "contains", "meaning", "example"])
+        #expect(WordStore.filter(words, query: "").map(\.id) == words.map(\.id))
+    }
 }
