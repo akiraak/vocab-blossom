@@ -14,6 +14,9 @@ struct GroupDetailView: View {
     @State private var isPickingWords = false
     @State private var isRenaming = false
     @State private var renameText = ""
+    /// 「単語を選んで外す」の選択モード
+    @State private var isSelecting = false
+    @State private var selection: Set<String> = []
 
     /// フルスクリーンで開くセッション。押した瞬間の内容で固定する
     enum GroupSession: Identifiable {
@@ -52,11 +55,13 @@ struct GroupDetailView: View {
             now: .now
         )
 
-        List {
-            Section {
-                studyCard(plan: plan, summary: summary, words: words)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
+        List(selection: $selection) {
+            if !isSelecting {
+                Section {
+                    studyCard(plan: plan, summary: summary, words: words)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                }
             }
 
             if words.isEmpty {
@@ -74,30 +79,47 @@ struct GroupDetailView: View {
                         }
                         .swipeActions {
                             Button("外す", role: .destructive) {
-                                GroupEditor(context: context).remove(wordIds: [word.id], from: group)
+                                remove([word.id])
+                            }
+                        }
+                        .contextMenu {
+                            Button("グループから外す", systemImage: "minus.circle", role: .destructive) {
+                                remove([word.id])
                             }
                         }
                     }
                 } header: {
-                    Text("\(words.count) 語")
+                    if isSelecting {
+                        Text("外す単語を選んでください（\(words.count) 語中 \(selection.count) 語）")
+                    } else {
+                        Text("\(words.count) 語")
+                    }
                 }
             }
         }
         .scrollContentBackground(.hidden)
         .gardenBackground()
+        .environment(\.editMode, .constant(isSelecting ? .active : .inactive))
         .navigationTitle(group.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(isSelecting)
+        // 選択モードの「外す」などは下のツールバーに出すので、タブバーは隠す（重なって押せなくなる）
+        .toolbar(isSelecting ? .hidden : .visible, for: .tabBar)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                moreMenu
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isPickingWords = true
-                } label: {
-                    Image(systemName: "plus")
+            if isSelecting {
+                selectionToolbar(words: words)
+            } else {
+                ToolbarItem(placement: .topBarTrailing) {
+                    moreMenu(isEmpty: words.isEmpty)
                 }
-                .accessibilityLabel("単語を追加")
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isPickingWords = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("単語を追加")
+                }
             }
         }
         .sheet(isPresented: $isPickingWords) {
@@ -122,13 +144,16 @@ struct GroupDetailView: View {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
             case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult: isPickingWords = true
+            case .groupSelect:
+                isSelecting = true
+                selection = Set(words.prefix(2).map(\.id))
             default: break
             }
         }
         #endif
     }
 
-    private var moreMenu: some View {
+    private func moreMenu(isEmpty: Bool) -> some View {
         Menu {
             Button {
                 renameText = group.name
@@ -136,10 +161,49 @@ struct GroupDetailView: View {
             } label: {
                 Label("名前を変更", systemImage: "pencil")
             }
+            Button {
+                selection = []
+                isSelecting = true
+            } label: {
+                Label("単語を選んで外す", systemImage: "checklist")
+            }
+            .disabled(isEmpty)
         } label: {
             Image(systemName: "ellipsis.circle")
         }
         .accessibilityLabel("その他")
+    }
+
+    // MARK: - 単語を外す
+
+    @ToolbarContentBuilder
+    private func selectionToolbar(words: [WordEntry]) -> some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("完了") { endSelecting() }
+        }
+        ToolbarItemGroup(placement: .bottomBar) {
+            let allSelected = !words.isEmpty && selection.count == words.count
+            Button(allSelected ? "すべて解除" : "すべて選択") {
+                selection = allSelected ? [] : Set(words.map(\.id))
+            }
+            Spacer()
+            Button(selection.isEmpty ? "外す" : "外す（\(selection.count)）", role: .destructive) {
+                // 一覧の並びで外す（選んだ順は関係ない）
+                remove(words.map(\.id).filter(selection.contains))
+                endSelecting()
+            }
+            .disabled(selection.isEmpty)
+        }
+    }
+
+    /// グループから外す。語・進捗・自作語は残る
+    private func remove(_ wordIds: [String]) {
+        GroupEditor(context: context).remove(wordIds: wordIds, from: group)
+    }
+
+    private func endSelecting() {
+        isSelecting = false
+        selection = []
     }
 
     private func studyCard(

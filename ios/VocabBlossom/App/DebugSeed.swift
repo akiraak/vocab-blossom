@@ -39,6 +39,7 @@ enum DebugSeed {
         case groupDetail = "group-detail"
         case groupLearn = "group-learn"
         case groupDrill = "group-drill"
+        case groupSelect = "group-select"
         case wordPicker = "word-picker"
         case wordEditor = "word-editor"
         case wordEditorLoading = "word-editor-loading"
@@ -46,7 +47,7 @@ enum DebugSeed {
 
         var seedsGroups: Bool {
             switch self {
-            case .groups, .groupDetail, .groupLearn, .groupDrill,
+            case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
                  .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult:
                 true
             default: false
@@ -79,7 +80,7 @@ enum DebugSeed {
 
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
-        [.groupDetail, .groupLearn, .groupDrill,
+        [.groupDetail, .groupLearn, .groupDrill, .groupSelect,
          .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult]
             .contains(variant)
     }
@@ -93,7 +94,7 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
-        case .groups, .groupDetail, .groupLearn, .groupDrill,
+        case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
              .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult:
             .groups
         default: nil

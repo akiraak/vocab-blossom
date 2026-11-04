@@ -160,6 +160,20 @@ struct GroupEditorTests {
         #expect(group.wordIds == ["a1-0002", "a1-0003"])
     }
 
+    @Test("まとめて外せる。残りの順番は保ち、更新日時が進む。入っていない語だけなら何もしない")
+    func removeMany() {
+        let group = editor.createGroup(name: "g", now: now)
+        editor.add(wordIds: ["a", "b", "c", "d"], to: group, now: now)
+        let later = now.addingTimeInterval(60)
+        editor.remove(wordIds: ["d", "b"], from: group, now: later)
+        #expect(group.wordIds == ["a", "c"])
+        #expect(group.updatedAt == later)
+
+        editor.remove(wordIds: ["x"], from: group, now: later.addingTimeInterval(60))
+        #expect(group.wordIds == ["a", "c"])
+        #expect(group.updatedAt == later)
+    }
+
     @Test("選択画面の結果: 残す語の順番は保ち、新しい語は選んだ順で末尾へ")
     func setMembership() {
         let group = editor.createGroup(name: "g", now: now)
