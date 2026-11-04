@@ -144,6 +144,48 @@ describe('グループ詳細', () => {
     expect(first?.[2]).toBe('home')
   })
 
+  it('「単語を追加」はページ上部の枠で、グループの単語一覧より前にある', async () => {
+    const { page, createGroup } = setup()
+    const { path } = await createGroup('旅行')
+    const { body } = await page(path)
+    expect(body).toContain('<section class="add-card" id="add">')
+    expect(body.indexOf('id="add"')).toBeLessThan(body.indexOf('id="words"'))
+    // 検索語が無ければ検索欄にフォーカスを当てる
+    expect(body).toMatch(/name="q" value=""[^>]*autofocus/)
+  })
+
+  it('例文だけで一致した語はたたみ、なぜ出たかの例文を見せる', async () => {
+    const { page, createGroup, createWord } = setup()
+    const { path } = await createGroup('旅行')
+    await createWord(path, { word: 'zzfoo', meaning: 'テスト語', example: 'I like qqbar a lot.' })
+
+    // 例文だけで一致: たたんだ欄を開いて出す
+    const onlyExample = await page(`${path}?q=qqbar`)
+    expect(onlyExample.body).toContain('<details class="more" open>')
+    expect(onlyExample.body).toContain('例文に「qqbar」が出てくる語（1 件）')
+    expect(onlyExample.body).toContain('I like qqbar a lot.')
+
+    // 英語で一致する語があれば、例文だけの語はたたんだまま後ろに
+    await createWord(path, { word: 'qqbar', meaning: 'もう 1 つ' })
+    const both = await page(`${path}?q=qqbar`)
+    const more = both.body.indexOf('<details class="more">')
+    expect(more).toBeGreaterThan(-1)
+    expect(both.body.indexOf('qqbar<span class="tag custom">')).toBeLessThan(more)
+    expect(both.body.indexOf('zzfoo<span class="tag custom">')).toBeGreaterThan(more)
+  })
+
+  it('検索結果があるときは作成欄をたたむ。入力の誤りで出し直したときは開く', async () => {
+    const { page, createGroup, handle } = setup()
+    const { path } = await createGroup('旅行')
+    const found = await page(`${path}?q=get%20up`)
+    expect(found.body).toContain('<details class="create" id="new-word">')
+    expect(found.body).toContain('<summary>一覧に無ければ「get up」をマイ単語として作る</summary>')
+
+    const invalid = await handle(adminPost(`${path}/custom-words`, { q: 'get up', word: 'zzget', meaning: '', pos: 'noun' }))
+    expect(invalid.status).toBe(400)
+    expect(await invalid.text()).toContain('<details class="create" id="new-word" open>')
+  })
+
   it('同じ綴りのマイ単語があれば、作ると置き換えになると伝え、作っても 1 つのまま', async () => {
     const { page, createGroup, createWord, store } = setup()
     const { id, path } = await createGroup('学校')
@@ -307,8 +349,9 @@ describe('マイ単語', () => {
     const edit = await page(`/admin/custom-words/${word.wordId}`)
     expect(edit.body).toContain('意味 2')
     expect(edit.body).toContain('name="extraRemove" value="0"')
-    // 空の欄の品詞は、まだ使っていない品詞（名詞・動詞の次の形容詞）
-    expect(edit.body).toMatch(/<option value="adjective" selected>/)
+    // 空の欄は最初から出さず「＋ 意味を追加」で出す（足す欄の品詞は画面の JS が、まだ使っていない品詞を選ぶ）
+    expect(edit.body).not.toContain('意味 3')
+    expect(edit.body).toContain('data-add-sense')
 
     const removed = await handle(
       adminPost(`/admin/custom-words/${word.wordId}`, [

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { testBundled } from '../test-helpers.ts'
-import { BundledWords, DEFAULT_DECKS_DIR, normalizeSpelling, searchWords } from './bundled.ts'
+import { BundledWords, DEFAULT_DECKS_DIR, normalizeSpelling, rankWords, searchWords } from './bundled.ts'
 
 const word = (id: string, w: string, meaning: string) => ({
   id,
@@ -57,6 +57,18 @@ describe('searchWords', () => {
       { ...word('6', 'play', '演じる'), example: 'Let us act it out.' },
     ]
     expect(searchWords(list, 'act').map((w) => w.id)).toEqual(['2', '0', '3', '1', '4', '5', '6'])
+  })
+
+  it('rankWords は並びとあわせて一致の順位（4 = 例文だけ）を返す', () => {
+    const list = [...words, { ...word('6', 'play', '演じる'), example: 'Let us act it out.' }]
+    expect(rankWords(list, 'act').map((r) => [r.word.id, r.rank])).toEqual([
+      ['2', 0],
+      ['3', 1],
+      ['1', 2],
+      ['4', 2],
+      ['5', 3],
+      ['6', 4],
+    ])
   })
 
   it('2 つ目以降の意味・例文でも探せる', () => {

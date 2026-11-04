@@ -111,10 +111,33 @@ const STYLE = `
   fieldset.sense legend { font-size: 0.9rem; font-weight: 600; padding: 0 4px; }
   .senses { display: grid; gap: 8px; }
   form.stack label.check { display: flex; gap: 6px; align-items: center; }
+  .hint { margin: 8px 0; }
+  input[type="checkbox"] { width: 1.1em; height: 1.1em; accent-color: var(--accent); }
+  /* グループ詳細の「単語を追加」: ページ上部の枠 */
+  .add-card { border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: 10px;
+              padding: 12px 16px 16px; margin: 16px 0 28px; }
+  .add-card h2 { margin: 0 0 8px; font-size: 1.25rem; }
+  .add-card h3 { margin: 20px 0 4px; font-size: 1.05rem; }
+  form.search-row { display: flex; gap: 8px; margin: 0 0 8px; }
+  form.search-row input[type="search"] { flex: 1; min-width: 0; font-size: 1.1rem; padding: 8px 12px; }
+  form.search-row button { padding: 8px 20px; }
+  .pick-bar { position: sticky; top: 0; z-index: 1; background: Canvas; display: flex; gap: 12px;
+              justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 8px 0; }
+  tr[data-pick-row] { cursor: pointer; }
+  tr[data-pick-row]:hover { background: var(--bg-soft); }
+  tr:has(input[name="wordId"]:checked) { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  table.results .example { font-size: 0.85rem; }
+  details.more { margin: 8px 0; }
+  details > summary { cursor: pointer; }
+  details.more > summary { color: var(--muted); padding: 6px 0; }
+  details.create { margin: 16px 0 0; }
+  details.create > summary { color: var(--accent); font-weight: 600; padding: 6px 0; }
+  details.create[open] > summary { margin-bottom: 8px; }
+  .assist .candidate .actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
 `
 
 // 画面の動きはこれだけ: 削除の確認、日時を端末の時刻で表示する、検索結果でチェックした数の表示、
-// 自作語のフォームの AI チェック（0 件なら自動で調べる・品詞違いの候補を 1 枚にまとめる・フォームに入れる）
+// 自作語のフォームの意味の欄を足す、AI チェック（0 件なら自動で調べる・品詞違いの候補を 1 枚にまとめる・その内容で作る）
 const SCRIPT = `
   document.addEventListener('submit', (event) => {
     const message = event.target.getAttribute('data-confirm')
@@ -145,56 +168,90 @@ const SCRIPT = `
     if (text !== undefined) node.textContent = text
     return node
   }
-  // グループ詳細の検索結果: 「選んだ単語を追加（N）」に数を出し、1 つも選んでいなければ押せないようにする
+  // グループ詳細の検索結果: 「選んだ単語を追加（N）」に数を出し、1 つも選んでいなければ押せないようにする。
+  // 行のどこを押してもチェックが切り替わる
   for (const pick of document.querySelectorAll('form[data-pick-form]')) {
     const submit = pick.querySelector('[data-pick-submit]')
     if (!submit) continue
     const update = () => {
       const n = pick.querySelectorAll('input[name="wordId"]:checked').length
-      submit.textContent = n === 0 ? '選んだ単語を追加' : '選んだ単語を追加（' + n + '）'
+      submit.textContent = n === 0 ? '選んだ単語を追加' : '選んだ ' + n + ' 語を追加'
       submit.disabled = n === 0
     }
     pick.addEventListener('change', update)
+    pick.addEventListener('click', (event) => {
+      const row = event.target.closest('tr[data-pick-row]')
+      if (!row || event.target.closest('label, input, a, button')) return
+      const check = row.querySelector('input[name="wordId"]')
+      check.checked = !check.checked
+      update()
+    })
     update()
   }
 
   const spellingOf = (word) => word.trim().toLowerCase()
-  // 意味を足すための空の欄の品詞。まだ使っていない品詞（iOS の nextSensePos と同じ）
+  // 意味を足すための欄の品詞。まだ使っていない品詞（iOS の nextSensePos と同じ）
   const nextPos = (senses) =>
     ['noun', 'verb', 'adjective', 'adverb'].find((pos) => !senses.some((s) => s.pos === pos)) || 'noun'
 
-  for (const box of document.querySelectorAll('[data-assist]')) {
-    const form = box.parentElement.querySelector('form[data-word-form]')
+  // 自作語のフォームの意味の欄: 「＋ 意味を追加」で欄を足す・AI の候補でまとめて差し替える
+  function senseTools(form) {
     const field = (name) => form.elements.namedItem(name)
     const extraList = form.querySelector('[data-extra-senses]')
     const senseTemplate = form.querySelector('template[data-sense-template]')
     const primaryLegend = form.querySelector('[data-primary-sense] legend')
-    const blankLegend = senseTemplate.content.querySelector('legend').textContent
+    const addBlock = (sense, legend) => {
+      extraList.append(senseTemplate.content.cloneNode(true))
+      const block = extraList.lastElementChild
+      block.querySelector('legend').textContent = legend
+      const set = (name, value) => { block.querySelector('[name="' + name + '"]').value = value }
+      set('extraMeaning', sense.meaning)
+      set('extraPos', sense.pos)
+      set('extraExample', sense.example)
+      set('extraExampleJa', sense.exampleJa)
+      primaryLegend.textContent = '意味 1'
+      return block
+    }
+    const currentSenses = () => {
+      const senses = [{ pos: field('pos').value }]
+      for (const select of extraList.querySelectorAll('[name="extraPos"]')) senses.push({ pos: select.value })
+      return senses
+    }
+    // 空の欄を 1 つ足す
+    const addBlank = () => {
+      const n = extraList.querySelectorAll('[data-extra-sense]').length
+      const block = addBlock({ meaning: '', pos: nextPos(currentSenses()), example: '', exampleJa: '' }, '意味 ' + (n + 2))
+      block.querySelector('[name="extraMeaning"]').focus()
+    }
+    // 英語・1 つ目の意味・2 つ目以降の意味を差し替える
+    const fill = (word, senses) => {
+      const [first, ...rest] = senses
+      field('word').value = word
+      for (const name of ['meaning', 'pos', 'example', 'exampleJa']) field(name).value = first[name]
+      for (const block of extraList.querySelectorAll('[data-extra-sense]')) block.remove()
+      rest.forEach((sense, i) => addBlock(sense, '意味 ' + (i + 2)))
+      primaryLegend.textContent = rest.length > 0 ? '意味 1' : '意味'
+    }
+    return { field, addBlank, fill }
+  }
+  for (const form of document.querySelectorAll('form[data-word-form]')) {
+    const tools = senseTools(form)
+    const add = form.querySelector('[data-add-sense]')
+    if (add) add.addEventListener('click', tools.addBlank)
+  }
+
+  for (const box of document.querySelectorAll('[data-assist]')) {
+    const form = box.parentElement.querySelector('form[data-word-form]')
+    const { field, fill } = senseTools(form)
     const button = box.querySelector('[data-assist-run]')
     const status = box.querySelector('[data-assist-status]')
     const results = box.querySelector('[data-assist-results]')
     const addAction = box.getAttribute('data-add-action')
     const posLabels = JSON.parse(box.getAttribute('data-pos-labels'))
-
-    // フォームに入れる: 英語・1 つ目の意味・2 つ目以降の意味を差し替え、最後に意味を足すための空の欄を 1 つ残す
-    const fillForm = (word, senses) => {
-      const [first, ...rest] = senses
-      field('word').value = word
-      for (const name of ['meaning', 'pos', 'example', 'exampleJa']) field(name).value = first[name]
-      for (const block of extraList.querySelectorAll('[data-extra-sense]')) block.remove()
-      const addBlock = (sense, legend) => {
-        extraList.append(senseTemplate.content.cloneNode(true))
-        const block = extraList.lastElementChild
-        block.querySelector('legend').textContent = legend
-        const set = (name, value) => { block.querySelector('[name="' + name + '"]').value = value }
-        set('extraMeaning', sense.meaning)
-        set('extraPos', sense.pos)
-        set('extraExample', sense.example)
-        set('extraExampleJa', sense.exampleJa)
-      }
-      rest.forEach((sense, i) => addBlock(sense, '意味 ' + (i + 2)))
-      addBlock({ meaning: '', pos: nextPos(senses), example: '', exampleJa: '' }, blankLegend)
-      primaryLegend.textContent = rest.length > 0 ? '意味 1' : '意味'
+    // フォームがたたまれていれば開く
+    const openForm = () => {
+      const details = form.closest('details')
+      if (details) details.open = true
     }
 
     // 単語帳にある語: 案内して、グループの画面ならそのまま追加できる
@@ -223,7 +280,8 @@ const SCRIPT = `
       return item
     }
 
-    // 単語帳に無い語: 同じ綴りの候補（commute の動詞・名詞）を 1 枚にまとめ、意味ごとに入れる・入れないを選ぶ
+    // 単語帳に無い語: 同じ綴りの候補（commute の動詞・名詞）を 1 枚にまとめ、意味ごとに入れる・入れないを選ぶ。
+    // 「この内容で作る」はフォームを埋めてそのまま送り、「直してから作る」はフォームを埋めて開く
     const newWordView = (group) => {
       const first = group[0]
       const item = el('div', 'candidate')
@@ -244,18 +302,32 @@ const SCRIPT = `
         if (c.example) item.append(el('p', 'muted example', c.example))
         return check
       })
-      const fill = el('button', '', 'フォームに入れる')
-      fill.type = 'button'
-      fill.addEventListener('click', () => {
+      const fillChecked = () => {
         const senses = group.filter((_, i) => checks[i].checked)
         if (senses.length === 0) {
           status.textContent = '入れる意味を 1 つ以上選んでください'
-          return
+          return false
         }
-        fillForm(first.word, senses)
-        status.textContent = '「' + first.word + '」をフォームに入れました。内容を確かめて作ってください'
+        fill(first.word, senses)
+        return true
+      }
+      const row = el('div', 'actions-row')
+      const create = el('button', 'primary', addAction ? 'この内容で作って追加' : 'この内容で作る')
+      create.type = 'button'
+      create.addEventListener('click', () => {
+        if (fillChecked()) form.requestSubmit()
       })
-      item.append(fill)
+      const edit = el('button', '', '直してから作る')
+      edit.type = 'button'
+      edit.addEventListener('click', () => {
+        if (!fillChecked()) return
+        openForm()
+        status.textContent = '「' + first.word + '」をフォームに入れました。直して「' +
+          form.querySelector('button[type="submit"]').textContent + '」を押してください'
+        field('meaning').focus()
+      })
+      row.append(create, edit)
+      item.append(row)
       return item
     }
 
@@ -263,6 +335,7 @@ const SCRIPT = `
       const text = field('word').value.trim() || field('meaning').value.trim()
       if (!text) {
         status.textContent = '英語か意味を入れてください'
+        openForm()
         return
       }
       button.disabled = true
@@ -277,6 +350,12 @@ const SCRIPT = `
         const body = await res.json().catch(() => ({}))
         if (!res.ok) {
           status.textContent = ASSIST_ERRORS[body.error] || 'エラーが起きました（' + res.status + '）'
+          openForm()
+          return
+        }
+        if (body.candidates.length === 0) {
+          status.textContent = '「' + body.text + '」の候補が見つかりませんでした。自分で入力して作ってください'
+          openForm()
           return
         }
         status.textContent = '「' + body.text + '」の候補:'
@@ -302,11 +381,11 @@ const SCRIPT = `
         // 自分で意味を入れていたら上書きしない
         const first = body.candidates[0]
         if (first && first.reason === 'exact' && !first.bundled && !field('meaning').value.trim()) {
-          fillForm(first.word, bySpelling.get(spellingOf(first.word)))
-          status.textContent = '「' + first.word + '」の候補をフォームに入れました。内容を確かめて作ってください'
+          fill(first.word, bySpelling.get(spellingOf(first.word)))
         }
       } catch {
         status.textContent = 'サーバーにつながりませんでした'
+        openForm()
       } finally {
         button.disabled = false
       }

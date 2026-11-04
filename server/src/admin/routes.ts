@@ -3,7 +3,7 @@ import type { SafeHtml } from '../http/html.ts'
 import { htmlPage, redirect, text } from '../http/responses.ts'
 import type { Handler, Route, RouteContext } from '../http/router.ts'
 import { isCustomWordId } from '../sync/types.ts'
-import { type BundledWords, searchWords } from '../words/bundled.ts'
+import { type BundledWords, EXAMPLE_ONLY_RANK, rankWords } from '../words/bundled.ts'
 import {
   customWordEditPage,
   customWordsPage,
@@ -109,7 +109,7 @@ export function adminRoutes({
 
   /**
    * グループ詳細の検索。同梱語 + 自作語をひとつの並び（同梱語 → 自作語。iOS の allWords と同じ）で順位づけし、件数の上限は無い。
-   * グループに入っている語は「追加済み」にする
+   * グループに入っている語は「追加済み」に、例文だけで一致した語は exampleOnly にする（画面でたたむ）
    */
   function searchResults(groupId: string, query: string): SearchResult[] {
     if (query.trim() === '') return []
@@ -137,7 +137,10 @@ export function adminRoutes({
         inGroup: inGroup.has(w.wordId),
       })),
     ]
-    return searchWords(words, query, Number.POSITIVE_INFINITY)
+    return rankWords(words, query, Number.POSITIVE_INFINITY).map(({ word, rank }) => ({
+      ...word,
+      exampleOnly: rank === EXAMPLE_ONLY_RANK,
+    }))
   }
 
   function renderGroup(

@@ -270,6 +270,15 @@ describe('管理画面の「AI で調べる」', () => {
     expect(empty.body).not.toContain('/custom-words" class="stack"')
   })
 
+  it('0 件で AI が使えるときは AI の候補を主役にし、フォームはたたむ（AI が無ければ開いて出す）', async () => {
+    const withAi = createTestApp({}, { assistant: fakeAssistant([]) })
+    const ai = (await groupPage(withAi.handle, 'zzqqxx')).body
+    expect(ai).toContain('<details class="create"><summary>自分で入力して作る</summary>')
+    const withoutAi = (await groupPage(createTestApp().handle, 'zzqqxx')).body
+    expect(withoutAi).not.toContain('<details class="create"')
+    expect(withoutAi).toContain('/custom-words" class="stack"')
+  })
+
   it('検索で見つからなかった語をフォームに入れておく', async () => {
     const { handle } = createTestApp({}, { assistant: fakeAssistant([]) })
     const { body } = await groupPage(handle, 'zzqqxx')

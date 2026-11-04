@@ -83,6 +83,25 @@ type Searchable = {
   extraSenses?: readonly { meaning: string; example?: string }[]
 }
 
+/** 検索での一致の順位。0 英語の完全一致・1 前方一致・2 部分一致・3 意味・4 例文。一致しなければ undefined */
+export type SearchRank = 0 | 1 | 2 | 3 | 4
+
+/** 例文だけで一致した語の順位 */
+export const EXAMPLE_ONLY_RANK: SearchRank = 4
+
+/** `query` は normalizeSpelling 済みで空でないこと */
+export function searchRank(word: Searchable, query: string): SearchRank | undefined {
+  const contains = (text: string | undefined) => (text ?? '').toLowerCase().includes(query)
+  const spelling = normalizeSpelling(word.word)
+  const senses = [word, ...(word.extraSenses ?? [])]
+  if (spelling === query) return 0
+  if (spelling.startsWith(query)) return 1
+  if (spelling.includes(query)) return 2
+  if (senses.some((s) => contains(s.meaning))) return 3
+  if (senses.some((s) => contains(s.example))) return 4
+  return undefined
+}
+
 /**
  * 同梱語・自作語の共通の検索。iOS の `WordStore.filter` と同じ並び:
  * 英語の完全一致 → 前方一致 → 部分一致 → 意味（2 つ目以降の意味も）→ 例文（同じく）。同じ順位では元の並び
@@ -92,22 +111,22 @@ export function searchWords<T extends Searchable>(
   query: string,
   limit: number = SEARCH_LIMIT,
 ): T[] {
+  return rankWords(words, query, limit).map((r) => r.word)
+}
+
+/** searchWords と同じ並びで、順位も返す */
+export function rankWords<T extends Searchable>(
+  words: readonly T[],
+  query: string,
+  limit: number = SEARCH_LIMIT,
+): { word: T; rank: SearchRank }[] {
   const q = normalizeSpelling(query)
   if (q === '') return []
-  const contains = (text: string | undefined) => (text ?? '').toLowerCase().includes(q)
-  const ranked: { word: T; rank: number; index: number }[] = []
+  const ranked: { word: T; rank: SearchRank; index: number }[] = []
   words.forEach((word, index) => {
-    const spelling = normalizeSpelling(word.word)
-    const senses = [word, ...(word.extraSenses ?? [])]
-    let rank: number
-    if (spelling === q) rank = 0
-    else if (spelling.startsWith(q)) rank = 1
-    else if (spelling.includes(q)) rank = 2
-    else if (senses.some((s) => contains(s.meaning))) rank = 3
-    else if (senses.some((s) => contains(s.example))) rank = 4
-    else return
-    ranked.push({ word, rank, index })
+    const rank = searchRank(word, q)
+    if (rank !== undefined) ranked.push({ word, rank, index })
   })
   ranked.sort((a, b) => a.rank - b.rank || a.index - b.index)
-  return ranked.slice(0, limit).map((r) => r.word)
+  return ranked.slice(0, limit).map(({ word, rank }) => ({ word, rank }))
 }

@@ -61,12 +61,6 @@ export function posSummary(word: HasSenses): string {
   return [...new Set(labels)].join('・')
 }
 
-/** 意味を足すときの品詞。まだ使っていない品詞（名詞 → 動詞 → 形容詞 → 副詞）。iOS の nextSensePos と同じ */
-export function nextSensePos(draft: WordDraft): string {
-  const used = new Set([draft.pos, ...draft.extraSenses.map((s) => s.pos)])
-  return (['noun', 'verb', 'adjective', 'adverb'] as const).find((pos) => !used.has(pos)) ?? 'noun'
-}
-
 // --- 自作語のフォーム ---
 
 export type DuplicateHint = {
@@ -89,6 +83,8 @@ type WordFormOptions = {
   replaces?: CustomWord
   /** 出し直すときに残す検索語（グループ詳細） */
   query?: string
+  /** フォームを <details> でたたむ（AI のカードを主役にするとき）。summary はたたんだときの見出し */
+  collapse?: { summary: string; open: boolean }
 }
 
 export type AssistOptions = {
@@ -104,7 +100,7 @@ function assistBox({ addAction, autorun }: AssistOptions): SafeHtml {
   data-pos-labels="${JSON.stringify(POS_LABELS)}">
   <div class="inline-row">
     <button type="button" data-assist-run>AI で調べる</button>
-    <span class="muted" data-assist-status>英語（または意味）を入れて押すと、打ち間違い・変化した形を確かめ、意味と例文を下書きします。</span>
+    <span class="muted" data-assist-status>打ち間違い・変化した形を確かめ、意味と例文を下書きします。</span>
   </div>
   <div data-assist-results></div>
 </div>`
@@ -137,7 +133,7 @@ function extraSenseFields(sense: SenseDraft, legend: string, index?: number): Sa
   </fieldset>`
 }
 
-const BLANK_SENSE_LEGEND = '意味を追加（品詞の違う意味・任意）'
+const ADDED_SENSE_LEGEND = '意味を追加（品詞の違う意味）'
 
 function wordForm({
   action,
@@ -149,8 +145,8 @@ function wordForm({
   assist,
   replaces,
   query,
+  collapse,
 }: WordFormOptions): SafeHtml {
-  const blank: SenseDraft = { meaning: '', pos: nextSensePos(draft), example: '', exampleJa: '' }
   const duplicateNotice = duplicate
     ? html`<div class="notice">
         <p>「${duplicate.bundled.word}」（${duplicate.bundled.meaning}）は単語帳にあります。
@@ -169,10 +165,7 @@ function wordForm({
     ? html`<p class="notice">「${replaces.word}」（${meaningSummary(replaces)}）はマイ単語にあります。
         作ると、新しく増やさずにそのマイ単語の内容を置き換えます（アプリの学習の記録は残ります）。</p>`
     : ''
-  return html`${errorLine(error)}${duplicateNotice}${replaceNotice}
-<div class="word-form">
-${assist ? assistBox(assist) : ''}
-<form method="post" action="${action}" class="stack" data-word-form>
+  const form = html`<form method="post" action="${action}" class="stack" data-word-form>
   ${back ? html`<input type="hidden" name="back" value="${back}">` : ''}
   ${query ? html`<input type="hidden" name="q" value="${query}">` : ''}
   ${duplicate ? html`<input type="hidden" name="allowDuplicate" value="1">` : ''}
@@ -188,16 +181,23 @@ ${assist ? assistBox(assist) : ''}
   </fieldset>
   <div class="senses" data-extra-senses>
     ${draft.extraSenses.map((sense, i) => extraSenseFields(sense, `意味 ${i + 2}`, i))}
-    ${extraSenseFields(blank, BLANK_SENSE_LEGEND)}
   </div>
   <template data-sense-template>${extraSenseFields(
     { meaning: '', pos: 'noun', example: '', exampleJa: '' },
-    BLANK_SENSE_LEGEND,
+    ADDED_SENSE_LEGEND,
   )}</template>
-  <p class="muted">品詞の違う意味（commute の「動詞: 通勤する」「名詞: 通勤」など）は、1 つの単語にまとめられます。
-    もっと足すときは、保存すると次の空の欄が出ます。例文に英語（活用形を含む）が入っていると、穴埋め問題でも出題されます。</p>
+  <div><button type="button" class="small" data-add-sense>＋ 意味を追加（commute の「動詞: 通勤する」「名詞: 通勤」のように品詞の違う意味）</button></div>
+  <p class="muted">例文に英語（活用形を含む）が入っていると、穴埋め問題にも出ます。</p>
   <div><button type="submit" class="primary">${duplicate ? 'それでも自作語として作る' : submitLabel}</button></div>
-</form>
+</form>`
+  return html`${errorLine(error)}${duplicateNotice}${replaceNotice}
+<div class="word-form">
+${assist ? assistBox(assist) : ''}
+${
+  collapse
+    ? html`<details class="create"${collapse.open ? html` open` : ''}><summary>${collapse.summary}</summary>${form}</details>`
+    : form
+}
 </div>`
 }
 
@@ -250,6 +250,8 @@ export type SearchResult = {
   extraSenses?: readonly { meaning: string; pos: string; example?: string }[]
   level?: string
   inGroup: boolean
+  /** 英語・意味ではなく例文だけで一致した（画面ではたたむ） */
+  exampleOnly?: boolean
 }
 
 export type GroupDetailOptions = {
@@ -310,65 +312,100 @@ function entryRow(group: Group, entry: GroupEntry, index: number, count: number)
   </tr>`
 }
 
+/** 検索語を含む例文（例文だけで一致した語で、なぜ出たかを見せる） */
+function matchedExample(result: SearchResult, query: string): string | undefined {
+  const q = query.trim().toLowerCase()
+  return [result, ...(result.extraSenses ?? [])].map((s) => s.example).find((e) => e?.toLowerCase().includes(q))
+}
+
+function resultRow(r: SearchResult, query: string): SafeHtml {
+  const tag = r.kind === 'custom' ? html`<span class="tag custom">マイ単語</span>` : html`<span class="tag">${r.level}</span>`
+  const example = r.exampleOnly ? matchedExample(r, query) : undefined
+  return html`<tr${r.inGroup ? '' : html` data-pick-row`}>
+      <td>${
+        r.inGroup ? html`${r.word}` : html`<label class="pick"><input type="checkbox" name="wordId" value="${r.id}"> ${r.word}</label>`
+      }${tag}</td>
+      <td>${meaningSummary(r)}${example ? html`<div class="muted example">${example}</div>` : ''}</td>
+      <td>${posSummary(r)}</td>
+      <td class="actions">${r.inGroup ? html`<span class="muted">追加済み</span>` : ''}</td>
+    </tr>`
+}
+
+function resultTable(rows: SearchResult[], query: string): SafeHtml {
+  return html`<table class="results">
+    <thead><tr><th>英語</th><th>意味</th><th>品詞</th><th></th></tr></thead>
+    <tbody>${rows.map((r) => resultRow(r, query))}</tbody>
+  </table>`
+}
+
 export function groupDetailPage(options: GroupDetailOptions): SafeHtml {
   const { group, entries, query, results } = options
   const path = groupPath(group.id)
-  const hasQuery = query.trim() !== ''
+  const q = query.trim()
+  const hasQuery = q !== ''
   // 作成欄は検索語があるときだけ（入力の誤りで出し直すときは下書きがあるので出す）
   const showsCreate = hasQuery || options.draft !== undefined
+  // 入力の誤り・同じ綴りの同梱語の案内で出し直したときは、作成欄を開いておく
+  const reshown = options.draft !== undefined || options.wordError !== undefined || options.duplicate !== undefined
 
-  const resultRows = results.map(
-    (r) => html`<tr>
-      <td>${
-        r.inGroup
-          ? html`${r.word}`
-          : html`<label class="pick"><input type="checkbox" name="wordId" value="${r.id}"> ${r.word}</label>`
-      }${r.kind === 'custom' ? html`<span class="tag custom">マイ単語</span>` : html`<span class="tag">${r.level}</span>`}</td>
-      <td>${meaningSummary(r)}</td>
-      <td>${posSummary(r)}</td>
-      <td class="actions">${r.inGroup ? html`<span class="muted">追加済み</span>` : ''}</td>
-    </tr>`,
-  )
+  const mainResults = results.filter((r) => !r.exampleOnly)
+  const exampleResults = results.filter((r) => r.exampleOnly)
   const selectable = results.some((r) => !r.inGroup)
 
   const resultsBlock = !hasQuery
-    ? html`<p class="muted">単語帳にない単語は、検索欄に入れると${options.aiEnabled ? ' AI で調べて' : ''}追加できます。</p>`
+    ? html`<p class="hint">英語か意味で検索して、単語帳（同梱語・マイ単語）から選びます。単語帳に無い語は、その場で${
+        options.aiEnabled ? ' AI で調べて' : ''
+      }マイ単語として作れます。</p>`
     : results.length === 0
-      ? html`<p class="muted">「${query}」は単語帳にありません。${
-          options.aiEnabled
-            ? '下で AI が打ち間違いや変化した形を確かめ、単語帳に無い語は意味と例文を下書きします。'
-            : '下でマイ単語として作れます。'
+      ? html`<p class="hint">「${q}」は単語帳にありません。${
+          options.aiEnabled ? 'AI で調べた候補から、マイ単語として作れます。' : '下でマイ単語として作れます。'
         }</p>`
       : html`<form method="post" action="${path}/words" data-pick-form>
           <input type="hidden" name="q" value="${query}">
-          <table>
-            <thead><tr><th>英語</th><th>意味</th><th>品詞</th><th></th></tr></thead>
-            <tbody>${resultRows}</tbody>
-          </table>
+          <div class="pick-bar">
+            <span>「${q}」の検索結果 ${String(results.length)} 件${selectable ? '。追加する単語にチェックを入れてください' : ''}</span>
+            ${selectable ? html`<button type="submit" class="primary" data-pick-submit>選んだ単語を追加</button>` : ''}
+          </div>
+          ${mainResults.length > 0 ? resultTable(mainResults, q) : ''}
           ${
-            selectable
-              ? html`<p><button type="submit" class="primary" data-pick-submit>選んだ単語を追加</button></p>`
+            exampleResults.length > 0
+              ? html`<details class="more"${mainResults.length === 0 ? html` open` : ''}>
+                  <summary>例文に「${q}」が出てくる語（${String(exampleResults.length)} 件）</summary>
+                  ${resultTable(exampleResults, q)}
+                </details>`
               : ''
           }
         </form>`
 
-  const createTitle = hasQuery ? `「${query.trim()}」をマイ単語として作る` : 'マイ単語として作る'
-  const createBlock = showsCreate
-    ? html`<h3 id="new-word">${createTitle}</h3>
-${results.length > 0 ? html`<p class="muted">探している語が上の一覧に無いときに使います。</p>` : ''}
-${wordForm({
-  action: `${path}/custom-words`,
-  draft: options.draft ?? draftFromQuery(query),
-  submitLabel: '作って追加',
-  error: options.wordError,
-  duplicate: options.duplicate,
-  replaces: options.replaces,
-  query,
-  assist: options.aiEnabled
-    ? { addAction: `${path}/words`, autorun: results.length === 0 && options.draft === undefined }
-    : undefined,
-})}`
-    : ''
+  const aiLeads = results.length === 0 && options.aiEnabled === true
+  const createForm = (collapse?: { summary: string; open: boolean }) =>
+    wordForm({
+      action: `${path}/custom-words`,
+      draft: options.draft ?? draftFromQuery(query),
+      submitLabel: '作って追加',
+      error: options.wordError,
+      duplicate: options.duplicate,
+      replaces: options.replaces,
+      query,
+      collapse,
+      assist: options.aiEnabled
+        ? { addAction: `${path}/words`, autorun: results.length === 0 && options.draft === undefined }
+        : undefined,
+    })
+  const createTitle = hasQuery ? `「${q}」をマイ単語として作る` : 'マイ単語として作る'
+  const createBlock = !showsCreate
+    ? ''
+    : results.length > 0
+      ? // 結果があるときは、作成欄はたたんでおく（探している語が一覧に無いときだけ使う）
+        html`<details class="create" id="new-word"${reshown ? html` open` : ''}>
+          <summary>一覧に無ければ${createTitle}</summary>
+          ${createForm()}
+        </details>`
+      : aiLeads
+        ? // 0 件で AI が使えるときは、AI の候補を主役にして、フォームは「直してから作る」で開く
+          html`<h3 id="new-word">${createTitle}</h3>
+          ${createForm({ summary: '自分で入力して作る', open: reshown })}`
+        : html`<h3 id="new-word">${createTitle}</h3>${createForm()}`
 
   return page(
     group.name,
@@ -377,24 +414,27 @@ ${wordForm({
 <h1>${group.name}</h1>
 <p class="muted">${group.wordIds.length} 語・更新 ${time(group.updatedAt)}</p>
 
-<h2 id="words">単語・フレーズ</h2>
+<section class="add-card" id="add">
+  <h2>単語を追加</h2>
+  <form method="get" action="${path}#add" class="search-row">
+    <input type="search" name="q" value="${query}" placeholder="英語か意味で検索（例: home、家）" autocomplete="off"
+      aria-label="追加する単語を検索"${hasQuery ? '' : html` autofocus`}>
+    <button type="submit" class="primary">検索</button>
+  </form>
+  ${errorLine(options.addError)}
+  ${resultsBlock}
+  ${createBlock}
+</section>
+
+<h2 id="words">このグループの単語・フレーズ（${String(entries.length)}）</h2>
 ${
   entries.length === 0
-    ? html`<p class="muted">まだ単語がありません。下の「単語を追加」で検索して入れてください（単語帳にない単語も作れます）。</p>`
+    ? html`<p class="hint">まだ単語がありません。上の「単語を追加」で検索して入れてください。</p>`
     : html`<table>
         <thead><tr><th class="num">#</th><th>英語</th><th>意味</th><th>品詞</th><th></th></tr></thead>
         <tbody>${entries.map((e, i) => entryRow(group, e, i, entries.length))}</tbody>
       </table>`
 }
-
-<h2 id="add">単語を追加</h2>
-<form method="get" action="${path}#add" class="inline">
-  <input type="search" name="q" value="${query}" placeholder="英語か意味で検索（単語帳にない語も追加できます）" autocomplete="off">
-  <button type="submit">検索</button>
-</form>
-${errorLine(options.addError)}
-${resultsBlock}
-${createBlock}
 
 <h2 id="rename">名前の変更</h2>
 ${errorLine(options.renameError)}
