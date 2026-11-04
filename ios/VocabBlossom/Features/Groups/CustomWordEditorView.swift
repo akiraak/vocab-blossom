@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// 自作語（単語帳に無い単語・フレーズ）の作成・編集。
 struct CustomWordEditorView: View {
