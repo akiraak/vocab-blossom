@@ -461,19 +461,43 @@ struct GroupBackupTests {
             addingTo: group,
             now: now
         )
+        custom.extraSenses = [WordSense(pos: .verb, meaning: "〜を引き受ける")]
         let data = try BackupService.export(context: context, settings: settings(), now: now)
 
         let other = try makeContext()
         GroupEditor(context: other).createGroup(name: "消える", now: now)
         let archive = try BackupService.restore(from: data, context: other, settings: settings())
 
-        #expect(archive.version == 2)
+        #expect(archive.version == BackupArchive.currentVersion)
         let groups = try other.fetch(FetchDescriptor<WordGroup>())
         #expect(groups.map(\.name) == ["Unit 3"])
         #expect(groups.first?.id == group.id)
         #expect(groups.first?.wordIds == ["a1-0001", custom.wordId])
         let restored = try #require(GroupEditor(context: other).customWord(id: custom.wordId))
         #expect(restored.entry == custom.entry)
+        #expect(restored.extraSenses == [WordSense(pos: .verb, meaning: "〜を引き受ける")])
+    }
+
+    @Test("2 つ目以降の意味の無い version 2 のファイルも読める（意味が 1 つの自作語になる）")
+    func readsVersionTwo() throws {
+        let json = """
+        {
+          "version": 2,
+          "exportedAt": "2026-08-14T03:00:00Z",
+          "settings": {"level": "A1", "newWordsPerDay": 10, "reviewLimitPerDay": 60, "soundEnabled": true},
+          "progress": [],
+          "logs": [],
+          "groups": [],
+          "customWords": [{"wordId": "custom-old", "word": "homeroom", "meaning": "ホームルーム",
+                           "pos": "noun", "example": "", "exampleJa": "",
+                           "createdAt": "2026-08-13T00:00:00Z", "updatedAt": "2026-08-13T00:00:00Z"}]
+        }
+        """
+        let context = try makeContext()
+        try BackupService.restore(from: Data(json.utf8), context: context, settings: settings())
+        let custom = try #require(GroupEditor(context: context).customWord(id: "custom-old"))
+        #expect(custom.extraSenses.isEmpty)
+        #expect(custom.entry.senses == [WordSense(pos: .noun, meaning: "ホームルーム")])
     }
 
     @Test("グループの無い version 1 のファイルも読める")

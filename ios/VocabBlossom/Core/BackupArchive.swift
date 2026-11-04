@@ -8,8 +8,9 @@ import SwiftData
 ///
 /// - version 1: 設定・進捗・回答ログ
 /// - version 2: グループと自作語を追加（v1 のファイルには無いので nil として読む）
+/// - version 3: 自作語の 2 つ目以降の意味（`extraSenses`）を追加（v2 のファイルには無いので空として読む）
 struct BackupArchive: Codable, Equatable {
-    static let currentVersion = 2
+    static let currentVersion = 3
 
     var version = currentVersion
     var exportedAt: Date
@@ -60,6 +61,7 @@ struct BackupArchive: Codable, Equatable {
         var pos: PartOfSpeech
         var example: String
         var exampleJa: String
+        var extraSenses: [WordSense]?
         var createdAt: Date
         var updatedAt: Date
     }
@@ -145,6 +147,7 @@ enum BackupService {
                 BackupArchive.Custom(
                     wordId: $0.wordId, word: $0.word, meaning: $0.meaning, pos: $0.pos,
                     example: $0.example, exampleJa: $0.exampleJa,
+                    extraSenses: $0.extraSenses.isEmpty ? nil : $0.extraSenses,
                     createdAt: $0.createdAt, updatedAt: $0.updatedAt
                 )
             }
@@ -213,6 +216,7 @@ enum BackupService {
                 CustomWord(
                     wordId: item.wordId, word: item.word, meaning: item.meaning, pos: item.pos,
                     example: item.example, exampleJa: item.exampleJa,
+                    extraSenses: item.extraSenses ?? [],
                     createdAt: item.createdAt, updatedAt: item.updatedAt
                 )
             )

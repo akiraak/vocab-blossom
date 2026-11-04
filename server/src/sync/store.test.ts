@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { migrate, openDatabase } from '../db.ts'
+import { MIGRATIONS, migrate, openDatabase } from '../db.ts'
 import { SyncStore } from './store.ts'
 import type { CustomWord, Group, SyncRequest } from './types.ts'
 
@@ -22,6 +22,7 @@ const word = (overrides: Partial<CustomWord> = {}): CustomWord => ({
   pos: 'phrase',
   example: '',
   exampleJa: '',
+  extraSenses: [],
   createdAt: 100,
   updatedAt: 100,
   ...overrides,
@@ -65,6 +66,29 @@ describe('applyGroup / applyCustomWord', () => {
     expect(store.applyCustomWord(word({ meaning: '古い', updatedAt: 199 }))).toBe('ignored')
     expect(store.applyCustomWord(word({ meaning: '新しい', updatedAt: 201 }))).toBe('applied')
     expect(store.getCustomWord('custom-x')?.meaning).toBe('新しい')
+  })
+
+  it('意味を複数持てるようになる前の DB も、移行すると 2 つ目以降の意味が空の語として読める', () => {
+    const db = openDatabase(':memory:')
+    migrate(db, MIGRATIONS.slice(0, 1))
+    db.prepare(
+      `INSERT INTO custom_words (word_id, word, meaning, pos, example, example_ja, created_at, updated_at, rev)
+       VALUES ('custom-old', 'homeroom', 'ホームルーム', 'noun', '', '', 1, 1, 1)`,
+    ).run()
+    migrate(db)
+    expect(new SyncStore(db).getCustomWord('custom-old')?.extraSenses).toEqual([])
+  })
+
+  it('自作語の 2 つ目以降の意味を保存して読み出す', () => {
+    const senses = [
+      { pos: 'noun' as const, meaning: '通勤', example: 'My commute is long.', exampleJa: '通勤が長い。' },
+      { pos: 'adjective' as const, meaning: '（テスト）', example: '', exampleJa: '' },
+    ]
+    store.applyCustomWord(word({ word: 'commute', pos: 'verb', meaning: '通勤する', extraSenses: senses }))
+    expect(store.getCustomWord('custom-x')?.extraSenses).toEqual(senses)
+
+    store.applyCustomWord(word({ word: 'commute', pos: 'verb', meaning: '通勤する', updatedAt: 200 }))
+    expect(store.getCustomWord('custom-x')?.extraSenses).toEqual([])
   })
 
   it('同じものを 2 回当てても rev は進まない', () => {

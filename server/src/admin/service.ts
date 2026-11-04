@@ -210,6 +210,7 @@ export class AdminService {
       const word: CustomWord = {
         wordId: CUSTOM_WORD_PREFIX + randomUUID().toLowerCase(),
         ...value,
+        extraSenses: [],
         createdAt: t,
         updatedAt: t,
       }

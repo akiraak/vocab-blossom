@@ -203,6 +203,26 @@ struct SyncEngineApplyTests {
         #expect(!custom.needsSync)
     }
 
+    @Test("2 つ目以降の意味を送り、届いたものを当てる。無ければ空にする")
+    func syncsExtraSenses() throws {
+        let custom = editor.createCustomWord(
+            GroupEditor.WordDraft(word: "commute", meaning: "通勤する", pos: .verb), now: at(1)
+        )
+        custom.extraSenses = [WordSense(pos: .noun, meaning: "通勤")]
+        let request = try engine.makeRequest(cursor: 0)
+        #expect(request.customWords.first?.extraSenses == [WordSense(pos: .noun, meaning: "通勤")])
+
+        var incoming = serverCustom(custom.wordId, word: "commute", updatedAt: at(5))
+        incoming.extraSenses = [WordSense(pos: .noun, meaning: "通勤", example: "My commute is long.")]
+        try engine.apply(response(customWords: [incoming]), sent: empty)
+        #expect(custom.extraSenses == [WordSense(pos: .noun, meaning: "通勤", example: "My commute is long.")])
+        #expect(custom.entry.senses.map(\.pos) == [.noun, .noun])
+
+        // 意味を複数持てるようになる前のサーバーからは extraSenses が届かない
+        try engine.apply(response(customWords: [serverCustom(custom.wordId, updatedAt: at(9))]), sent: empty)
+        #expect(custom.extraSenses.isEmpty)
+    }
+
     @Test("サーバーの方が新しければ上書きし、手元の方が新しければ残して次に送る")
     func lastWriterWins() throws {
         let group = editor.createGroup(name: "手元", now: at(10))

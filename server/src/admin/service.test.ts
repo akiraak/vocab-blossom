@@ -147,10 +147,20 @@ describe('自作語', () => {
       pos: 'noun',
       example: 'We have homeroom.',
       exampleJa: '',
+      extraSenses: [],
       createdAt: 2_000,
       updatedAt: 2_000,
     })
     expect(store.getGroup(group.id)?.wordIds).toEqual(['a1-0001', word.wordId])
+  })
+
+  it('編集しても 2 つ目以降の意味（端末で足したもの）は残す', () => {
+    const word = service.createCustomWord(draft({ word: 'commute', meaning: '通勤する', pos: 'verb' }))
+    const extraSenses = [{ pos: 'noun' as const, meaning: '通勤', example: '', exampleJa: '' }]
+    store.applyCustomWord({ ...word, extraSenses, updatedAt: word.updatedAt + 1 })
+    clock = 5_000
+    service.updateCustomWord(word.wordId, draft({ word: 'commute', meaning: '通勤する、通学する', pos: 'verb' }))
+    expect(store.getCustomWord(word.wordId)).toMatchObject({ meaning: '通勤する、通学する', extraSenses })
   })
 
   it('グループが無ければ自作語も作らない', () => {

@@ -58,6 +58,13 @@ struct WordStoreTests {
         )
     }
 
+    @Test("同梱語は意味が 1 つ（データに extraSenses が無くても読める）")
+    func bundledWordsHaveOneSense() throws {
+        #expect(store.allWords.allSatisfy { $0.extraSenses.isEmpty })
+        let apple = try #require(store.search("apple").first)
+        #expect(apple.senses == [apple.primarySense])
+    }
+
     @Test("単語・意味・例文を横断して検索できる")
     func search() {
         #expect(store.search("apple").contains { $0.word == "apple" })

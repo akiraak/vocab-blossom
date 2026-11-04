@@ -29,14 +29,25 @@ export type Group = {
   updatedAt: number
 }
 
+/** 意味 1 つ分（品詞・意味・例文・例文の訳）。iOS の `WordSense` と同じ形 */
+export type WordSense = {
+  pos: PartOfSpeech
+  meaning: string
+  example: string
+  exampleJa: string
+}
+
 export type CustomWord = {
   /** `custom-` で始まる */
   wordId: string
   word: string
+  /** 1 つ目の意味（品詞・意味・例文・訳） */
   meaning: string
   pos: PartOfSpeech
   example: string
   exampleJa: string
+  /** 2 つ目以降の意味（commute の「名詞: 通勤」など）。無ければ空 */
+  extraSenses: WordSense[]
   createdAt: number
   updatedAt: number
 }
@@ -76,6 +87,8 @@ export const LIMITS = {
   word: 200,
   meaning: 500,
   example: 1000,
+  /** 1 語に足せる意味の数（1 つ目を除く） */
+  extraSenses: 10,
 } as const
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
@@ -166,19 +179,32 @@ export function parseCustomWord(value: unknown, path = 'customWord'): CustomWord
   const obj = object(value, path)
   const wordId = str(obj, 'wordId', path, LIMITS.id)
   if (!isCustomWordId(wordId)) fail(`${path}.wordId`, `${CUSTOM_WORD_PREFIX} で始まっていない`)
+  // extraSenses が無いデータ（意味を複数持てるようになる前のアプリ）は、意味が 1 つの語として読む
+  const extraSenses = array(obj.extraSenses, `${path}.extraSenses`, LIMITS.extraSenses).map(
+    (sense, i) => parseSense(sense, `${path}.extraSenses[${i}]`),
+  )
+  return {
+    wordId,
+    word: str(obj, 'word', path, LIMITS.word),
+    ...parseSense(obj, path),
+    extraSenses,
+    createdAt: time(obj, 'createdAt', path),
+    updatedAt: time(obj, 'updatedAt', path),
+  }
+}
+
+/** 意味 1 つ分。自作語の 1 つ目の意味（自作語そのものの pos・meaning…）にも使う */
+export function parseSense(value: unknown, path = 'sense'): WordSense {
+  const obj = object(value, path)
   const pos = obj.pos
   if (typeof pos !== 'string' || !(PARTS_OF_SPEECH as readonly string[]).includes(pos)) {
     fail(`${path}.pos`, '品詞ではない')
   }
   return {
-    wordId,
-    word: str(obj, 'word', path, LIMITS.word),
-    meaning: str(obj, 'meaning', path, LIMITS.meaning),
     pos: pos as PartOfSpeech,
+    meaning: str(obj, 'meaning', path, LIMITS.meaning),
     example: str(obj, 'example', path, LIMITS.example, { required: false }),
     exampleJa: str(obj, 'exampleJa', path, LIMITS.example, { required: false }),
-    createdAt: time(obj, 'createdAt', path),
-    updatedAt: time(obj, 'updatedAt', path),
   }
 }
 

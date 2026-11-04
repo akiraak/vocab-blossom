@@ -34,7 +34,7 @@ struct SyncEngine {
             customWords: customWords.filter(\.needsSync).map {
                 SyncAPI.CustomWord(
                     wordId: $0.wordId, word: $0.word, meaning: $0.meaning, pos: $0.pos,
-                    example: $0.example, exampleJa: $0.exampleJa,
+                    example: $0.example, exampleJa: $0.exampleJa, extraSenses: $0.extraSenses,
                     createdAt: $0.createdAt, updatedAt: $0.updatedAt
                 )
             },
@@ -131,6 +131,7 @@ struct SyncEngine {
                 local.pos = incoming.pos
                 local.example = incoming.example
                 local.exampleJa = incoming.exampleJa
+                local.extraSenses = incoming.extraSenses ?? []
                 local.createdAt = incoming.createdAt
                 local.updatedAt = incoming.updatedAt
             }
@@ -143,6 +144,7 @@ struct SyncEngine {
                 pos: incoming.pos,
                 example: incoming.example,
                 exampleJa: incoming.exampleJa,
+                extraSenses: incoming.extraSenses ?? [],
                 createdAt: incoming.createdAt,
                 updatedAt: incoming.updatedAt
             )

@@ -47,6 +47,24 @@ describe('parseSyncRequest', () => {
     expect(parsed.customWords[0]).toMatchObject({ example: '', exampleJa: '' })
   })
 
+  it('自作語の extraSenses は省略すると空、あれば意味ごとに検証して trim する', () => {
+    expect(parseSyncRequest({ customWords: [customWord()] }).customWords[0]?.extraSenses).toEqual([])
+    const parsed = parseSyncRequest({
+      customWords: [
+        customWord({
+          extraSenses: [
+            { pos: 'noun', meaning: ' 通勤 ', example: ' My commute is long. ', exampleJa: '通勤が長い。' },
+            { pos: 'verb', meaning: '通う' },
+          ],
+        }),
+      ],
+    })
+    expect(parsed.customWords[0]?.extraSenses).toEqual([
+      { pos: 'noun', meaning: '通勤', example: 'My commute is long.', exampleJa: '通勤が長い。' },
+      { pos: 'verb', meaning: '通う', example: '', exampleJa: '' },
+    ])
+  })
+
   it('削除記録のグループ ID も小文字にそろえる', () => {
     const parsed = parseSyncRequest({
       deletions: [
@@ -75,6 +93,13 @@ describe('parseSyncRequest', () => {
     ['品詞が不明', { customWords: [customWord({ pos: 'verbs' })] }],
     ['意味が空', { customWords: [customWord({ meaning: '' })] }],
     ['英語が長すぎる', { customWords: [customWord({ word: 'a'.repeat(201) })] }],
+    ['extraSenses が配列でない', { customWords: [customWord({ extraSenses: {} })] }],
+    ['追加の意味の品詞が不明', { customWords: [customWord({ extraSenses: [{ pos: 'x', meaning: '通勤' }] })] }],
+    ['追加の意味が空', { customWords: [customWord({ extraSenses: [{ pos: 'noun', meaning: ' ' }] })] }],
+    [
+      '追加の意味が多すぎる',
+      { customWords: [customWord({ extraSenses: Array(11).fill({ pos: 'noun', meaning: '通勤' }) })] },
+    ],
     ['削除の種類が不明', { deletions: [{ kind: 'progress', id: 'x', deletedAt: 1 }] }],
     ['自作語の削除の ID が custom- で始まらない', { deletions: [{ kind: 'customWord', id: 'a1-apple', deletedAt: 1 }] }],
   ])('%s なら ValidationError', (_label, body) => {

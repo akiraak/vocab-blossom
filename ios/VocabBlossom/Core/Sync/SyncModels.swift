@@ -57,6 +57,8 @@ nonisolated enum SyncAPI {
         var pos: PartOfSpeech
         var example: String
         var exampleJa: String
+        /// 2 つ目以降の意味。無い（意味を複数持てるようになる前のサーバー）なら空として読む
+        var extraSenses: [WordSense]?
         var createdAt: Date
         var updatedAt: Date
     }

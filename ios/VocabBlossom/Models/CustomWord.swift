@@ -16,6 +16,8 @@ final class CustomWord {
     /// 例文は任意（空文字なら穴埋め問題にはならず、例文も表示しない）
     var example: String
     var exampleJa: String
+    /// 2 つ目以降の意味（`[WordSense]` の JSON）。nil は無し。`extraSenses` で読み書きする
+    var extraSensesData: Data?
     var createdAt: Date
     var updatedAt: Date
     /// サーバーと一致していると分かっている `updatedAt`。`updatedAt` と違えば次の同期で送る（nil は未送信）
@@ -28,6 +30,7 @@ final class CustomWord {
         pos: PartOfSpeech,
         example: String = "",
         exampleJa: String = "",
+        extraSenses: [WordSense] = [],
         createdAt: Date,
         updatedAt: Date
     ) {
@@ -37,8 +40,15 @@ final class CustomWord {
         self.pos = pos
         self.example = example
         self.exampleJa = exampleJa
+        self.extraSensesData = WordSense.encodeList(extraSenses)
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    /// 2 つ目以降の意味（品詞の違う意味）
+    var extraSenses: [WordSense] {
+        get { WordSense.decodeList(extraSensesData) }
+        set { extraSensesData = WordSense.encodeList(newValue) }
     }
 
     static func makeId() -> String {
@@ -62,7 +72,8 @@ final class CustomWord {
             level: nil,
             meaning: meaning,
             example: example,
-            exampleJa: exampleJa
+            exampleJa: exampleJa,
+            extraSenses: extraSenses
         )
     }
 }

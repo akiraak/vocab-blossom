@@ -7,6 +7,7 @@ import {
   type PartOfSpeech,
   type SyncRequest,
   type SyncResponse,
+  type WordSense,
   isCustomWordId,
   uniqueIds,
 } from './types.ts'
@@ -63,6 +64,14 @@ export const SYNC_MIGRATION: Migration = {
   },
 }
 
+/** 自作語に 2 つ目以降の意味（`extraSenses`）を足す。前からある語は空（`[]`）になる */
+export const EXTRA_SENSES_MIGRATION: Migration = {
+  name: 'custom-words-extra-senses',
+  up: (db) => {
+    db.exec(`ALTER TABLE custom_words ADD COLUMN extra_senses TEXT NOT NULL DEFAULT '[]'`)
+  },
+}
+
 /** apply* の結果。ignored はサーバーの方が新しい・同じで何もしなかった */
 export type ApplyResult = 'applied' | 'ignored'
 
@@ -82,6 +91,8 @@ type CustomWordRow = {
   pos: string
   example: string
   example_ja: string
+  /** `WordSense[]` の JSON */
+  extra_senses: string
   created_at: number
   updated_at: number
   rev: number
@@ -114,6 +125,7 @@ function toCustomWord(row: CustomWordRow): CustomWord {
     pos: row.pos as PartOfSpeech,
     example: row.example,
     exampleJa: row.example_ja,
+    extraSenses: JSON.parse(row.extra_senses) as WordSense[],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -207,14 +219,17 @@ export class SyncStore {
       this.db
         .prepare(
           `INSERT INTO custom_words
-             (word_id, word, meaning, pos, example, example_ja, created_at, updated_at, rev)
-           VALUES (@wordId, @word, @meaning, @pos, @example, @exampleJa, @createdAt, @updatedAt, @rev)
+             (word_id, word, meaning, pos, example, example_ja, extra_senses,
+              created_at, updated_at, rev)
+           VALUES (@wordId, @word, @meaning, @pos, @example, @exampleJa, @extraSenses,
+                   @createdAt, @updatedAt, @rev)
            ON CONFLICT (word_id) DO UPDATE SET
              word = excluded.word, meaning = excluded.meaning, pos = excluded.pos,
              example = excluded.example, example_ja = excluded.example_ja,
+             extra_senses = excluded.extra_senses,
              created_at = excluded.created_at, updated_at = excluded.updated_at, rev = excluded.rev`,
         )
-        .run({ ...incoming, rev: this.nextRev() })
+        .run({ ...incoming, extraSenses: JSON.stringify(incoming.extraSenses), rev: this.nextRev() })
       if (deletion) this.removeDeletion('customWord', incoming.wordId)
       return 'applied'
     })()
