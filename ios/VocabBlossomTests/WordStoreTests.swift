@@ -58,6 +58,21 @@ struct WordStoreTests {
         )
     }
 
+    @Test("2 つ目以降の意味・例文でも検索でき、一覧の 1 行には品詞ごとの意味を出す")
+    func searchesExtraSenses() throws {
+        let commute = WordEntry(
+            id: "custom-commute", word: "commute", pos: .verb, level: nil, meaning: "通勤する",
+            example: "I commute by bus.", exampleJa: "",
+            extraSenses: [WordSense(pos: .noun, meaning: "通学", example: "My daily trip is long.")]
+        )
+        #expect(WordStore.filter([commute], query: "通学").map(\.id) == ["custom-commute"])
+        #expect(WordStore.filter([commute], query: "daily trip").map(\.id) == ["custom-commute"])
+        #expect(commute.meaningSummary == "動詞: 通勤する／名詞: 通学")
+
+        let apple = try #require(WordStore.shared.allWords.first { $0.word == "apple" })
+        #expect(apple.meaningSummary == apple.meaning)
+    }
+
     @Test("同梱語は意味が 1 つ（データに extraSenses が無くても読める）")
     func bundledWordsHaveOneSense() throws {
         #expect(store.allWords.allSatisfy { $0.extraSenses.isEmpty })

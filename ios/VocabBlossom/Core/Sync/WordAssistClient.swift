@@ -140,6 +140,13 @@ extension EnvironmentValues {
     @Entry var wordAssist: WordAssistClient?
 }
 
+extension WordAssistAPI.Candidate {
+    /// 候補を意味 1 つ分として
+    var sense: WordSense {
+        WordSense(pos: pos, meaning: meaning, example: example, exampleJa: exampleJa)
+    }
+}
+
 extension GroupEditor.WordDraft {
     /// AI の候補を下書きに入れる。`onlyEmpty` なら入力済みの欄は残し、空いている欄だけ埋める
     func applying(_ candidate: WordAssistAPI.Candidate, onlyEmpty: Bool) -> GroupEditor.WordDraft {

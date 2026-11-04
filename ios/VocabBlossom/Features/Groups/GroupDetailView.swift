@@ -17,6 +17,10 @@ struct GroupDetailView: View {
     /// 「単語を選んで外す」の選択モード
     @State private var isSelecting = false
     @State private var selection: Set<String> = []
+    #if DEBUG
+    /// 画面確認用に最初から開く単語詳細
+    @State private var debugDetailWord: WordEntry?
+    #endif
 
     /// フルスクリーンで開くセッション。押した瞬間の内容で固定する
     enum GroupSession: Identifiable {
@@ -139,11 +143,17 @@ struct GroupDetailView: View {
             }
         }
         #if DEBUG
+        .navigationDestination(item: $debugDetailWord) { word in
+            WordDetailView(word: word)
+        }
         .onAppear {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
-            case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult: isPickingWords = true
+            case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult, .wordEditorSenses:
+                isPickingWords = true
+            case .wordDetailSenses:
+                debugDetailWord = words.first { !$0.extraSenses.isEmpty }
             case .groupSelect:
                 isSelecting = true
                 selection = Set(words.prefix(2).map(\.id))

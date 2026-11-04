@@ -74,30 +74,69 @@ struct GroupEditor {
 
     struct WordDraft: Equatable {
         var word = ""
+        /// `meaning`・`pos`・`example`・`exampleJa` は 1 つ目の意味。2 つ目以降は `extraSenses`
         var meaning = ""
         var pos: PartOfSpeech = .noun
         var example = ""
         var exampleJa = ""
+        /// 2 つ目以降の意味（品詞の違う意味）
+        var extraSenses: [WordSense] = []
 
-        /// 英語と意味が入っていれば保存できる
-        var isValid: Bool { !trimmed.word.isEmpty && !trimmed.meaning.isEmpty }
+        /// 1 つ目の意味
+        var primarySense: WordSense {
+            get { WordSense(pos: pos, meaning: meaning, example: example, exampleJa: exampleJa) }
+            set {
+                pos = newValue.pos
+                meaning = newValue.meaning
+                example = newValue.example
+                exampleJa = newValue.exampleJa
+            }
+        }
+
+        /// すべての意味（1 つ目 + 2 つ目以降）。空の配列を入れたときは 1 つ目を空の意味にする
+        var senses: [WordSense] {
+            get { [primarySense] + extraSenses }
+            set {
+                primarySense = newValue.first ?? WordSense(pos: pos, meaning: "")
+                extraSenses = Array(newValue.dropFirst())
+            }
+        }
+
+        /// 英語と、すべての意味の「意味」が入っていれば保存できる
+        var isValid: Bool {
+            let value = trimmed
+            return !value.word.isEmpty && value.senses.allSatisfy { !$0.meaning.isEmpty }
+        }
 
         var trimmed: WordDraft {
-            WordDraft(
-                word: word.trimmingCharacters(in: .whitespacesAndNewlines),
-                meaning: meaning.trimmingCharacters(in: .whitespacesAndNewlines),
-                pos: pos,
-                example: example.trimmingCharacters(in: .whitespacesAndNewlines),
-                exampleJa: exampleJa.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
+            var value = WordDraft(word: word.trimmingCharacters(in: .whitespacesAndNewlines))
+            value.senses = senses.map { sense in
+                WordSense(
+                    pos: sense.pos,
+                    meaning: sense.meaning.trimmingCharacters(in: .whitespacesAndNewlines),
+                    example: sense.example.trimmingCharacters(in: .whitespacesAndNewlines),
+                    exampleJa: sense.exampleJa.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            }
+            return value
         }
+
+        /// 1 つ目の意味の例文は入っているのに、その中に英語（活用形を含む）が見つからない
+        var exampleMissesWord: Bool { exampleMissesWord(in: primarySense) }
 
         /// 例文は入っているのに、その中に英語（活用形を含む）が見つからない。
         /// このときは穴埋め問題にならない（英→日などにフォールバックする）
-        var exampleMissesWord: Bool {
-            let value = trimmed
-            guard !value.word.isEmpty, !value.example.isEmpty else { return false }
-            return Inflector.findHeadword(in: value.example, headword: value.word) == nil
+        func exampleMissesWord(in sense: WordSense) -> Bool {
+            let headword = word.trimmingCharacters(in: .whitespacesAndNewlines)
+            let example = sense.example.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !headword.isEmpty, !example.isEmpty else { return false }
+            return Inflector.findHeadword(in: example, headword: headword) == nil
+        }
+
+        /// 意味を足すときの品詞。まだ使っていない品詞（名詞 → 動詞 → 形容詞 → 副詞の順）にする
+        var nextSensePos: PartOfSpeech {
+            let used = Set(senses.map(\.pos))
+            return [PartOfSpeech.noun, .verb, .adjective, .adverb].first { !used.contains($0) } ?? .noun
         }
 
         /// 単語帳の検索語から作る下書き。英語（ASCII だけ）なら英語欄に、日本語などなら意味欄に入れる
@@ -128,6 +167,7 @@ struct GroupEditor {
             pos: value.pos,
             example: value.example,
             exampleJa: value.exampleJa,
+            extraSenses: value.extraSenses,
             createdAt: now,
             updatedAt: now
         )
@@ -147,6 +187,7 @@ struct GroupEditor {
         custom.pos = value.pos
         custom.example = value.example
         custom.exampleJa = value.exampleJa
+        custom.extraSenses = value.extraSenses
         custom.updatedAt = now
         save()
     }
@@ -211,7 +252,8 @@ struct GroupEditor {
 extension CustomWord {
     var draft: GroupEditor.WordDraft {
         GroupEditor.WordDraft(
-            word: word, meaning: meaning, pos: pos, example: example, exampleJa: exampleJa
+            word: word, meaning: meaning, pos: pos, example: example, exampleJa: exampleJa,
+            extraSenses: extraSenses
         )
     }
 }

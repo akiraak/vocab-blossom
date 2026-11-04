@@ -124,9 +124,9 @@ final class WordStore {
                 rank = 1
             } else if word.word.localizedCaseInsensitiveContains(trimmed) {
                 rank = 2
-            } else if word.meaning.localizedCaseInsensitiveContains(trimmed) {
+            } else if word.senses.contains(where: { $0.meaning.localizedCaseInsensitiveContains(trimmed) }) {
                 rank = 3
-            } else if word.example.localizedCaseInsensitiveContains(trimmed) {
+            } else if word.senses.contains(where: { $0.example.localizedCaseInsensitiveContains(trimmed) }) {
                 rank = 4
             } else {
                 return nil

@@ -18,7 +18,7 @@ enum CefrLevel: String, Codable, CaseIterable, Sendable, Identifiable {
 }
 
 /// 品詞。誤答肢を同じ品詞から選ぶために使う。
-enum PartOfSpeech: String, Codable, CaseIterable, Sendable {
+nonisolated enum PartOfSpeech: String, Codable, CaseIterable, Sendable {
     case noun, verb, adjective, adverb, preposition, conjunction
     case interjection, number, determiner, pronoun, modal, phrase
 
@@ -133,6 +133,12 @@ nonisolated struct WordEntry: Codable, Hashable, Identifiable, Sendable {
 
     /// すべての意味（1 つ目 + 2 つ目以降）
     var senses: [WordSense] { [primarySense] + extraSenses }
+
+    /// 一覧の 1 行に出す意味。意味が 1 つならそのまま、複数なら「動詞: 通勤する／名詞: 通勤」
+    var meaningSummary: String {
+        guard !extraSenses.isEmpty else { return meaning }
+        return senses.map { "\($0.pos.label): \($0.meaning)" }.joined(separator: "／")
+    }
 }
 
 /// デッキ 1 つ（JSON ファイル 1 つ）。

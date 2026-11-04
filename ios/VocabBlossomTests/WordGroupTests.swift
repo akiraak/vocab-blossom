@@ -254,6 +254,46 @@ struct GroupEditorTests {
         #expect(custom.meaning == "犬")
     }
 
+    @Test("意味が複数の自作語を作り・直せる（2 つ目以降も前後の空白を落とす）")
+    func customWordWithSenses() throws {
+        var draft = GroupEditor.WordDraft(word: "commute", meaning: "通勤する", pos: .verb)
+        draft.extraSenses = [WordSense(pos: .noun, meaning: " 通勤 ", example: " My commute is long. ")]
+        let custom = editor.createCustomWord(draft, now: now)
+        #expect(custom.extraSenses == [WordSense(pos: .noun, meaning: "通勤", example: "My commute is long.")])
+        #expect(custom.entry.senses.map(\.pos) == [.verb, .noun])
+        #expect(custom.draft.senses.map(\.meaning) == ["通勤する", "通勤"])
+
+        // 意味を消して 1 つに戻せる
+        var edited = custom.draft
+        edited.senses = [edited.senses[1]]
+        editor.update(custom, with: edited, now: now)
+        #expect(custom.pos == .noun)
+        #expect(custom.meaning == "通勤")
+        #expect(custom.extraSenses.isEmpty)
+        #expect(custom.extraSensesData == nil)
+    }
+
+    @Test("意味が複数の下書き: どれか 1 つでも意味が空なら保存できない。足す意味の品詞はまだ使っていないもの")
+    func draftWithSensesValidation() {
+        var draft = GroupEditor.WordDraft(word: "commute", meaning: "通勤する", pos: .verb)
+        #expect(draft.nextSensePos == .noun)
+        draft.extraSenses = [WordSense(pos: .noun, meaning: " ")]
+        #expect(!draft.isValid)
+        draft.extraSenses[0].meaning = "通勤"
+        #expect(draft.isValid)
+        #expect(draft.nextSensePos == .adjective)
+
+        // 例文の判定は意味ごと
+        draft.extraSenses[0].example = "The trip is long."
+        #expect(draft.exampleMissesWord(in: draft.extraSenses[0]))
+        #expect(!draft.exampleMissesWord)
+
+        // 意味を空にしても 1 つは残る
+        draft.senses = []
+        #expect(draft.senses.count == 1)
+        #expect(draft.extraSenses.isEmpty)
+    }
+
     @Test("自作語を消すと、グループ・進捗・回答ログからも消える")
     func deleteCustomWord() throws {
         let first = editor.createGroup(name: "1", now: now)

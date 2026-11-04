@@ -17,26 +17,70 @@ struct WordAddSession: Equatable {
         let reason: WordAssistAPI.Reason
     }
 
-    /// 新しく作る語の下書き。AI の候補か、自分で作ったもの
+    /// 新しく作る語の下書き。AI の候補か、自分で作ったもの。
+    ///
+    /// AI が同じ綴りで品詞違いの候補（commute の動詞・名詞）を返したら、1 つの下書きに意味としてまとめる。
+    /// 意味ごとに入れる・入れないを選べ、確定では入れる意味だけで 1 つの自作語を作る
     struct NewWord: Equatable, Identifiable {
         let id: UUID
-        var draft: GroupEditor.WordDraft
+        /// すべての意味を持つ下書き
+        private(set) var draft: GroupEditor.WordDraft
         var reason: WordAssistAPI.Reason?
+        /// 意味ごとに入れるか（`draft.senses` と同じ並び）
+        private(set) var includedSenses: [Bool]
 
         init(id: UUID = UUID(), draft: GroupEditor.WordDraft, reason: WordAssistAPI.Reason?) {
             self.id = id
             self.draft = draft
             self.reason = reason
+            self.includedSenses = Array(repeating: true, count: draft.senses.count)
         }
 
-        init(candidate: WordAssistAPI.Candidate) {
-            let draft = GroupEditor.WordDraft().applying(candidate, onlyEmpty: false)
-            self.init(draft: draft, reason: candidate.reason)
+        /// 同じ綴りの候補をまとめる（並びは AI が返した順）
+        init(candidates: [WordAssistAPI.Candidate]) {
+            var draft = GroupEditor.WordDraft()
+            if let first = candidates.first {
+                draft = draft.applying(first, onlyEmpty: false)
+            }
+            draft.extraSenses = candidates.dropFirst().map(\.sense)
+            self.init(draft: draft, reason: candidates.first?.reason)
         }
 
-        /// 同じ綴り・品詞の候補か
+        var hasMultipleSenses: Bool { draft.senses.count > 1 }
+
+        func isIncluded(senseAt index: Int) -> Bool {
+            includedSenses.indices.contains(index) && includedSenses[index]
+        }
+
+        var hasIncludedSense: Bool { includedSenses.contains(true) }
+
+        /// 入れる意味だけの下書き。1 つも入れないなら nil
+        var committedDraft: GroupEditor.WordDraft? {
+            let senses = zip(draft.senses, includedSenses).filter(\.1).map(\.0)
+            guard !senses.isEmpty else { return nil }
+            var value = draft
+            value.senses = senses
+            return value
+        }
+
+        /// 同じ綴りの候補か
         func matches(_ candidate: WordAssistAPI.Candidate) -> Bool {
-            draft.trimmed.word == candidate.word && draft.pos == candidate.pos
+            WordStore.normalizedSpelling(draft.word) == WordStore.normalizedSpelling(candidate.word)
+        }
+
+        mutating func toggleSense(at index: Int) {
+            guard includedSenses.indices.contains(index) else { return }
+            includedSenses[index].toggle()
+        }
+
+        mutating func includeAllSenses() {
+            includedSenses = Array(repeating: true, count: draft.senses.count)
+        }
+
+        /// 直した下書きに差し替える。直したあとの意味はすべて入れる
+        mutating func replaceDraft(_ draft: GroupEditor.WordDraft) {
+            self.draft = draft
+            includeAllSenses()
         }
     }
 
@@ -86,11 +130,29 @@ struct WordAddSession: Equatable {
         }
     }
 
+    /// 新しく作る語の意味を 1 つ入れる・外す。意味を入れたら語も選び、すべて外したら語の選択も外す
+    mutating func toggleSense(_ newWordId: UUID, at index: Int) {
+        guard let wordIndex = newWords.firstIndex(where: { $0.id == newWordId }) else { return }
+        newWords[wordIndex].toggleSense(at: index)
+        let pick = Pick.newWord(newWordId)
+        if newWords[wordIndex].hasIncludedSense {
+            select(pick)
+        } else if let pickIndex = picks.firstIndex(of: pick) {
+            picks.remove(at: pickIndex)
+        }
+    }
+
     /// 選択に加える（すでに選んでいる・追加済みなら何もしない）
     mutating func select(_ pick: Pick) {
         if case .word(let wordId) = pick, isAdded(wordId) { return }
-        if case .newWord(let id) = pick, !newWords.contains(where: { $0.id == id }) { return }
         guard !picks.contains(pick) else { return }
+        if case .newWord(let id) = pick {
+            guard let index = newWords.firstIndex(where: { $0.id == id }) else { return }
+            // 意味をすべて外してあった語を選び直したら、すべての意味を入れ直す
+            if !newWords[index].hasIncludedSense {
+                newWords[index].includeAllSenses()
+            }
+        }
         picks.append(pick)
     }
 
@@ -102,8 +164,9 @@ struct WordAddSession: Equatable {
 
     /// AI の結果を受け取る。調べている最中の文字列と違う（あとから別の語で調べ直した）なら捨てる。
     ///
+    /// 単語帳に無い候補は、同じ綴りのものを 1 つの下書き（意味が複数）にまとめる。
     /// 前の結果のうち選んでいない下書きは消し、選んだ下書きは残す。入力どおりの綴りで単語帳に無い語が返れば、
-    /// 最初の 1 つを選んでおく（そのまま「追加」を押せば済むように）
+    /// その語を選んでおく（そのまま「追加」を押せば済むように）
     mutating func finishAssist(text: String, candidates: [WordAssistAPI.Candidate]) {
         guard assist == .loading(text: text) else { return }
         assist = .done(text: text)
@@ -111,16 +174,34 @@ struct WordAddSession: Equatable {
             candidate.bundled.map { SuggestedWord(id: $0.id, reason: candidate.reason) }
         }
         let kept = newWords.filter { isSelected(.newWord($0.id)) }
-        let fresh = candidates
-            .filter { $0.bundled == nil }
-            // 同じ候補を選んだまま調べ直したときに 2 つ並ばないように
-            .filter { candidate in !kept.contains { $0.matches(candidate) } }
-            .map(NewWord.init(candidate:))
+        let fresh = Self.groupedBySpelling(candidates.filter { $0.bundled == nil })
+            // 同じ綴りの語を選んだまま調べ直したときに 2 つ並ばないように
+            .filter { group in !kept.contains { $0.matches(group[0]) } }
+            .map(NewWord.init(candidates:))
         newWords = kept + fresh
         if let first = candidates.first, first.reason == .exact, first.bundled == nil,
            let created = fresh.first(where: { $0.matches(first) }) {
             select(.newWord(created.id))
         }
+    }
+
+    /// 同じ綴りの候補をまとめる。まとまりの並びは最初に出た順、まとまりの中は AI が返した順。
+    /// 品詞と意味がまったく同じ候補は 1 つにする
+    static func groupedBySpelling(_ candidates: [WordAssistAPI.Candidate]) -> [[WordAssistAPI.Candidate]] {
+        var groups: [[WordAssistAPI.Candidate]] = []
+        for candidate in candidates {
+            let spelling = WordStore.normalizedSpelling(candidate.word)
+            let index = groups.firstIndex { WordStore.normalizedSpelling($0[0].word) == spelling }
+            if let index {
+                let isDuplicate = groups[index].contains {
+                    $0.pos == candidate.pos && $0.meaning == candidate.meaning
+                }
+                if !isDuplicate { groups[index].append(candidate) }
+            } else {
+                groups.append([candidate])
+            }
+        }
+        return groups
     }
 
     mutating func failAssist(text: String, message: String) {
@@ -140,7 +221,7 @@ struct WordAddSession: Equatable {
     /// 下書きを直す。直したら選んだことにする
     mutating func updateNewWord(_ id: UUID, with draft: GroupEditor.WordDraft) {
         guard let index = newWords.firstIndex(where: { $0.id == id }) else { return }
-        newWords[index].draft = draft
+        newWords[index].replaceDraft(draft)
         select(.newWord(id))
     }
 
@@ -156,17 +237,18 @@ struct WordAddSession: Equatable {
 
     // MARK: - 確定
 
-    /// 選んだ順に、新しく作る語は `createCustomWord` で自作語にして、グループの末尾に足す語の ID を返す
+    /// 選んだ順に、新しく作る語は `createCustomWord` で自作語にして、グループの末尾に足す語の ID を返す。
+    /// 新しく作る語は、入れると選んだ意味だけで作る
     func commit(createCustomWord: (GroupEditor.WordDraft) -> String) -> [String] {
         picks.compactMap { pick in
             switch pick {
             case .word(let wordId):
                 return wordId
             case .newWord(let id):
-                guard let newWord = newWords.first(where: { $0.id == id }), newWord.draft.isValid else {
+                guard let draft = newWords.first(where: { $0.id == id })?.committedDraft, draft.isValid else {
                     return nil
                 }
-                return createCustomWord(newWord.draft)
+                return createCustomWord(draft)
             }
         }
     }

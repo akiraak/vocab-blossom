@@ -52,7 +52,7 @@ struct WordAddSessionTests {
         #expect(recorder.created.isEmpty)
     }
 
-    @Test("AI の結果: 単語帳の語は案内に、無い語は下書きにし、入力どおりの最初の 1 つを選んでおく")
+    @Test("AI の結果: 単語帳の語は案内に、無い語は同じ綴りを 1 つの下書きにまとめ、入力どおりの語を選んでおく")
     func assistResultSplitsCandidates() throws {
         var session = WordAddSession(addedIds: [])
         session.startAssist(text: "commute")
@@ -63,11 +63,14 @@ struct WordAddSessionTests {
         ])
         #expect(session.assist == .done(text: "commute"))
         #expect(session.suggestedWords == [.init(id: "a2-0100", reason: .typo)])
-        #expect(session.newWords.map(\.draft.pos) == [.verb, .noun])
-        let verb = try #require(session.newWords.first)
-        #expect(verb.draft.meaning == "通勤する")
-        #expect(verb.draft.example == "I commute to work.")
-        #expect(session.isSelected(.newWord(verb.id)))
+        #expect(session.newWords.count == 1)
+        let commute = try #require(session.newWords.first)
+        #expect(commute.draft.senses.map(\.pos) == [.verb, .noun])
+        #expect(commute.draft.senses.map(\.meaning) == ["通勤する", "通勤"])
+        #expect(commute.draft.example == "I commute to work.")
+        #expect(commute.hasMultipleSenses)
+        #expect(commute.isIncluded(senseAt: 0) && commute.isIncluded(senseAt: 1))
+        #expect(session.isSelected(.newWord(commute.id)))
         #expect(session.pickCount == 1)
     }
 
@@ -82,7 +85,7 @@ struct WordAddSessionTests {
         #expect(session.newWords.isEmpty)
     }
 
-    @Test("確定で、選んだ下書きだけを自作語にして選んだ順に返す")
+    @Test("確定で、選んだ下書きだけを自作語にして選んだ順に返す。意味はまとめて 1 語になる")
     func commitCreatesSelectedNewWords() throws {
         var session = WordAddSession(addedIds: ["a1-0001"])
         session.toggle(.word("a1-0002"))
@@ -96,7 +99,68 @@ struct WordAddSessionTests {
         let ids = session.commit(createCustomWord: recorder.create)
         #expect(ids == ["a1-0002", "custom-1", "a1-0003"])
         #expect(recorder.created.count == 1)
-        #expect(recorder.created.first?.pos == .verb)
+        let created = try #require(recorder.created.first)
+        #expect(created.pos == .verb)
+        #expect(created.extraSenses.map(\.pos) == [.noun])
+        #expect(created.extraSenses.map(\.meaning) == ["通勤"])
+    }
+
+    @Test("意味ごとに入れる・入れないを選べ、確定では入れた意味だけで作る")
+    func toggleSenses() throws {
+        var session = WordAddSession(addedIds: [])
+        session.startAssist(text: "commute")
+        session.finishAssist(text: "commute", candidates: [
+            candidate("commute", pos: .verb),
+            candidate("commute", pos: .noun, meaning: "通勤"),
+        ])
+        let id = try #require(session.newWords.first?.id)
+
+        // 1 つ目（動詞）を外すと、名詞だけで作る
+        session.toggleSense(id, at: 0)
+        #expect(session.isSelected(.newWord(id)))
+        let recorder = Recorder()
+        _ = session.commit(createCustomWord: recorder.create)
+        let created = try #require(recorder.created.first)
+        #expect(created.pos == .noun)
+        #expect(created.meaning == "通勤")
+        #expect(created.extraSenses.isEmpty)
+
+        // すべて外すと語の選択も外れる
+        session.toggleSense(id, at: 1)
+        #expect(!session.isSelected(.newWord(id)))
+        #expect(session.pickCount == 0)
+
+        // 意味を 1 つ入れ直すと、語も選んだことになる
+        session.toggleSense(id, at: 1)
+        #expect(session.isSelected(.newWord(id)))
+        #expect(session.newWords.first?.committedDraft?.senses.map(\.pos) == [.noun])
+    }
+
+    @Test("意味をすべて外した語を選び直すと、すべての意味を入れ直す")
+    func reselectIncludesAllSenses() throws {
+        var session = WordAddSession(addedIds: [])
+        session.startAssist(text: "commute")
+        session.finishAssist(text: "commute", candidates: [
+            candidate("commute", pos: .verb),
+            candidate("commute", pos: .noun, meaning: "通勤"),
+        ])
+        let id = try #require(session.newWords.first?.id)
+        session.toggleSense(id, at: 0)
+        session.toggleSense(id, at: 1)
+        session.toggle(.newWord(id))
+        #expect(session.newWords.first?.committedDraft?.senses.map(\.pos) == [.verb, .noun])
+    }
+
+    @Test("同じ綴りのまとめ: 大小文字は区別せず、品詞と意味が同じ候補は 1 つにする")
+    func groupedBySpelling() {
+        let groups = WordAddSession.groupedBySpelling([
+            candidate("commute", pos: .verb),
+            candidate("hobby", pos: .noun, meaning: "趣味"),
+            candidate("Commute", pos: .noun, meaning: "通勤"),
+            candidate("commute", pos: .verb),
+        ])
+        #expect(groups.map { $0.map(\.pos) } == [[.verb, .noun], [.noun]])
+        #expect(groups.map { $0[0].word } == ["commute", "hobby"])
     }
 
     @Test("あとから別の語で調べ直したら、前の結果は捨てる")
@@ -124,7 +188,8 @@ struct WordAddSessionTests {
             candidate("commute", pos: .verb),
             candidate("commute", pos: .noun, meaning: "通勤"),
         ])
-        #expect(session.newWords.map(\.draft.pos) == [.verb, .noun])
+        #expect(session.newWords.map(\.draft.word) == ["commute"])
+        #expect(session.newWords.first?.draft.senses.map(\.pos) == [.verb, .noun])
         #expect(session.pickCount == 1)
 
         session.startAssist(text: "hobby")
@@ -133,7 +198,7 @@ struct WordAddSessionTests {
         #expect(session.pickCount == 2)
     }
 
-    @Test("下書きを直すと選んだことになり、確定では直した内容で作る")
+    @Test("下書きを直すと選んだことになり、確定では直した内容（すべての意味）で作る")
     func updateNewWord() throws {
         var session = WordAddSession(addedIds: [])
         session.startAssist(text: "commute")
@@ -141,14 +206,16 @@ struct WordAddSessionTests {
             candidate("commute", pos: .verb),
             candidate("commute", pos: .noun, meaning: "通勤"),
         ])
-        let noun = try #require(session.newWords.last)
-        var fixed = noun.draft
-        fixed.meaning = "通勤、通学"
-        session.updateNewWord(noun.id, with: fixed)
-        #expect(session.isSelected(.newWord(noun.id)))
+        let commute = try #require(session.newWords.first)
+        session.toggle(.newWord(commute.id))
+        session.toggleSense(commute.id, at: 1)
+        var fixed = commute.draft
+        fixed.extraSenses[0].meaning = "通勤、通学"
+        session.updateNewWord(commute.id, with: fixed)
+        #expect(session.isSelected(.newWord(commute.id)))
         let recorder = Recorder()
         _ = session.commit(createCustomWord: recorder.create)
-        #expect(recorder.created.map(\.meaning) == ["通勤する", "通勤、通学"])
+        #expect(recorder.created.first?.senses.map(\.meaning) == ["通勤する", "通勤、通学"])
     }
 
     @Test("下書きの代わりに単語帳の語を選べる")

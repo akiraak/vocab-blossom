@@ -115,7 +115,7 @@ struct WordRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(word.word)
                     .font(.body.weight(.medium))
-                Text(word.meaning)
+                Text(word.meaningSummary)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -130,7 +130,7 @@ struct WordRow: View {
         .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "\(word.word)、\(word.meaning)、\(GrowthStage(stage: stage).label)"
+            "\(word.word)、\(word.meaningSummary)、\(GrowthStage(stage: stage).label)"
         )
     }
 }

@@ -145,7 +145,7 @@ struct WordPickerView: View {
                             badge("マイ単語")
                         }
                     }
-                    Text(word.meaning)
+                    Text(word.meaningSummary)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -166,7 +166,9 @@ struct WordPickerView: View {
         }
         .buttonStyle(.plain)
         .disabled(isAdded)
-        .accessibilityLabel(isAdded ? "\(word.word)、\(word.meaning)、追加済み" : "\(word.word)、\(word.meaning)")
+        .accessibilityLabel(
+            isAdded ? "\(word.word)、\(word.meaningSummary)、追加済み" : "\(word.word)、\(word.meaningSummary)"
+        )
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
@@ -226,7 +228,7 @@ struct WordPickerView: View {
             }
         } footer: {
             if !session.newWords.isEmpty {
-                Text("「新しく作る」の語は、選んで「追加」するとマイ単語になります。内容を確かめ、違うところは「直す」で直してください。")
+                Text("「新しく作る」の語は、選んで「追加」するとマイ単語になります。意味が複数あるときは、入れる意味だけにチェックを付けてください。違うところは「直す」で直せます。")
             }
         }
     }
@@ -235,48 +237,108 @@ struct WordPickerView: View {
         let isSelected = session.isSelected(.newWord(newWord.id))
         let draft = newWord.draft
         return HStack(alignment: .top, spacing: 12) {
-            Button {
-                session.toggle(.newWord(newWord.id))
-            } label: {
-                HStack(alignment: .top, spacing: 12) {
-                    checkmark(isSelected: isSelected, isAdded: false)
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text(draft.word)
-                                .font(.body.weight(.semibold))
-                            Text(draft.pos.label)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            badge("新しく作る")
+            VStack(alignment: .leading, spacing: 6) {
+                Button {
+                    session.toggle(.newWord(newWord.id))
+                } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                        checkmark(isSelected: isSelected, isAdded: false)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text(draft.word)
+                                    .font(.body.weight(.semibold))
+                                if !newWord.hasMultipleSenses {
+                                    Text(draft.pos.label)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                badge("新しく作る")
+                            }
+                            if !newWord.hasMultipleSenses {
+                                senseText(draft.primarySense)
+                            }
+                            if let label = newWord.reason?.label {
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
                         }
-                        Text(draft.meaning)
-                            .font(.subheadline)
-                        if let label = newWord.reason?.label {
-                            Text(label)
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                        }
-                        if !draft.example.isEmpty {
-                            Text(draft.example)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        Spacer(minLength: 0)
                     }
-                    Spacer(minLength: 0)
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .accessibilityLabel(newWordLabel(newWord))
+                .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+
+                if newWord.hasMultipleSenses {
+                    ForEach(Array(draft.senses.enumerated()), id: \.offset) { index, sense in
+                        senseRow(newWord, sense: sense, index: index, wordSelected: isSelected)
+                    }
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("\(draft.word)、\(draft.pos.label)、\(draft.meaning)、新しく作る")
-            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
 
             Button("直す") {
-                editing = Editing(newWordId: newWord.id, draft: draft, posConfirmed: true)
+                // 入れる意味だけをエディタに渡す（外した意味は直す対象にしない）
+                let editable = newWord.committedDraft ?? draft
+                editing = Editing(newWordId: newWord.id, draft: editable, posConfirmed: true)
             }
             .font(.footnote.weight(.semibold))
             .buttonStyle(.borderless)
         }
         .padding(.vertical, 2)
+    }
+
+    /// 意味が複数あるときの 1 つ分。意味ごとに入れる・入れないを選べる
+    private func senseRow(
+        _ newWord: WordAddSession.NewWord, sense: WordSense, index: Int, wordSelected: Bool
+    ) -> some View {
+        let isIncluded = wordSelected && newWord.isIncluded(senseAt: index)
+        return Button {
+            session.toggleSense(newWord.id, at: index)
+        } label: {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: isIncluded ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(isIncluded ? Theme.accent : Color.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(sense.pos.label)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(sense.meaning)
+                            .font(.subheadline)
+                    }
+                    if !sense.example.isEmpty {
+                        Text(sense.example)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.leading, 36)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(sense.pos.label)、\(sense.meaning)")
+        .accessibilityAddTraits(isIncluded ? [.isButton, .isSelected] : .isButton)
+    }
+
+    @ViewBuilder
+    private func senseText(_ sense: WordSense) -> some View {
+        Text(sense.meaning)
+            .font(.subheadline)
+        if !sense.example.isEmpty {
+            Text(sense.example)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func newWordLabel(_ newWord: WordAddSession.NewWord) -> String {
+        let draft = newWord.draft
+        let senses = draft.senses.map { "\($0.pos.label)、\($0.meaning)" }.joined(separator: "、")
+        return "\(draft.word)、\(senses)、新しく作る"
     }
 
     private func makeYourselfButton(_ text: String) -> some View {
@@ -378,6 +440,10 @@ struct WordPickerView: View {
         case .wordEditor:
             query = DebugSeed.demoMissingQuery
             editing = Editing(newWordId: nil, draft: DebugSeed.demoDraft, posConfirmed: false)
+        case .wordEditorSenses:
+            query = DebugSeed.demoMissingQuery
+            let draft = WordAddSession.NewWord(candidates: DebugSeed.demoCandidates).draft
+            editing = Editing(newWordId: nil, draft: draft, posConfirmed: true)
         default:
             return false
         }

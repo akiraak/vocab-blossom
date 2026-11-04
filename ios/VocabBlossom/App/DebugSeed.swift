@@ -44,11 +44,16 @@ enum DebugSeed {
         case wordEditor = "word-editor"
         case wordEditorLoading = "word-editor-loading"
         case wordAssistResult = "word-assist-result"
+        /// 意味が 2 つある下書きのエディタ
+        case wordEditorSenses = "word-editor-senses"
+        /// 意味が 2 つある自作語（cram）の単語詳細
+        case wordDetailSenses = "word-detail-senses"
 
         var seedsGroups: Bool {
             switch self {
             case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
-                 .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult:
+                 .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
+                 .wordEditorSenses, .wordDetailSenses:
                 true
             default: false
             }
@@ -81,7 +86,8 @@ enum DebugSeed {
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
         [.groupDetail, .groupLearn, .groupDrill, .groupSelect,
-         .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult]
+         .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
+         .wordEditorSenses, .wordDetailSenses]
             .contains(variant)
     }
 
@@ -95,7 +101,8 @@ enum DebugSeed {
         case .stats: .stats
         case .settings: .settings
         case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
-             .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult:
+             .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
+             .wordEditorSenses, .wordDetailSenses:
             .groups
         default: nil
         }
@@ -227,6 +234,22 @@ enum DebugSeed {
         )
         editor.createCustomWord(
             GroupEditor.WordDraft(word: "homeroom", meaning: "ホームルーム", pos: .noun),
+            addingTo: unit,
+            now: now
+        )
+        // 意味が 2 つ（動詞・名詞）ある自作語
+        editor.createCustomWord(
+            GroupEditor.WordDraft(
+                word: "cram", meaning: "詰め込み勉強をする", pos: .verb,
+                example: "I crammed for the test last night.", exampleJa: "昨夜はテストのために詰め込み勉強をした。",
+                extraSenses: [
+                    WordSense(
+                        pos: .noun, meaning: "詰め込み勉強",
+                        example: "A cram before the test doesn't help much.",
+                        exampleJa: "テスト前の詰め込み勉強はあまり役に立たない。"
+                    ),
+                ]
+            ),
             addingTo: unit,
             now: now
         )
