@@ -133,6 +133,9 @@
   AI への指示に「単語帳に無い語が複数の品詞でよく使われるなら、品詞ごとに候補を返す（1 語 3 つまで）」を追加
 - ローカルで本番と同じモデルに聞いて確認: commute → 動詞・名詞の 2 つ。cram → 動詞と cream（打ち間違い候補）。beautifull・hobby は従来どおり
 
+- g3plus へ反映済み（2026-11-03。`04da7be`。単語の追加 Phase 2 の管理画面も入った。マイグレーション無し）。
+  healthy、起動ログ `admin: on, ai: on`、`/health` 200・`/api/ping` 401（Bearer ありで 200）・`/api/sync` 200・`/admin/groups` は外から Access へ 302
+
 ## 影響範囲
 
 - iOS: `Models/WordEntry.swift`・`CustomWord.swift`、`Core/GroupEditor.swift`・`QuizBuilder.swift`・`BackupArchive.swift`、
