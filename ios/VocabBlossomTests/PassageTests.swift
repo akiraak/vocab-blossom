@@ -1,0 +1,225 @@
+import Foundation
+import Testing
+
+@testable import VocabBlossom
+
+nonisolated private let config = ServerConfig(
+    baseURL: URL(string: "https://vocab.example.com")!, apiKey: "secret"
+)
+
+/// commute（動詞: 通勤する／名詞: 通勤）。例文はどちらも空欄にできない
+nonisolated private let commute = WordEntry(
+    id: "custom-commute", word: "commute", pos: .verb, level: nil, meaning: "通勤する",
+    example: "I go by bus.", exampleJa: "",
+    extraSenses: [WordSense(pos: .noun, meaning: "通勤", example: "The trip is long.")]
+)
+
+nonisolated private func passages(_ word: String, _ count: Int = 3) -> [Passage] {
+    (1...count).map { Passage(text: "Story \($0). I \(word) every day, so I am tired.", ja: "話 \($0)。") }
+}
+
+@Suite("穴埋めの文章: 出題")
+struct PassageQuizTests {
+    let store = WordStore.shared
+
+    private func word(_ id: String) throws -> WordEntry {
+        try #require(store.word(id: id))
+    }
+
+    @Test("文章があれば例文より優先し、空欄にした文章と元の文章を持つ")
+    func usesPassages() throws {
+        let target = try word("a1-0004")  // action: He is a man of action.
+        let text = "Tom never waits. He is a man of action, so he starts work at once."
+        let lookup: PassageLookup = { entry, _ in
+            entry.id == "a1-0004" ? [Passage(text: text, ja: "トムは待たない。")] : []
+        }
+        var builder = QuizBuilder(store: store, passages: lookup, rng: SeededRNG(seed: 3))
+        let quiz = builder.make(for: target, type: .fillBlank)
+        #expect(quiz.type == .fillBlank)
+        #expect(quiz.passage?.text == text)
+        let expected = "Tom never waits. He is a man of \(Quiz.blankPlaceholder), so he starts work at once."
+        #expect(quiz.blankedExample == expected)
+    }
+
+    @Test("空欄にできない文章は使わず、例文で出す")
+    func skipsUnblankablePassages() throws {
+        let target = try word("a1-0004")
+        let lookup: PassageLookup = { _, _ in [Passage(text: "No headword here at all.", ja: "なし。")] }
+        var builder = QuizBuilder(store: store, passages: lookup, rng: SeededRNG(seed: 3))
+        let quiz = builder.make(for: target, type: .fillBlank)
+        #expect(quiz.type == .fillBlank)
+        #expect(quiz.passage == nil)
+        #expect(quiz.blankedExample?.hasPrefix("He is a man of") == true)
+    }
+
+    @Test("意味ごとの文章から選び、出題する意味はその文章の意味にする")
+    func passagesPerSense() {
+        let lookup: PassageLookup = { _, sense in
+            let text = "The trains are full. My commute is long and tiring."
+            return sense.pos == .noun ? [Passage(text: text, ja: "通勤。")] : []
+        }
+        let store = store.including(customWords: [commute])
+        for seed in 1...5 {
+            var builder = QuizBuilder(store: store, passages: lookup, rng: SeededRNG(seed: UInt64(seed)))
+            let quiz = builder.make(for: commute, type: .fillBlank)
+            #expect(quiz.type == .fillBlank)
+            #expect(quiz.sense.pos == .noun)
+            #expect(quiz.passage != nil)
+        }
+    }
+
+    @Test("例文で空欄にできなくても、文章があれば穴埋めで出せる")
+    func canFillBlankWithPassages() {
+        #expect(!QuizBuilder.canFillBlank(commute))
+        #expect(QuizBuilder.canFillBlank(commute) { _, _ in passages("commute") })
+        #expect(!QuizBuilder.canFillBlank(commute) { _, _ in [Passage(text: "Nothing here.", ja: "なし。")] })
+    }
+}
+
+@Suite("穴埋めの文章: 端末のキャッシュ")
+struct PassageCacheTests {
+    @Test("鍵は綴り（大小文字は区別しない）・品詞・意味。意味を直すと別の鍵")
+    func keys() {
+        let sense = WordSense(pos: .verb, meaning: "通勤する")
+        #expect(Passages.key(word: " Commute ", sense: sense) == "commute\tverb\t通勤する")
+        #expect(Passages.key(word: "commute", sense: WordSense(pos: .verb, meaning: "通う"))
+            != Passages.key(word: "commute", sense: sense))
+    }
+
+    @Test("ためた文章をファイルに書き、開き直しても読める。空の文章は入れない")
+    func persists() throws {
+        let url = FileManager.default.temporaryDirectory.appending(path: "passages-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let sense = WordSense(pos: .verb, meaning: "通勤する")
+        let cache = PassageCache(fileURL: url)
+        cache.store([
+            Passages.key(word: "commute", sense: sense): passages("commute"),
+            Passages.key(word: "walk", sense: WordSense(pos: .verb, meaning: "歩く")): [],
+        ])
+        #expect(cache.contains(word: "Commute", sense: sense))
+
+        let reopened = PassageCache(fileURL: url)
+        #expect(reopened.passages(word: "commute", sense: sense) == passages("commute"))
+        #expect(!reopened.contains(word: "walk", sense: WordSense(pos: .verb, meaning: "歩く")))
+    }
+}
+
+/// 呼ばれた語を記録し、決めた返事を返す偽物
+private final class FakeFetcher: PassageFetching, @unchecked Sendable {
+    private let lock = NSLock()
+    private var calls: [[String]] = []
+    let respond: @Sendable ([PassageAPI.Word]) throws -> [PassageAPI.Result]
+
+    init(respond: @escaping @Sendable ([PassageAPI.Word]) throws -> [PassageAPI.Result]) {
+        self.respond = respond
+    }
+
+    var recordedCalls: [[String]] { lock.withLock { calls } }
+
+    func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result] {
+        lock.withLock { calls.append(words.map(\.id)) }
+        return try respond(words)
+    }
+}
+
+@Suite("穴埋めの文章: 始める前に作る")
+@MainActor
+struct PassagePreparationTests {
+    let store = WordStore.shared
+
+    @Test("文章の無い語・意味だけを、意味ごとに 1 件で並べる")
+    func missingWords() throws {
+        let action = try #require(store.word(id: "a1-0004"))
+        let cache = PassageCache(fileURL: nil)
+        cache.store([Passages.key(word: "commute", sense: commute.primarySense): passages("commute")])
+
+        let missing = PassagePreparation.missingWords([action, commute], cache: cache)
+        #expect(missing.map(\.id) == ["a1-0004#0", "custom-commute#1"])
+        #expect(missing[1].pos == .noun)
+        #expect(missing[1].meaning == "通勤")
+        #expect(missing[1].example == "The trip is long.")
+    }
+
+    @Test("3 語ずつ送り、返ってきた文章をためる。作れなかった語は failed で、ほかは続ける")
+    func runsInChunks() async throws {
+        let requests = (0..<7).map {
+            PassageAPI.Word(id: "w\($0)", word: "word\($0)", pos: .noun, meaning: "意味\($0)", example: "")
+        }
+        let fetcher = FakeFetcher { words in
+            words.map { PassageAPI.Result(id: $0.id, passages: $0.id == "w5" ? [] : passages($0.word)) }
+        }
+        let cache = PassageCache(fileURL: nil)
+        let preparation = PassagePreparation(requests: requests)
+        #expect(preparation.total == 7)
+        #expect(preparation.doneCount == 0)
+
+        await preparation.run(fetcher: fetcher, cache: cache)
+
+        #expect(fetcher.recordedCalls.map(\.count).sorted() == [1, 3, 3])
+        #expect(preparation.phase == .finished(failedCount: 1))
+        #expect(preparation.doneCount == 7)
+        #expect(preparation.items.first { $0.id == "w5" }?.state == .failed)
+        #expect(cache.contains(word: "word0", sense: WordSense(pos: .noun, meaning: "意味0")))
+        #expect(!cache.contains(word: "word5", sense: WordSense(pos: .noun, meaning: "意味5")))
+    }
+
+    @Test("すべて失敗したら failed にし、もう一度で作り直せる")
+    func failsThenRetries() async {
+        let requests = [PassageAPI.Word(id: "a#0", word: "apple", pos: .noun, meaning: "りんご", example: "")]
+        let cache = PassageCache(fileURL: nil)
+        let preparation = PassagePreparation(requests: requests)
+
+        await preparation.run(fetcher: FakeFetcher { _ in throw WordAssistError.offline }, cache: cache)
+        #expect(preparation.phase == .failed(message: WordAssistError.offline.localizedDescription))
+
+        await preparation.run(fetcher: FakeFetcher { words in
+            words.map { PassageAPI.Result(id: $0.id, passages: passages("apple")) }
+        }, cache: cache)
+        #expect(preparation.phase == .finished(failedCount: 0))
+        #expect(preparation.items.map(\.state) == [.done])
+    }
+
+    @Test("意味が複数ある語のチップには意味を添える")
+    func detailForMultiSense() {
+        let missing = PassagePreparation.missingWords([commute], cache: PassageCache(fileURL: nil))
+        let preparation = PassagePreparation(requests: missing)
+        #expect(preparation.items.map(\.detail) == ["通勤する", "通勤"])
+    }
+}
+
+@Suite("穴埋めの文章: 通信")
+struct PassageClientTests {
+    @Test("Bearer つきで語を送り、文章を読み取る")
+    func sendsAndDecodes() async throws {
+        let sent = RequestCapture()
+        let session = StubURLProtocol.session { request, body in
+            sent.set(request, body)
+            let body = #"{"results":[{"id":"a#0","passages":[{"text":"t","ja":"j"}]},"#
+                + #"{"id":"b#0","passages":[]}]}"#
+            return (200, Data(body.utf8))
+        }
+        let words = [
+            PassageAPI.Word(id: "a#0", word: "apple", pos: .noun, meaning: "りんご", example: "I eat an apple."),
+            PassageAPI.Word(id: "b#0", word: "run", pos: .verb, meaning: "走る", example: ""),
+        ]
+        let results = try await PassageClient(config: config, session: session).fetch(words)
+
+        let (request, body) = try #require(sent.value)
+        #expect(request.url?.absoluteString == "https://vocab.example.com/api/passages")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer secret")
+        let sentBody = try JSONDecoder().decode([String: [PassageAPI.Word]].self, from: body)
+        #expect(sentBody["words"] == words)
+        #expect(results == [
+            PassageAPI.Result(id: "a#0", passages: [Passage(text: "t", ja: "j")]),
+            PassageAPI.Result(id: "b#0", passages: []),
+        ])
+    }
+
+    @Test("状態コードは AI チェックと同じエラーに分ける")
+    func mapsStatus() async {
+        let session = StubURLProtocol.session { _, _ in (503, Data("{}".utf8)) }
+        await #expect(throws: WordAssistError.unavailable) {
+            _ = try await PassageClient(config: config, session: session).fetch([])
+        }
+    }
+}

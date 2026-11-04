@@ -292,6 +292,19 @@ struct QuizBuilderTests {
         #expect(quiz.blankedExample == nil)
     }
 
+    @Test("穴埋めで出せるかは、どれかの意味の例文に見出し語があるかで決まる")
+    func canFillBlank() throws {
+        #expect(QuizBuilder.canFillBlank(try word("a1-0004")))
+        #expect(QuizBuilder.canFillBlank(try word("a1-0821")))  // spend → spent
+        #expect(QuizBuilder.canFillBlank(commute(blankable: [.noun])))  // 2 つ目の意味だけ空欄にできる
+        #expect(!QuizBuilder.canFillBlank(commute(blankable: [])))
+        let noExample = WordEntry(
+            id: "custom-x", word: "homeroom", pos: .noun, level: nil, meaning: "ホームルーム",
+            example: "", exampleJa: ""
+        )
+        #expect(!QuizBuilder.canFillBlank(noExample))
+    }
+
     @Test("ステージ指定なら形式は SRS の対応表に従う")
     func makeByStageUsesSrsMapping() throws {
         var builder = builder()

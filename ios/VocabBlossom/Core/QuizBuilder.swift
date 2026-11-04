@@ -14,6 +14,8 @@ struct Quiz: Identifiable {
     let choices: [WordEntry]
     /// 穴埋めの問題文（`type == .fillBlank` のときだけ入る）
     let blankedExample: String?
+    /// 穴埋めに使った文章（例文で出したときは nil）。答えたあと全文と和訳を見せる
+    let passage: Passage?
 
     static let blankPlaceholder = "＿＿＿＿"
 
@@ -22,13 +24,15 @@ struct Quiz: Identifiable {
         sense: WordSense? = nil,
         type: QuizType,
         choices: [WordEntry],
-        blankedExample: String?
+        blankedExample: String?,
+        passage: Passage? = nil
     ) {
         self.word = word
         self.sense = sense ?? word.primarySense
         self.type = type
         self.choices = choices
         self.blankedExample = blankedExample
+        self.passage = passage
     }
 
     var answerIndex: Int { choices.firstIndex(of: word) ?? 0 }
@@ -74,15 +78,19 @@ struct QuizBuilder {
     let store: WordStore
     /// グループごとの単語 ID の並び。自作語の誤答肢を同じグループの語から優先して選ぶのに使う
     let groups: [[String]]
+    /// 穴埋め用の文章（端末にためたもの）。あれば例文より優先して使う
+    let passages: PassageLookup
     var rng: any RandomNumberGenerator
 
     init(
         store: WordStore,
         groups: [[String]] = [],
+        passages: @escaping PassageLookup = Passages.none,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator()
     ) {
         self.store = store
         self.groups = groups
+        self.passages = passages
         self.rng = rng
     }
 
@@ -93,18 +101,29 @@ struct QuizBuilder {
 
     /// 形式を指定して 1 問作る（新規学習の直後クイズは常に英→日）。
     ///
-    /// 意味が複数ある語は、出題する意味を 1 つ選ぶ。穴埋めは空欄にできる例文のある意味から選び、
+    /// 意味が複数ある語は、出題する意味を 1 つ選ぶ。穴埋めは空欄にできる文章（無ければ例文）から 1 つ選び、
     /// どの意味でも空欄にできなければ英→日にフォールバックする
     mutating func make(for word: WordEntry, type requestedType: QuizType) -> Quiz {
         var type = requestedType
         var blanked: String?
+        var passage: Passage?
         var sense = pickSense(from: word.senses)
 
         if type == .fillBlank {
-            let blankable = word.senses.compactMap { sense in
+            let fromPassages = word.senses.flatMap { sense in
+                passages(word, sense).compactMap { candidate in
+                    Self.blank(candidate.text, headword: word.word)
+                        .map { (sense: sense, text: $0, passage: candidate) }
+                }
+            }
+            let fromExamples = word.senses.compactMap { sense in
                 blankedExample(for: word, sense: sense).map { (sense: sense, text: $0) }
             }
-            if let picked = pickSense(from: blankable) {
+            if let picked = pickSense(from: fromPassages) {
+                sense = picked.sense
+                blanked = picked.text
+                passage = picked.passage
+            } else if let picked = pickSense(from: fromExamples) {
                 sense = picked.sense
                 blanked = picked.text
             } else {
@@ -114,12 +133,28 @@ struct QuizBuilder {
         }
 
         let choices = (distractors(for: word, sense: sense) + [word]).shuffled(using: &rng)
-        return Quiz(word: word, sense: sense, type: type, choices: choices, blankedExample: blanked)
+        return Quiz(
+            word: word, sense: sense, type: type, choices: choices, blankedExample: blanked, passage: passage
+        )
     }
 
     /// 1 つなら乱数を使わずにそれを返す（意味が 1 つの語で、これまでと同じ乱数の並びにする）
     private mutating func pickSense<T>(from items: [T]) -> T? {
         items.count > 1 ? items.randomElement(using: &rng) : items.first
+    }
+
+    /// どれかの意味の文章か例文で見出し語を空欄にできるか（穴埋めで出せるか）
+    static func canFillBlank(_ word: WordEntry, passages: PassageLookup = Passages.none) -> Bool {
+        word.senses.contains { sense in
+            blank(sense.example, headword: word.word) != nil
+                || passages(word, sense).contains { blank($0.text, headword: word.word) != nil }
+        }
+    }
+
+    /// 文中の見出し語（活用形を含む）を空欄にする。見つからなければ nil
+    static func blank(_ text: String, headword: String) -> String? {
+        guard let range = Inflector.findHeadword(in: text, headword: headword) else { return nil }
+        return text.replacingCharacters(in: range, with: Quiz.blankPlaceholder)
     }
 
     /// 例文中の該当語を空欄にする。見つからなければ nil
@@ -129,10 +164,7 @@ struct QuizBuilder {
 
     /// 意味の例文中の該当語を空欄にする。見つからなければ nil
     func blankedExample(for word: WordEntry, sense: WordSense) -> String? {
-        guard let range = Inflector.findHeadword(in: sense.example, headword: word.word) else {
-            return nil
-        }
-        return sense.example.replacingCharacters(in: range, with: Quiz.blankPlaceholder)
+        Self.blank(sense.example, headword: word.word)
     }
 
     /// 誤答肢を 3 つ選ぶ。優先するプールから取れるだけ取り、足りない分を次のプールで埋める。

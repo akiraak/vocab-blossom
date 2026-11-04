@@ -7,6 +7,7 @@ import Observation
 /// キューとして持ち、回答のたびに即保存する（中断してもやり直しにならない）。
 ///
 /// ドリル（`Mode.drill`）は「全語クイズ → 再出題 → 締め」だけで、進捗も回答ログも残さない。
+/// 形式を固定したドリル（穴埋めモードなど）も同じ流れ。
 @Observable
 final class SessionRunner {
     enum Mode: Equatable {
@@ -56,6 +57,8 @@ final class SessionRunner {
     }
 
     let mode: Mode
+    /// ドリルで固定する出題形式。nil ならステージで決める
+    let drillQuizType: QuizType?
     private(set) var step: Step = .summary
     private(set) var stats = Stats()
     /// 回答済みなら選んだ選択肢の位置。未回答は nil
@@ -75,6 +78,7 @@ final class SessionRunner {
         engine: LearningEngine,
         store: WordStore = .shared,
         groups: [[String]] = [],
+        passages: @escaping PassageLookup = Passages.none,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
@@ -82,7 +86,8 @@ final class SessionRunner {
         self.store = store
         self.clock = clock
         mode = .learning
-        builder = QuizBuilder(store: store, groups: groups, rng: rng)
+        drillQuizType = nil
+        builder = QuizBuilder(store: store, groups: groups, passages: passages, rng: rng)
 
         var items: [Item] = plan.reviewWordIds.map { .quiz(wordId: $0, kind: .review) }
         // 新規学習は 5 語ずつ「まとめて提示 → まとめて直後クイズ」
@@ -94,12 +99,17 @@ final class SessionRunner {
         advance()
     }
 
-    /// ドリル。渡した順にすべてクイズで出す（並びは呼び出し側でシャッフルしておく）
+    /// ドリル。渡した順にすべてクイズで出す（並びは呼び出し側でシャッフルしておく）。
+    ///
+    /// `quizType` を渡すと、再出題も含めてその形式で出す（穴埋めモード）。
+    /// 穴埋めにできない語は `QuizBuilder` が英→日にするので、呼び出し側で `QuizBuilder.canFillBlank` で絞っておく
     init(
         drillWordIds: [String],
+        quizType: QuizType? = nil,
         engine: LearningEngine,
         store: WordStore = .shared,
         groups: [[String]] = [],
+        passages: @escaping PassageLookup = Passages.none,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
@@ -107,7 +117,8 @@ final class SessionRunner {
         self.store = store
         self.clock = clock
         mode = .drill
-        builder = QuizBuilder(store: store, groups: groups, rng: rng)
+        drillQuizType = quizType
+        builder = QuizBuilder(store: store, groups: groups, passages: passages, rng: rng)
         queue = drillWordIds.map { .quiz(wordId: $0, kind: .review) }
         advance()
     }
@@ -221,8 +232,8 @@ final class SessionRunner {
         case .quiz(let wordId, let kind):
             guard let word = store.word(id: wordId) else { return nil }
             let stage = engine.progress(for: wordId)?.stage ?? 0
-            // 新規学習の直後クイズは必ず英→日から始める
-            let type: QuizType = kind == .new ? .enToJa : SRS.quizType(for: stage)
+            // 新規学習の直後クイズは必ず英→日から始める。形式を固定したドリルはその形式
+            let type: QuizType = drillQuizType ?? (kind == .new ? .enToJa : SRS.quizType(for: stage))
             return .quiz(builder.make(for: word, type: type), kind: kind)
         }
     }

@@ -109,7 +109,7 @@ struct WordAssistDraftTests {
 }
 
 /// スタブのハンドラ（別スレッド）から送られた要求を受け取る
-nonisolated private final class RequestCapture: @unchecked Sendable {
+nonisolated final class RequestCapture: @unchecked Sendable {
     private let lock = NSLock()
     private var stored: (URLRequest, Data)?
 

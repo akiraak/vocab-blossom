@@ -26,11 +26,14 @@ struct GroupDetailView: View {
     enum GroupSession: Identifiable {
         case learn(SessionPlan)
         case drill([String])
+        /// 形式を穴埋めに固定したドリル。文章の無い語は始める前に作る
+        case fillBlank([WordEntry])
 
         var id: String {
             switch self {
             case .learn: "learn"
             case .drill: "drill"
+            case .fillBlank: "fill-blank"
             }
         }
     }
@@ -140,6 +143,11 @@ struct GroupDetailView: View {
                 SessionView(plan: plan, closeTitle: "グループにもどる")
             case .drill(let wordIds):
                 SessionView(drillWordIds: wordIds, closeTitle: "グループにもどる")
+            case .fillBlank(let words):
+                FillBlankSessionView(words: words, closeTitle: "グループにもどる")
+                    #if DEBUG
+                    .debugPassagePreparation()
+                    #endif
             }
         }
         #if DEBUG
@@ -150,6 +158,7 @@ struct GroupDetailView: View {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
+            case .groupFillBlank, .fillBlankPreparing: session = .fillBlank(words)
             case .drillSenses: session = .drill(words.filter { !$0.extraSenses.isEmpty }.map(\.id))
             case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult, .wordEditorSenses:
                 isPickingWords = true
@@ -257,8 +266,23 @@ struct GroupDetailView: View {
             }
             .buttonStyle(.bordered)
             .disabled(words.isEmpty)
+
+            fillBlankButton
         }
         .cardStyle()
+    }
+
+    /// 穴埋めモード（文章の空欄に入る語を選ぶドリル）。文章の無い語は始める前に AI で作る
+    private var fillBlankButton: some View {
+        Button {
+            session = .fillBlank(words)
+        } label: {
+            Label("穴埋め（全 \(words.count) 語）", systemImage: "questionmark.square.dashed")
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
+        }
+        .buttonStyle(.bordered)
+        .disabled(words.isEmpty)
     }
 
     private func learnButtonTitle(plan: SessionPlan, isEmptyGroup: Bool) -> String {

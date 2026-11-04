@@ -1,5 +1,6 @@
 #if DEBUG
 import Foundation
+import SwiftUI
 import SwiftData
 
 /// 開発中に画面を確認するためのダミーデータ投入。
@@ -16,7 +17,8 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面
 /// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
-/// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill`: グループの学習 / ドリルを起動直後に開く
+/// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill` / `group-fill-blank`: グループの学習 / ドリル / 穴埋めを起動直後に開く
+/// - `VOCAB_DEMO_SCREEN=fill-blank-preparing`: 穴埋めの文章を作る画面（空のキャッシュ・偽のサーバーでゆっくり作る）
 /// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語を追加」を、単語帳に無い語で検索した状態で開く
 ///   （`VOCAB_DEMO_QUERY=proper` を足すと、その語で検索欄に入力中の状態で開く）
 /// - `VOCAB_DEMO_SCREEN=word-editor`: グループの「単語を追加」から、例文に単語が無い下書きで自作語のエディタを開く
@@ -39,6 +41,8 @@ enum DebugSeed {
         case groupDetail = "group-detail"
         case groupLearn = "group-learn"
         case groupDrill = "group-drill"
+        case groupFillBlank = "group-fill-blank"
+        case fillBlankPreparing = "fill-blank-preparing"
         case groupSelect = "group-select"
         case wordPicker = "word-picker"
         case wordEditor = "word-editor"
@@ -53,7 +57,8 @@ enum DebugSeed {
 
         var seedsGroups: Bool {
             switch self {
-            case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
+            case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .fillBlankPreparing,
+                 .groupSelect,
                  .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
                  .wordEditorSenses, .wordDetailSenses, .drillSenses:
                 true
@@ -87,7 +92,8 @@ enum DebugSeed {
 
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
-        [.groupDetail, .groupLearn, .groupDrill, .groupSelect,
+        [.groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .fillBlankPreparing,
+                 .groupSelect,
          .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
          .wordEditorSenses, .wordDetailSenses, .drillSenses]
             .contains(variant)
@@ -102,7 +108,8 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
-        case .groups, .groupDetail, .groupLearn, .groupDrill, .groupSelect,
+        case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .fillBlankPreparing,
+                 .groupSelect,
              .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
              .wordEditorSenses, .wordDetailSenses, .drillSenses:
             .groups
@@ -256,6 +263,40 @@ enum DebugSeed {
             now: now
         )
         editor.createGroup(name: "教科書の熟語", now: DateUtil.addDays(now, -3))
+    }
+}
+
+// MARK: - 穴埋めの文章を作る画面の確認用
+
+/// 1 回 1.5 秒かけて、決まった形の文章を返す偽のサーバー。dream だけは作れなかったことにする
+nonisolated struct DebugPassageFetcher: PassageFetching {
+    /// 画面を描き直しても同じものを使う（作った文章が消えないように）
+    static let cache = PassageCache(fileURL: nil)
+
+    func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result] {
+        try await Task.sleep(for: .milliseconds(1500))
+        return words.map { word in
+            let passages = (1...3).map { number in
+                Passage(
+                    text: "This is passage \(number). It has the word \(word.word) in it for the quiz.",
+                    ja: "これは文章 \(number) です。"
+                )
+            }
+            return PassageAPI.Result(id: word.id, passages: word.word == "dream" ? [] : passages)
+        }
+    }
+}
+
+extension View {
+    /// `fill-blank-preparing` のときだけ、空のキャッシュと偽のサーバーに差し替える
+    @ViewBuilder
+    func debugPassagePreparation() -> some View {
+        if DebugSeed.variant == .fillBlankPreparing {
+            environment(\.passageCache, DebugPassageFetcher.cache)
+                .environment(\.passageFetcher, DebugPassageFetcher())
+        } else {
+            self
+        }
     }
 }
 #endif

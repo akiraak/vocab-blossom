@@ -9,8 +9,8 @@ struct SessionView: View {
     enum Source {
         /// いつもの学習（毎日 / グループ）
         case plan(SessionPlan)
-        /// グループのドリル（進捗を動かさない）
-        case drill(wordIds: [String])
+        /// グループのドリル（進捗を動かさない）。`quizType` を渡すとその形式で固定する
+        case drill(wordIds: [String], quizType: QuizType?)
     }
 
     let source: Source
@@ -22,13 +22,14 @@ struct SessionView: View {
         self.closeTitle = closeTitle
     }
 
-    init(drillWordIds: [String], closeTitle: String) {
-        source = .drill(wordIds: drillWordIds)
+    init(drillWordIds: [String], quizType: QuizType? = nil, closeTitle: String) {
+        source = .drill(wordIds: drillWordIds, quizType: quizType)
         self.closeTitle = closeTitle
     }
 
     @Environment(\.modelContext) private var context
     @Environment(\.wordStore) private var store
+    @Environment(\.passageCache) private var passageCache
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
 
@@ -62,14 +63,17 @@ struct SessionView: View {
                 let engine = LearningEngine(context: context)
                 // 自作語の誤答肢を同じグループの語から選ぶため、グループの並びを渡す
                 let groups = ((try? context.fetch(FetchDescriptor<WordGroup>())) ?? []).map(\.wordIds)
+                // 穴埋めは、端末にためた文章があれば例文より優先して使う
+                let passages = passageCache.lookup
                 switch source {
                 case .plan(let plan):
                     runner = SessionRunner(
-                        plan: plan, engine: engine, store: store, groups: groups
+                        plan: plan, engine: engine, store: store, groups: groups, passages: passages
                     )
-                case .drill(let wordIds):
+                case .drill(let wordIds, let quizType):
                     runner = SessionRunner(
-                        drillWordIds: wordIds, engine: engine, store: store, groups: groups
+                        drillWordIds: wordIds, quizType: quizType,
+                        engine: engine, store: store, groups: groups, passages: passages
                     )
                 }
             }

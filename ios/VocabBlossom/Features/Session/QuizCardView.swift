@@ -163,6 +163,20 @@ struct QuizCardView: View {
         return .clear
     }
 
+    /// 穴埋めに使った文章の全文と和訳
+    private func passageView(_ passage: Passage) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(passage.text)
+                .font(.subheadline)
+            Text(passage.ja)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
     private var feedback: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(
@@ -171,6 +185,10 @@ struct QuizCardView: View {
             )
             .font(.headline)
             .foregroundStyle(isCorrect ? Theme.correct : Theme.incorrect)
+
+            if let passage = quiz.passage {
+                passageView(passage)
+            }
 
             WordCardView(word: quiz.word)
         }

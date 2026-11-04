@@ -475,6 +475,45 @@ struct DrillTests {
         #expect(engine.progress(for: "a1-0004")?.stage == 4)
     }
 
+    @Test("形式を穴埋めに固定すると、ステージに関係なく再出題も穴埋めで出て、何も記録しない")
+    func fillBlankDrill() throws {
+        engine.record(wordId: "a1-0004", correct: true, quizType: .enToJa, kind: .new, now: now)
+        let progress = try #require(engine.progress(for: "a1-0004"))
+        progress.stage = 5
+        try context.save()
+        let logsBefore = try context.fetch(FetchDescriptor<AnswerLog>()).count
+
+        let ids = ["a1-0004", "a1-0821", "ph-0005"]
+        let runner = SessionRunner(
+            drillWordIds: ids, quizType: .fillBlank, engine: engine,
+            rng: SeededRNG(seed: 7), clock: { now }
+        )
+        #expect(runner.mode == .drill)
+        #expect(runner.drillQuizType == .fillBlank)
+
+        var types: [QuizType] = []
+        var kinds: [AnswerKind] = []
+        var first = true
+        while case .quiz(let quiz, let kind) = runner.step {
+            types.append(quiz.type)
+            kinds.append(kind)
+            _ = try answer(runner, correct: !first)
+            first = false
+        }
+        #expect(runner.isFinished)
+        #expect(types.count == 4)
+        #expect(types.allSatisfy { $0 == .fillBlank })
+        #expect(kinds.last == .requeue)
+        #expect(runner.stats.missedWordIds == ["a1-0004"])
+        #expect(engine.progress(for: "a1-0004")?.stage == 5)
+        #expect(try context.fetch(FetchDescriptor<AnswerLog>()).count == logsBefore)
+    }
+
+    @Test("形式を指定しないドリルは、形式を固定しない")
+    func drillWithoutQuizType() {
+        #expect(drill(["a1-0001"]).drillQuizType == nil)
+    }
+
     @Test("自作語もドリルで出せる（例文が無ければ穴埋めにしない）")
     func customWordsInDrill() throws {
         let custom = WordEntry(
