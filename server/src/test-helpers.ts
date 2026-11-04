@@ -3,6 +3,7 @@ import type { Config } from './config.ts'
 import { type DB, migrate, openDatabase } from './db.ts'
 import { BundledWords } from './words/bundled.ts'
 import type { WordAssistant } from './ai/word-assist.ts'
+import type { PassageWriter } from './ai/passages.ts'
 
 // テスト用: サーバーを起動せずに handle(new Request(...)) で叩く
 
@@ -37,7 +38,11 @@ export type TestApp = {
 
 export function createTestApp(
   overrides: Partial<Config> = {},
-  { now, assistant = null }: { now?: () => number; assistant?: WordAssistant | null } = {},
+  {
+    now,
+    assistant = null,
+    passageWriter = null,
+  }: { now?: () => number; assistant?: WordAssistant | null; passageWriter?: PassageWriter | null } = {},
 ): TestApp {
   const db = openDatabase(':memory:')
   migrate(db)
@@ -54,6 +59,7 @@ export function createTestApp(
     now,
     bundled: testBundled(),
     assistant,
+    passageWriter,
   })
   return { handle, db, logs, errors }
 }

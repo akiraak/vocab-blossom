@@ -10,6 +10,8 @@ import { adminRoutes } from './admin/routes.ts'
 import { AdminService } from './admin/service.ts'
 import { BundledWords } from './words/bundled.ts'
 import { createClaudeWordAssistant } from './ai/claude.ts'
+import { createClaudePassageWriter } from './ai/claude-passages.ts'
+import { PassageStore, type PassageWriter, passagesHandler } from './ai/passages.ts'
 import {
   RATE_LIMIT,
   RATE_WINDOW_MS,
@@ -40,6 +42,8 @@ export type AppDeps = {
   bundled?: BundledWords
   /** 自作語の AI チェック。省略時は ANTHROPIC_API_KEY があれば Claude、無ければ null（503） */
   assistant?: WordAssistant | null
+  /** 穴埋め用の文章を作る AI。省略時は ANTHROPIC_API_KEY があれば Claude、無ければ null（ためた文章だけ返す） */
+  passageWriter?: PassageWriter | null
 }
 
 export type Handle = (request: Request) => Promise<Response>
@@ -55,6 +59,7 @@ export function createApp({
   now = Date.now,
   bundled = BundledWords.load(),
   assistant,
+  passageWriter,
 }: AppDeps): Handle {
   const store = new SyncStore(db)
   const service = new AdminService({ db, store, bundled, now })
@@ -71,6 +76,19 @@ export function createApp({
     limiter: new RateLimiter(RATE_LIMIT, RATE_WINDOW_MS, now),
     logError: (message, error) => logger.error(message, error),
   })
+  const passages = passagesHandler({
+    writer:
+      passageWriter !== undefined
+        ? passageWriter
+        : config.anthropicApiKey
+          ? createClaudePassageWriter({ apiKey: config.anthropicApiKey, model: config.anthropicModel })
+          : null,
+    store: new PassageStore(db),
+    // AI チェックとは別の枠。AI を呼んだ回数で数える
+    limiter: new RateLimiter(RATE_LIMIT, RATE_WINDOW_MS, now),
+    now,
+    logError: (message, error) => logger.error(message, error),
+  })
   const routes: Route[] = [
     { method: 'GET', pattern: '/health', handler: () => json({ ok: true }) },
 
@@ -78,6 +96,7 @@ export function createApp({
     { method: 'GET', pattern: '/api/ping', handler: () => json({ ok: true }) },
     { method: 'POST', pattern: '/api/sync', handler: syncHandler(store) },
     { method: 'POST', pattern: '/api/word-assist', handler: wordAssist },
+    { method: 'POST', pattern: '/api/passages', handler: passages },
 
     // 管理画面のフォームから呼ぶ AI チェック（Access + ADMIN_ENABLED + Origin の確認は関所で）
     { method: 'POST', pattern: '/admin/word-assist', handler: wordAssist },
