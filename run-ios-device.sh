@@ -23,7 +23,9 @@ for tool in xcodegen xcodebuild; do
 done
 
 # 接続中の端末を選ぶ。IOS_DEVICE が指定されていれば名前 / 識別子で絞り込む
-DEVICES="$(xcrun devicectl list devices 2>/dev/null | grep -i "available" || true)"
+# -w で単語として照合する（"unavailable" に引っかからないように）
+# Xcode 27 からはシミュレータも並ぶ（Reality 列が simulated）ので外す
+DEVICES="$(xcrun devicectl list devices 2>/dev/null | grep -iw "available" | grep -vi "simulated" || true)"
 if [ -n "${IOS_DEVICE:-}" ]; then
   DEVICES="$(printf '%s\n' "$DEVICES" | grep -F "$IOS_DEVICE" || true)"
 fi
@@ -36,9 +38,14 @@ if [ -z "$DEVICE_LINE" ]; then
   exit 1
 fi
 
+# 識別子は Xcode 26 までは UUID（8-4-4-4-12）、Xcode 27 からは UDID（例: 00008120-001805E822A0C01E）
 DEVICE_ID="$(printf '%s' "$DEVICE_LINE" \
-  | grep -Eo '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}' \
-  | head -1)"
+  | grep -Eo '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}|[0-9A-Fa-f]{8}-[0-9A-Fa-f]{16}' \
+  | head -1 || true)"
+if [ -z "$DEVICE_ID" ]; then
+  echo "エラー: 端末の識別子を読み取れませんでした: ${DEVICE_LINE}" >&2
+  exit 1
+fi
 DEVICE_NAME="$(printf '%s' "$DEVICE_LINE" | sed -E 's/ {2,}.*//')"
 echo "==> 端末: ${DEVICE_NAME} (${DEVICE_ID})"
 
