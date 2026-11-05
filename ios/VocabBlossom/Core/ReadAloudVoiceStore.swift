@@ -13,7 +13,7 @@ import OSLog
 ///
 /// Gemini の音声はピークがほぼ上限（-1 dBFS 前後）で大きく、AAC にして鳴らすと上限を超えて
 /// iPhone のスピーカーで割れて聞こえる。残すときに大きさをそろえ（RMS -20 dBFS、ピークは -4 dBFS まで）、
-/// AAC は 64 kbps にする（2026-11-04、docs/plans/read-aloud-gemini-voice.md）
+/// AAC は 64 kbps にする（2026-11-04、docs/plans/archive/read-aloud-gemini-voice.md）
 nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
     static let shared = ReadAloudVoiceStore(directory: defaultDirectory)
 

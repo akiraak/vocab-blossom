@@ -1,6 +1,6 @@
 // iOS の設定画面で選べる AI のモデル（リクエストの model）。ここに無いモデルは 400 にする。
 // model が無いリクエスト（古いアプリ・管理画面）は今までどおり env（無ければ各ファイルの既定）を使う。
-// 選んだ理由は docs/plans/ai-model-settings.md
+// 選んだ理由は docs/plans/archive/ai-model-settings.md
 
 /** 自作語の AI チェック・穴埋めの文章 */
 export const CLAUDE_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5'] as const

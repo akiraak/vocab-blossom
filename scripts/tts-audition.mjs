@@ -1,4 +1,4 @@
-// グループの読み上げの声を聞き比べる（docs/plans/read-aloud-gemini-voice.md の Phase 1）。
+// グループの読み上げの声を聞き比べる（docs/plans/archive/read-aloud-gemini-voice.md の Phase 1）。
 //
 // Gemini TTS を直接呼んで、単語帳の語を「単語 → 意味 → 例文 → 例文の和訳」で読ませ、
 // モデル × キャラ × 前置文ごとに WAV を作る。1 語ぶんをつないだ WAV（読み上げと同じ間）も作る。

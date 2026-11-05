@@ -1,6 +1,6 @@
 import Foundation
 
-/// グループの読み上げの声（`POST /api/speech`）の型。設計は docs/plans/read-aloud-gemini-voice.md
+/// グループの読み上げの声（`POST /api/speech`）の型。設計は docs/plans/archive/read-aloud-gemini-voice.md
 nonisolated enum SpeechAPI {
     /// 読む人。Chobi（先生役・Leda）と Naruko（仲間の生徒役・Aoede）
     enum Speaker: String, Codable, CaseIterable, Sendable {

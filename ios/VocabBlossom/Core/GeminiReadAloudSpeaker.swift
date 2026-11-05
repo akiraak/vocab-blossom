@@ -18,7 +18,7 @@ protocol ReadAloudAudioPlaying: AnyObject {
 /// - 音声が取れない文（オフライン・サーバーの失敗・キー未設定）は、その文だけ OS 内蔵の声（`fallback`）で読む
 /// - サーバーの設定が無ければ（`fetcher == nil`）、すべて内蔵の声で読む
 ///
-/// 設計は docs/plans/read-aloud-gemini-voice.md
+/// 設計は docs/plans/archive/read-aloud-gemini-voice.md
 final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     static let shared = GeminiReadAloudSpeaker(
         fallback: ReadAloudSpeechEngine.shared,

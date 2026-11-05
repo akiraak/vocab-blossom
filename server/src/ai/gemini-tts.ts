@@ -2,7 +2,7 @@ import type { SpeechSynthesizer, SynthesizedSpeech } from './speech.ts'
 
 // Gemini TTS で 1 文の音声を作る（Interactions API）。
 // スタイルは本文に混ぜず speech_metadata.style で渡す（3.8 は本文の頭に前置文を書くとそのまま読まれる）。
-// 呼び方は試聴スクリプト（scripts/tts-audition.mjs）で確かめたもの。docs/plans/read-aloud-gemini-voice.md
+// 呼び方は試聴スクリプト（scripts/tts-audition.mjs）で確かめたもの。docs/plans/archive/read-aloud-gemini-voice.md
 
 export const DEFAULT_TTS_MODEL = 'gemini-3.8-flash-tts'
 export const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions'

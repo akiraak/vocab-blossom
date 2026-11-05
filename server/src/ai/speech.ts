@@ -7,7 +7,7 @@ import { ModelInputError, TTS_MODELS, type TtsModel, parseModel } from './models
 
 // グループの読み上げの声（POST /api/speech）。1 文を Gemini TTS で読ませて WAV で返す。
 // 声（キャラ）と文の種類ごとのスタイルはサーバーが持つ（アプリの更新なしで直せる）。
-// 決めた値は Phase 1 の試聴によるもの。docs/plans/read-aloud-gemini-voice.md
+// 決めた値は Phase 1 の試聴によるもの。docs/plans/archive/read-aloud-gemini-voice.md
 
 export const SPEECH_BODY_LIMIT = 4 * 1024
 export const MAX_SPEECH_TEXT_LENGTH = 300

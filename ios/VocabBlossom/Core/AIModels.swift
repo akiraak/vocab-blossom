@@ -1,7 +1,7 @@
 import Foundation
 
 /// 自作語の AI チェック・穴埋めの文章に使う Claude のモデル。rawValue はサーバーへ送るモデル ID。
-/// サーバーの許可リスト（server/src/ai/models.ts）とそろえる。設計は docs/plans/ai-model-settings.md
+/// サーバーの許可リスト（server/src/ai/models.ts）とそろえる。設計は docs/plans/archive/ai-model-settings.md
 nonisolated enum ClaudeModel: String, CaseIterable, Identifiable, Sendable {
     case opus55 = "claude-opus-5-5"
     case sonnet55 = "claude-sonnet-5-5"
