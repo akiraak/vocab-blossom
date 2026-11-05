@@ -3,6 +3,7 @@ import { InvalidJsonError, PayloadTooLargeError, readJson } from '../http/body.t
 import { json } from '../http/responses.ts'
 import type { Handler } from '../http/router.ts'
 import type { RateLimiter } from './word-assist.ts'
+import { ModelInputError, TTS_MODELS, type TtsModel, parseModel } from './models.ts'
 
 // グループの読み上げの声（POST /api/speech）。1 文を Gemini TTS で読ませて WAV で返す。
 // 声（キャラ）と文の種類ごとのスタイルはサーバーが持つ（アプリの更新なしで直せる）。
@@ -42,15 +43,17 @@ export const VOICES: Record<Speaker, Voice> = {
   },
 }
 
-export type SpeechInput = { text: string; speaker: Speaker; kind: SpeechKind }
+/** model を省いたら env（無ければ既定）のモデル */
+export type SpeechInput = { text: string; speaker: Speaker; kind: SpeechKind; model?: TtsModel }
 
 /** PCM16（リトルエンディアン・mono） */
 export type SynthesizedSpeech = { pcm: Buffer; sampleRate: number }
 
 /** TTS の呼び出し。本番は gemini-tts.ts、テストは偽物に差し替える */
 export type SpeechSynthesizer = {
+  /** model を省いたときのモデル */
   model: string
-  synthesize: (request: { voice: string; style: string; text: string }) => Promise<SynthesizedSpeech>
+  synthesize: (request: { voice: string; style: string; text: string; model?: TtsModel }) => Promise<SynthesizedSpeech>
 }
 
 export class SpeechInputError extends Error {}
@@ -68,7 +71,8 @@ export function parseSpeechInput(body: unknown): SpeechInput {
   if (typeof kind !== 'string' || !(SPEECH_KINDS as readonly string[]).includes(kind)) {
     throw new SpeechInputError('kind が不正です')
   }
-  return { text: text.trim(), speaker: speaker as Speaker, kind: kind as SpeechKind }
+  const model = parseModel(body, TTS_MODELS)
+  return { text: text.trim(), speaker: speaker as Speaker, kind: kind as SpeechKind, ...(model ? { model } : {}) }
 }
 
 /**
@@ -113,7 +117,7 @@ export function speechHandler({ synthesizer, limiter, logError }: SpeechDeps): H
       input = parseSpeechInput(await readJson(request, SPEECH_BODY_LIMIT))
     } catch (error) {
       if (error instanceof PayloadTooLargeError) return json({ error: 'payload too large' }, 413)
-      if (error instanceof InvalidJsonError || error instanceof SpeechInputError) {
+      if (error instanceof InvalidJsonError || error instanceof SpeechInputError || error instanceof ModelInputError) {
         return json({ error: error.message }, 400)
       }
       throw error
@@ -125,7 +129,7 @@ export function speechHandler({ synthesizer, limiter, logError }: SpeechDeps): H
     const { voice, styles } = VOICES[input.speaker]
     let speech: SynthesizedSpeech
     try {
-      speech = await synthesizer.synthesize({ voice, style: styles[input.kind], text: input.text })
+      speech = await synthesizer.synthesize({ voice, style: styles[input.kind], text: input.text, model: input.model })
     } catch (error) {
       logError('[speech] TTS の呼び出しに失敗', error)
       const status = (error as { status?: unknown })?.status
@@ -137,7 +141,7 @@ export function speechHandler({ synthesizer, limiter, logError }: SpeechDeps): H
       status: 200,
       headers: {
         'content-type': 'audio/wav',
-        'x-speech-version': speechVersion(synthesizer.model, input.speaker, input.kind),
+        'x-speech-version': speechVersion(input.model ?? synthesizer.model, input.speaker, input.kind),
       },
     })
   }

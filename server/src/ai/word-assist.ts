@@ -3,6 +3,7 @@ import { json } from '../http/responses.ts'
 import type { Handler } from '../http/router.ts'
 import { PARTS_OF_SPEECH, type PartOfSpeech } from '../sync/types.ts'
 import { type BundledWords, normalizeSpelling } from '../words/bundled.ts'
+import { CLAUDE_MODELS, type ClaudeModel, ModelInputError, parseModel } from './models.ts'
 
 // 自作語を作る前の AI チェック（POST /api/word-assist・POST /admin/word-assist）。
 // 入力（英語でも日本語でもよい）を AI に見てもらい、打ち間違い・活用形・日本語での入力などを同梱語に寄せる。
@@ -44,7 +45,8 @@ export type WordAssistResponse = {
 
 /** AI の呼び出し。本番は claude.ts、テストは偽物に差し替える */
 export type WordAssistant = {
-  suggest: (text: string) => Promise<AiCandidate[]>
+  /** model を省いたら env（無ければ既定）のモデル */
+  suggest: (text: string, model?: ClaudeModel) => Promise<AiCandidate[]>
 }
 
 /** AI が答えられなかった（通信失敗・拒否・形式違い）。502 にする */
@@ -162,11 +164,14 @@ export function wordAssistHandler({ assistant, bundled, limiter, logError }: Wor
     if (!assistant) return json({ error: 'ai-unavailable' }, 503)
 
     let text: string
+    let model: ClaudeModel | undefined
     try {
-      text = parseAssistInput(await readJson(request, WORD_ASSIST_BODY_LIMIT))
+      const body = await readJson(request, WORD_ASSIST_BODY_LIMIT)
+      text = parseAssistInput(body)
+      model = parseModel(body, CLAUDE_MODELS)
     } catch (error) {
       if (error instanceof PayloadTooLargeError) return json({ error: 'payload too large' }, 413)
-      if (error instanceof InvalidJsonError || error instanceof InputError) {
+      if (error instanceof InvalidJsonError || error instanceof InputError || error instanceof ModelInputError) {
         return json({ error: error.message }, 400)
       }
       throw error
@@ -176,7 +181,7 @@ export function wordAssistHandler({ assistant, bundled, limiter, logError }: Wor
 
     let candidates: AiCandidate[]
     try {
-      candidates = await assistant.suggest(text)
+      candidates = await assistant.suggest(text, model)
     } catch (error) {
       logError('[word-assist] AI の呼び出しに失敗', error)
       return json({ error: 'ai-failed' }, 502)

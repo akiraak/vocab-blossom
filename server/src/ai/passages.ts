@@ -5,6 +5,7 @@ import type { Handler } from '../http/router.ts'
 import { PARTS_OF_SPEECH, type PartOfSpeech } from '../sync/types.ts'
 import { countHeadword } from '../words/inflect.ts'
 import type { RateLimiter } from './word-assist.ts'
+import { CLAUDE_MODELS, type ClaudeModel, ModelInputError, parseModel } from './models.ts'
 
 // 穴埋め用の文章（POST /api/passages）。1 語につき 3 パターンを AI で作り、「綴り・品詞・意味」を鍵にためる。
 // iOS はグループで穴埋めを始めるとき、端末に文章の無い語だけを送る。設計は docs/plans/fill-blank-passages.md。
@@ -36,7 +37,8 @@ export type PassagesResponse = { results: { id: string; passages: Passage[] }[] 
 
 /** AI の呼び出し。本番は claude-passages.ts、テストは偽物に差し替える */
 export type PassageWriter = {
-  write: (words: PassageWord[]) => Promise<GeneratedPassages[]>
+  /** model を省いたら env（無ければ既定）のモデル */
+  write: (words: PassageWord[], model?: ClaudeModel) => Promise<GeneratedPassages[]>
 }
 
 export class PassagesInputError extends Error {}
@@ -196,11 +198,14 @@ function acceptedPassages(
 export function passagesHandler({ writer, store, limiter, now, logError }: PassagesDeps): Handler {
   return async (request) => {
     let words: PassageWord[]
+    let model: ClaudeModel | undefined
     try {
-      words = parsePassagesInput(await readJson(request, PASSAGES_BODY_LIMIT))
+      const body = await readJson(request, PASSAGES_BODY_LIMIT)
+      words = parsePassagesInput(body)
+      model = parseModel(body, CLAUDE_MODELS)
     } catch (error) {
       if (error instanceof PayloadTooLargeError) return json({ error: 'payload too large' }, 413)
-      if (error instanceof InvalidJsonError || error instanceof PassagesInputError) {
+      if (error instanceof InvalidJsonError || error instanceof PassagesInputError || error instanceof ModelInputError) {
         return json({ error: error.message }, 400)
       }
       throw error
@@ -223,7 +228,7 @@ export function passagesHandler({ writer, store, limiter, now, logError }: Passa
         }
         let generated: GeneratedPassages[]
         try {
-          generated = await writer.write(missing)
+          generated = await writer.write(missing, model)
         } catch (error) {
           logError('[passages] AI の呼び出しに失敗', error)
           if (attempt === 0) return json({ error: 'ai-failed' }, 502)

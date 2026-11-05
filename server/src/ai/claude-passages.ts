@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { DEFAULT_MODEL } from './claude.ts'
 import type { GeneratedPassages, PassageWord, PassageWriter } from './passages.ts'
+import type { ClaudeModel } from './models.ts'
 
 // Claude API で穴埋め用の文章を作る。システムプロンプトは毎回同じ文字列にしてキャッシュを効かせる。
 // 指示は 10 語で試して決めた（docs/plans/fill-blank-passages.md）。
@@ -84,9 +85,9 @@ export function createClaudePassageWriter({
   const client = new Anthropic({ apiKey, timeout: PASSAGES_TIMEOUT_MS, maxRetries: 1 })
 
   return {
-    async write(words: PassageWord[]): Promise<GeneratedPassages[]> {
+    async write(words: PassageWord[], requestModel?: ClaudeModel): Promise<GeneratedPassages[]> {
       const response = await client.beta.messages.create({
-        model,
+        model: requestModel ?? model,
         max_tokens: 16000,
         betas: ['server-side-fallback-2026-07-01'],
         // 安全のための拒否が起きたら、おすすめの別モデルでサーバー側が再実行する

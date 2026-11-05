@@ -21,7 +21,7 @@ import {
 
 const PCM = Buffer.from([1, 0, 2, 0, 3, 0, 4, 0])
 
-type Call = { voice: string; style: string; text: string }
+type Call = { voice: string; style: string; text: string; model?: string }
 
 function fakeSynthesizer(
   behavior: (call: Call) => Promise<{ pcm: Buffer; sampleRate: number }> = async () => ({ pcm: PCM, sampleRate: 24000 }),
@@ -175,6 +175,37 @@ describe('POST /api/speech', () => {
     expect(synthesizer.calls).toEqual([
       { voice: 'Aoede', style: VOICES.naruko.styles.example, text: 'Prices vary from shop to shop.' },
     ])
+  })
+
+  it('model を送ればそのモデルで読ませ、版もそのモデルで作る。許可リストに無いモデルは 400', async () => {
+    const synthesizer = fakeSynthesizer()
+    const { handle } = createTestApp({}, { speechSynthesizer: synthesizer })
+    const lite = await handle(speechReq({ text: 'about', speaker: 'chobi', kind: 'word', model: 'gemini-3.8-flash-lite-tts' }))
+    expect(lite.status).toBe(200)
+    expect(lite.headers.get('x-speech-version')).toBe(speechVersion('gemini-3.8-flash-lite-tts', 'chobi', 'word'))
+    expect(synthesizer.calls[0].model).toBe('gemini-3.8-flash-lite-tts')
+
+    const plain = await handle(speechReq({ text: 'about', speaker: 'chobi', kind: 'word' }))
+    expect(plain.headers.get('x-speech-version')).toBe(speechVersion('fake-tts', 'chobi', 'word'))
+    expect(synthesizer.calls[1].model).toBeUndefined()
+
+    const legacy = await handle(speechReq({ text: 'about', speaker: 'chobi', kind: 'word', model: 'gemini-2.5-pro-preview-tts' }))
+    expect(legacy.status).toBe(400)
+    expect(synthesizer.calls).toHaveLength(2)
+  })
+
+  it('リクエストのモデルで Gemini を呼ぶ（無ければ作ったときのモデル）', async () => {
+    const models: string[] = []
+    const synth = createGeminiSpeechSynthesizer({
+      apiKey: 'k',
+      fetchImpl: async (_url, init) => {
+        models.push(JSON.parse(String(init!.body)).model)
+        return Response.json({ steps: [{ type: 'model_output', content: [{ type: 'audio', data: PCM.toString('base64') }] }] })
+      },
+    })
+    await synth.synthesize({ voice: 'Leda', style: '', text: 'a', model: 'gemini-3.8-flash-lite-tts' })
+    await synth.synthesize({ voice: 'Leda', style: '', text: 'a' })
+    expect(models).toEqual(['gemini-3.8-flash-lite-tts', 'gemini-3.8-flash-tts'])
   })
 
   it('日本語は japanese のスタイル、Chobi は Leda', async () => {

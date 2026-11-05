@@ -57,12 +57,17 @@ const lendPassages: Passage[] = [
 ]
 
 /** 呼ばれた語を記録し、決めた順に返事を返す偽物（足りなくなったら最後の返事を繰り返す） */
-function fakeWriter(...responses: (Record<string, Passage[]> | Error)[]): PassageWriter & { calls: string[][] } {
+function fakeWriter(
+  ...responses: (Record<string, Passage[]> | Error)[]
+): PassageWriter & { calls: string[][]; models: (string | undefined)[] } {
   const calls: string[][] = []
+  const models: (string | undefined)[] = []
   return {
     calls,
-    async write(words) {
+    models,
+    async write(words, model) {
       calls.push(words.map((w) => w.id))
+      models.push(model)
       const response = responses[Math.min(calls.length - 1, responses.length - 1)]
       if (response instanceof Error) throw response
       return words.flatMap((w) => (response[w.id] ? [{ id: w.id, passages: response[w.id] }] : []))
@@ -70,8 +75,8 @@ function fakeWriter(...responses: (Record<string, Passage[]> | Error)[]): Passag
   }
 }
 
-function passagesReq(words: unknown): Request {
-  return apiReq('/api/passages', { method: 'POST', body: JSON.stringify({ words }) })
+function passagesReq(words: unknown, model?: unknown): Request {
+  return apiReq('/api/passages', { method: 'POST', body: JSON.stringify({ words, model }) })
 }
 
 describe('穴埋めの文章の検証', () => {
@@ -214,6 +219,15 @@ describe('POST /api/passages', () => {
     const { handle } = createTestApp({}, { passageWriter: writer })
     const body = (await (await handle(passagesReq([shower]))).json()) as PassagesResponse
     expect(body.results[0].passages).toEqual(showerPassages)
+  })
+
+  it('model を送れば AI に渡し、無ければ既定のまま。許可リストに無いモデルは 400', async () => {
+    const writer = fakeWriter({ 'ph-0004': showerPassages, 'a2-0620': lendPassages })
+    const { handle } = createTestApp({}, { passageWriter: writer })
+    expect((await handle(passagesReq([shower], 'claude-sonnet-5-5'))).status).toBe(200)
+    expect((await handle(passagesReq([lend]))).status).toBe(200)
+    expect((await handle(passagesReq([shower], 'gpt-5'))).status).toBe(400)
+    expect(writer.models).toEqual(['claude-sonnet-5-5', undefined])
   })
 
   it('AI が失敗したら 502', async () => {

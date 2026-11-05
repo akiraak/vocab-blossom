@@ -74,11 +74,11 @@ export function createGeminiSpeechSynthesizer({
 }): SpeechSynthesizer {
   return {
     model,
-    async synthesize({ voice, style, text }) {
+    async synthesize({ voice, style, text, model: requestModel }) {
       const res = await fetchImpl(INTERACTIONS_URL, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify(interactionsRequestBody({ model, voice, style, text })),
+        body: JSON.stringify(interactionsRequestBody({ model: requestModel ?? model, voice, style, text })),
         signal: AbortSignal.timeout(timeoutMs),
       })
       const body: unknown = await res.json().catch(() => null)

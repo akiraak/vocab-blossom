@@ -27,12 +27,15 @@ function candidate(word: string, overrides: Partial<AiCandidate> = {}): AiCandid
 }
 
 /** 呼ばれた入力を記録し、決まった候補を返す偽物 */
-function fakeAssistant(result: AiCandidate[] | Error): WordAssistant & { calls: string[] } {
+function fakeAssistant(result: AiCandidate[] | Error): WordAssistant & { calls: string[]; models: (string | undefined)[] } {
   const calls: string[] = []
+  const models: (string | undefined)[] = []
   return {
     calls,
-    async suggest(text) {
+    models,
+    async suggest(text, model) {
       calls.push(text)
+      models.push(model)
       if (result instanceof Error) throw result
       return result
     },
@@ -166,6 +169,15 @@ describe('POST /api/word-assist', () => {
     expect((await handle(assistReq('not json'))).status).toBe(400)
     expect((await handle(assistReq({ text: '' }))).status).toBe(400)
     expect(assistant.calls).toEqual([])
+  })
+
+  it('model を送れば AI に渡し、無ければ既定のまま。許可リストに無いモデルは 400', async () => {
+    const assistant = fakeAssistant([candidate('x')])
+    const { handle } = createTestApp({}, { assistant })
+    expect((await handle(assistReq({ text: 'a', model: 'claude-sonnet-5-5' }))).status).toBe(200)
+    expect((await handle(assistReq({ text: 'b' }))).status).toBe(200)
+    expect((await handle(assistReq({ text: 'c', model: 'claude-haiku-5-5' }))).status).toBe(400)
+    expect(assistant.models).toEqual(['claude-sonnet-5-5', undefined])
   })
 
   it('候補を同梱語と照合して返す', async () => {

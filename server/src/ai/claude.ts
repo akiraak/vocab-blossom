@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { PARTS_OF_SPEECH } from '../sync/types.ts'
 import type { BundledWords } from '../words/bundled.ts'
 import { ASSIST_REASONS, type AiCandidate, WordAssistError, type WordAssistant, parseAiOutput } from './word-assist.ts'
+import type { ClaudeModel } from './models.ts'
 
 // Claude API で自作語の候補を作る。システムプロンプト（指示 + 同梱語の見出し語の一覧）は毎回同じ文字列にして
 // プロンプトキャッシュを効かせる（入力ごとに変わるのはユーザーのメッセージだけ）。
@@ -79,9 +80,9 @@ export function createClaudeWordAssistant({
   const system = buildSystemPrompt(bundled)
 
   return {
-    async suggest(text: string): Promise<AiCandidate[]> {
+    async suggest(text: string, requestModel?: ClaudeModel): Promise<AiCandidate[]> {
       const response = await client.beta.messages.create({
-        model,
+        model: requestModel ?? model,
         max_tokens: 8000,
         betas: ['server-side-fallback-2026-07-01'],
         // 安全のための拒否が起きたら、おすすめの別モデルでサーバー側が再実行する
