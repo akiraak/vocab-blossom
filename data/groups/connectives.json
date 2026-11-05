@@ -1,0 +1,149 @@
+{
+  "description": "接続詞・つなぎの語句を働きごとに分けた 10 グループ。docs/plans/connective-groups.md を参照。bundled は単語帳の語（ID と綴りを照合する）、それ以外はマイ単語として作る",
+  "groups": [
+    {
+      "name": "つなぎ言葉・時 1",
+      "words": [
+        { "word": "when", "pos": "conjunction", "meaning": "〜するとき（後ろに文）", "example": "I was reading a book when she called me.", "exampleJa": "彼女が電話してきたとき、私は本を読んでいました。" },
+        { "bundled": "a1-0075", "word": "before" },
+        { "bundled": "a1-0010", "word": "after" },
+        { "bundled": "a2-1207", "word": "while" },
+        { "bundled": "a2-0351", "word": "during" },
+        { "bundled": "a1-0944", "word": "until" },
+        { "bundled": "a1-0888", "word": "then" },
+        { "bundled": "a2-0436", "word": "finally" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・時 2",
+      "words": [
+        { "word": "once", "pos": "conjunction", "meaning": "いったん〜すると（後ろに文）", "example": "Once you start, you cannot stop.", "exampleJa": "いったん始めると、やめられません。" },
+        { "word": "as soon as", "pos": "phrase", "meaning": "〜するとすぐに（後ろに文）", "example": "Call me as soon as you get home.", "exampleJa": "家に着いたらすぐに電話してね。" },
+        { "word": "whenever", "pos": "conjunction", "meaning": "〜するときはいつでも", "example": "Whenever I visit her, she makes tea for me.", "exampleJa": "私が訪ねるといつも、彼女はお茶をいれてくれます。" },
+        { "word": "by the time", "pos": "phrase", "meaning": "〜するまでには（後ろに文）", "example": "By the time we arrived, the movie had started.", "exampleJa": "私たちが着いたときには、映画はもう始まっていました。" },
+        { "word": "ever since", "pos": "phrase", "meaning": "〜して以来ずっと", "example": "I have loved music ever since I was a child.", "exampleJa": "子どものころからずっと、私は音楽が大好きです。" },
+        { "word": "meanwhile", "pos": "adverb", "meaning": "その間に（同じころ別の場面で）", "example": "I cooked dinner. Meanwhile, my brother cleaned the room.", "exampleJa": "私は夕食を作りました。その間に、弟は部屋を掃除しました。" },
+        { "word": "afterward", "pos": "adverb", "meaning": "その後で（あることが終わってから）", "example": "We had lunch and went shopping afterward.", "exampleJa": "私たちは昼食をとり、その後で買い物に行きました。" },
+        { "word": "subsequently", "pos": "adverb", "meaning": "その後に（かたい言い方）", "example": "He lost his job and subsequently moved to Osaka.", "exampleJa": "彼は仕事を失い、その後に大阪へ引っ越しました。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・条件",
+      "words": [
+        { "bundled": "a1-0452", "word": "if" },
+        { "word": "unless", "pos": "conjunction", "meaning": "〜しない限り（後ろに文）", "example": "You will be late unless you hurry.", "exampleJa": "急がない限り、あなたは遅れますよ。" },
+        { "word": "even if", "pos": "phrase", "meaning": "たとえ〜だとしても（仮定の話）", "example": "I will go even if it rains.", "exampleJa": "たとえ雨が降っても、私は行きます。" },
+        { "word": "only if", "pos": "phrase", "meaning": "〜の場合に限り", "example": "You can play games only if you finish your homework.", "exampleJa": "宿題を終えた場合に限り、ゲームをしてもいいです。" },
+        { "word": "as long as", "pos": "phrase", "meaning": "〜する限りは（条件）", "example": "You can stay here as long as you are quiet.", "exampleJa": "静かにしている限り、ここにいていいですよ。" },
+        { "word": "provided that", "pos": "phrase", "meaning": "〜という条件で（かたい言い方）", "example": "I will lend you the book provided that you return it soon.", "exampleJa": "すぐに返すという条件で、その本を貸してあげます。" },
+        { "word": "in case", "pos": "phrase", "meaning": "〜するといけないから（備えて）", "example": "Take an umbrella in case it rains.", "exampleJa": "雨が降るといけないから、傘を持っていきなさい。" },
+        { "word": "otherwise", "pos": "adverb", "meaning": "そうしないと（前の文を受けて）", "example": "Hurry up, otherwise you will miss the bus.", "exampleJa": "急いで、そうしないとバスに乗り遅れるよ。" },
+        { "word": "whether", "pos": "conjunction", "meaning": "〜かどうか", "example": "I don't know whether he will come.", "exampleJa": "彼が来るかどうか、私には分かりません。" },
+        { "word": "even when", "pos": "phrase", "meaning": "〜するときでさえ（実際のこと）", "example": "She smiles even when she is tired.", "exampleJa": "彼女は疲れているときでさえ、ほほえみます。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・逆接と対比 1",
+      "words": [
+        { "word": "but", "pos": "conjunction", "meaning": "しかし（文と文をつなぐ）", "example": "I like dogs, but my sister likes cats.", "exampleJa": "私は犬が好きですが、姉は猫が好きです。" },
+        { "bundled": "a2-0540", "word": "however" },
+        { "bundled": "a2-0038", "word": "although" },
+        { "word": "in spite of", "pos": "phrase", "meaning": "〜にもかかわらず（後ろに名詞）", "example": "We went out in spite of the rain.", "exampleJa": "雨にもかかわらず、私たちは出かけました。" },
+        { "word": "still", "pos": "adverb", "meaning": "それでも（前の文を受けて）", "example": "The test was hard. Still, I did my best.", "exampleJa": "テストは難しかった。それでも、私は全力を尽くしました。" },
+        { "word": "on the other hand", "pos": "phrase", "meaning": "一方で（2 つを比べて）", "example": "This bag is cheap. On the other hand, it is heavy.", "exampleJa": "このかばんは安い。一方で、重いです。" },
+        { "word": "in contrast", "pos": "phrase", "meaning": "それとは対照的に（文頭で）", "example": "Tom is quiet. In contrast, his brother talks a lot.", "exampleJa": "トムは静かです。それとは対照的に、彼の兄はよくしゃべります。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・逆接と対比 2",
+      "words": [
+        { "word": "yet", "pos": "conjunction", "meaning": "けれども（文と文をつなぐ）", "example": "The room was small, yet it was comfortable.", "exampleJa": "その部屋は狭かったけれども、居心地がよかった。" },
+        { "bundled": "a2-1111", "word": "though" },
+        { "word": "even though", "pos": "phrase", "meaning": "〜なのに（実際のことを強めて）", "example": "She went to school even though she had a cold.", "exampleJa": "かぜをひいていたのに、彼女は学校へ行きました。" },
+        { "word": "despite", "pos": "preposition", "meaning": "〜にもかかわらず（1 語で。後ろに名詞）", "example": "Despite the cold, the children played outside.", "exampleJa": "寒さにもかかわらず、子どもたちは外で遊びました。" },
+        { "word": "in spite of the fact that", "pos": "phrase", "meaning": "〜という事実にもかかわらず（後ろに文）", "example": "He failed in spite of the fact that he studied hard.", "exampleJa": "一生懸命勉強したにもかかわらず、彼は不合格でした。" },
+        { "word": "nevertheless", "pos": "adverb", "meaning": "それにもかかわらず（かたい言い方）", "example": "It was raining. Nevertheless, they played soccer.", "exampleJa": "雨が降っていた。それにもかかわらず、彼らはサッカーをした。" },
+        { "word": "even so", "pos": "phrase", "meaning": "たとえそうでも", "example": "The hotel was expensive. Even so, we enjoyed our stay.", "exampleJa": "そのホテルは高かった。たとえそうでも、私たちは滞在を楽しんだ。" },
+        { "word": "by contrast", "pos": "phrase", "meaning": "対照的に（2 つを比べて）", "example": "Summer here is hot. By contrast, winter is very cold.", "exampleJa": "ここの夏は暑い。対照的に、冬はとても寒い。" },
+        { "word": "whereas", "pos": "conjunction", "meaning": "〜である一方（後ろに文）", "example": "I like tea, whereas my wife likes coffee.", "exampleJa": "私は紅茶が好きな一方、妻はコーヒーが好きです。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・理由と結果 1",
+      "words": [
+        { "bundled": "a1-0069", "word": "because" },
+        { "word": "since", "pos": "conjunction", "meaning": "〜なので（理由。後ろに文）", "example": "Since it was Sunday, the shop was closed.", "exampleJa": "日曜日だったので、店は閉まっていました。" },
+        { "bundled": "ph-0128", "word": "because of" },
+        { "word": "due to", "pos": "phrase", "meaning": "〜が原因で（後ろに名詞）", "example": "The train was late due to the snow.", "exampleJa": "雪が原因で、電車が遅れました。" },
+        { "bundled": "a1-0804", "word": "so" },
+        { "bundled": "a2-1107", "word": "therefore" },
+        { "word": "as a result", "pos": "phrase", "meaning": "その結果（文頭で）", "example": "He practiced every day. As a result, he won.", "exampleJa": "彼は毎日練習した。その結果、彼は勝った。" },
+        { "word": "for this reason", "pos": "phrase", "meaning": "こういう理由で（文頭で）", "example": "The road was closed. For this reason, we went home.", "exampleJa": "道路が閉鎖されていた。こういう理由で、私たちは家に帰った。" },
+        { "word": "lead to", "pos": "phrase", "meaning": "〜につながる（結果を引き起こす）", "example": "Too much sugar can lead to health problems.", "exampleJa": "砂糖のとりすぎは、健康の問題につながることがあります。" },
+        { "word": "result in", "pos": "phrase", "meaning": "〜という結果になる（結果が後ろ）", "example": "The heavy rain resulted in a flood.", "exampleJa": "大雨は洪水という結果になりました。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・理由と結果 2",
+      "words": [
+        { "word": "due to the fact that", "pos": "phrase", "meaning": "〜という理由で（後ろに文。かたい言い方）", "example": "The game was canceled due to the fact that it rained.", "exampleJa": "雨が降ったという理由で、試合は中止になりました。" },
+        { "word": "as a result of", "pos": "phrase", "meaning": "〜の結果として（後ろに名詞）", "example": "As a result of the storm, many trees fell.", "exampleJa": "嵐の結果として、たくさんの木が倒れました。" },
+        { "word": "be caused by", "pos": "phrase", "meaning": "〜によって引き起こされる", "example": "The accident was caused by ice on the road.", "exampleJa": "その事故は、路面の氷によって引き起こされました。" },
+        { "word": "result from", "pos": "phrase", "meaning": "〜から生じる（原因が後ろ）", "example": "Many health problems result from stress.", "exampleJa": "多くの健康の問題はストレスから生じます。" },
+        { "word": "thus", "pos": "adverb", "meaning": "したがって（かたい言い方）", "example": "He was sick and thus stayed home.", "exampleJa": "彼は体調が悪く、したがって家にいました。" },
+        { "word": "hence", "pos": "adverb", "meaning": "このため（かたい言い方）", "example": "The bridge was old and hence dangerous.", "exampleJa": "その橋は古く、このため危険でした。" },
+        { "word": "consequently", "pos": "adverb", "meaning": "結果として（文頭で）", "example": "She missed the bus. Consequently, she was late for school.", "exampleJa": "彼女はバスに乗り遅れた。結果として、学校に遅刻した。" },
+        { "word": "accordingly", "pos": "adverb", "meaning": "それに応じて（状況に合わせて）", "example": "The plan changed, and we acted accordingly.", "exampleJa": "計画が変わったので、私たちはそれに応じて行動しました。" },
+        { "word": "contribute to", "pos": "phrase", "meaning": "〜の一因となる／〜に役立つ", "example": "Exercise contributes to good health.", "exampleJa": "運動は健康に役立ちます。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・目的と選択",
+      "words": [
+        { "word": "to", "pos": "phrase", "meaning": "〜するために（to ＋動詞の原形）", "example": "She studies hard to pass the test.", "exampleJa": "彼女はテストに合格するために一生懸命勉強しています。" },
+        { "word": "in order to", "pos": "phrase", "meaning": "〜する目的で（目的をはっきり言う）", "example": "He got up early in order to catch the train.", "exampleJa": "彼は電車に間に合う目的で早起きしました。" },
+        { "word": "so that", "pos": "phrase", "meaning": "〜できるように（後ろに文）", "example": "Speak louder so that everyone can hear you.", "exampleJa": "みんなに聞こえるように、もっと大きな声で話して。" },
+        { "bundled": "a1-0342", "word": "for" },
+        { "word": "or", "pos": "conjunction", "meaning": "または／それとも", "example": "Do you want tea or coffee?", "exampleJa": "紅茶がいいですか、それともコーヒーがいいですか？" },
+        { "word": "either … or …", "pos": "phrase", "meaning": "〜か…のどちらか", "example": "You can have either cake or ice cream.", "exampleJa": "ケーキかアイスクリームのどちらかを食べていいですよ。" },
+        { "word": "neither … nor …", "pos": "phrase", "meaning": "〜も…も〜ない", "example": "He can neither swim nor ride a bike.", "exampleJa": "彼は泳ぐことも自転車に乗ることもできません。" },
+        { "bundled": "a2-0572", "word": "instead" },
+        { "bundled": "ph-0129", "word": "instead of" },
+        { "word": "rather than", "pos": "phrase", "meaning": "〜よりむしろ", "example": "I like walking rather than taking the bus.", "exampleJa": "私はバスに乗るよりむしろ歩くほうが好きです。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・追加と類似",
+      "words": [
+        { "word": "and", "pos": "conjunction", "meaning": "〜と…／そして", "example": "I bought bread and milk.", "exampleJa": "私はパンと牛乳を買いました。" },
+        { "bundled": "a1-0025", "word": "also" },
+        { "bundled": "a2-0120", "word": "besides" },
+        { "word": "in addition", "pos": "phrase", "meaning": "さらに（文頭で付け加える）", "example": "The hotel is clean. In addition, the staff are kind.", "exampleJa": "そのホテルは清潔です。さらに、スタッフも親切です。" },
+        { "word": "in addition to", "pos": "phrase", "meaning": "〜に加えて（後ろに名詞）", "example": "In addition to English, she speaks French.", "exampleJa": "英語に加えて、彼女はフランス語を話します。" },
+        { "word": "moreover", "pos": "adverb", "meaning": "そのうえ（文頭で。かたい言い方）", "example": "The car is cheap. Moreover, it uses little gas.", "exampleJa": "その車は安い。そのうえ、ガソリンをあまり使わない。" },
+        { "word": "furthermore", "pos": "adverb", "meaning": "さらに加えて（かたい言い方）", "example": "The plan costs too much. Furthermore, it takes too long.", "exampleJa": "その計画は費用がかかりすぎる。さらに加えて、時間もかかりすぎる。" },
+        { "word": "additionally", "pos": "adverb", "meaning": "加えて（付け足して）", "example": "Additionally, you need to bring a pen.", "exampleJa": "加えて、ペンを持ってくる必要があります。" },
+        { "word": "not only … but also …", "pos": "phrase", "meaning": "〜だけでなく…も", "example": "She is not only smart but also kind.", "exampleJa": "彼女は頭がいいだけでなく、親切でもあります。" },
+        { "word": "both … and …", "pos": "phrase", "meaning": "〜も…も両方", "example": "Both my father and my mother are teachers.", "exampleJa": "父も母も、両方とも教師です。" },
+        { "word": "similarly", "pos": "adverb", "meaning": "同じように（前の内容と似ている）", "example": "Cats sleep a lot. Similarly, dogs need a lot of rest.", "exampleJa": "猫はよく眠る。同じように、犬もたくさん休むことが必要だ。" },
+        { "word": "likewise", "pos": "adverb", "meaning": "同様に", "example": "My father is tall. Likewise, my brother is tall.", "exampleJa": "父は背が高い。同様に、兄も背が高い。" }
+      ]
+    },
+    {
+      "name": "つなぎ言葉・例示とまとめ",
+      "words": [
+        { "bundled": "ph-0088", "word": "for example" },
+        { "word": "for instance", "pos": "phrase", "meaning": "例を挙げると", "example": "Some animals, for instance bears, sleep all winter.", "exampleJa": "一部の動物、例を挙げるとクマは、冬の間ずっと眠ります。" },
+        { "bundled": "ph-0130", "word": "such as" },
+        { "word": "in other words", "pos": "phrase", "meaning": "言いかえると", "example": "He is my mother's brother. In other words, he is my uncle.", "exampleJa": "彼は母の兄です。言いかえると、私のおじです。" },
+        { "word": "that is", "pos": "phrase", "meaning": "つまり／すなわち（言い直して）", "example": "She is a vet, that is, an animal doctor.", "exampleJa": "彼女は獣医、つまり動物のお医者さんです。" },
+        { "word": "specifically", "pos": "adverb", "meaning": "具体的に言うと", "example": "I like Japanese food, specifically sushi.", "exampleJa": "私は日本食、具体的に言うとお寿司が好きです。" },
+        { "bundled": "ph-0119", "word": "in fact" },
+        { "bundled": "a2-0010", "word": "actually" },
+        { "word": "overall", "pos": "adverb", "meaning": "全体として（まとめて）", "example": "Overall, the trip was a great success.", "exampleJa": "全体として、その旅行は大成功でした。" },
+        { "word": "in summary", "pos": "phrase", "meaning": "要約すると", "example": "In summary, sleep is very important for students.", "exampleJa": "要約すると、睡眠は学生にとってとても大切です。" },
+        { "word": "in conclusion", "pos": "phrase", "meaning": "結論として（最後に）", "example": "In conclusion, we should protect the environment.", "exampleJa": "結論として、私たちは環境を守るべきです。" }
+      ]
+    }
+  ]
+}
