@@ -8,7 +8,17 @@ import Testing
 
 /// 無音の WAV（24kHz mono 16bit）
 nonisolated private func silentWAV(seconds: Double = 0.1, sampleRate: Int = 24000) -> Data {
-    let pcm = Data(count: Int(seconds * Double(sampleRate)) * 2)
+    toneWAV(seconds: seconds, amplitude: 0, sampleRate: sampleRate)
+}
+
+/// 440Hz の音の WAV（24kHz mono 16bit）。amplitude は 0〜1
+nonisolated private func toneWAV(seconds: Double, amplitude: Double, sampleRate: Int = 24000) -> Data {
+    let count = Int(seconds * Double(sampleRate))
+    var pcm = Data(capacity: count * 2)
+    for index in 0..<count {
+        let value = Int16(sin(2 * .pi * 440 * Double(index) / Double(sampleRate)) * amplitude * 32767)
+        withUnsafeBytes(of: value.littleEndian) { pcm.append(contentsOf: $0) }
+    }
     var wav = Data()
     func append<T: FixedWidthInteger>(_ value: T) {
         withUnsafeBytes(of: value.littleEndian) { wav.append(contentsOf: $0) }
@@ -382,6 +392,56 @@ struct ReadAloudVoiceStoreTests {
         #expect(reopened.cachedURL(for: other) != nil)
         // 別の人の版は変わらない
         #expect(reopened.version(for: SpeechAPI.Request(text: "x", speaker: .naruko, kind: .word)) == nil)
+    }
+
+    @Test("大きさをそろえる倍率: RMS を -20 dBFS に、ピークは -4 dBFS まで、上げるのは 2 倍まで")
+    func gain() {
+        // 大きい声は RMS で下げる
+        #expect(abs(ReadAloudVoiceStore.normalizationGain(peak: 0.9, rms: 0.17) - 0.1 / 0.17) < 0.001)
+        // ピークが大きい（とがった）声はピークで下げる
+        #expect(abs(ReadAloudVoiceStore.normalizationGain(peak: 0.95, rms: 0.12) - 0.631 / 0.95) < 0.001)
+        // 小さい声は 2 倍まで
+        #expect(ReadAloudVoiceStore.normalizationGain(peak: 0.1, rms: 0.01) == 2)
+        // 無音はそのまま
+        #expect(ReadAloudVoiceStore.normalizationGain(peak: 0, rms: 0) == 1)
+    }
+
+    @Test("上限近くまで大きい音は、残すときに下げる（AAC にしても上限を超えない）")
+    func normalizesLoudAudio() throws {
+        let store = temporaryStore()
+        let loud = SpeechAPI.Audio(wav: toneWAV(seconds: 0.5, amplitude: 0.95), version: "v1")
+        let url = try store.save(loud, for: request)
+        #expect(url.pathExtension == "m4a")
+
+        let file = try AVAudioFile(forReading: url)
+        let buffer = try #require(
+            AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length))
+        )
+        try file.read(into: buffer)
+        let channel = try #require(buffer.floatChannelData)[0]
+        let samples = UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength))
+        let peak = samples.map(abs).max() ?? 0
+        let rms = (samples.map { $0 * $0 }.reduce(0, +) / Float(samples.count)).squareRoot()
+        #expect(peak < ReadAloudVoiceStore.peakCeiling)
+        #expect(abs(rms - ReadAloudVoiceStore.targetRMS) < 0.02)
+    }
+
+    @Test("残し方の版が違う置き場は中身を消してから使う")
+    func wipesOldFormat() throws {
+        let directory = temporaryDirectory()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let old = directory.appending(path: "old.m4a")
+        try Data("old".utf8).write(to: old)
+        try Data(#"{"chobi/word":"v1"}"#.utf8).write(to: directory.appending(path: "versions.json"))
+
+        let store = ReadAloudVoiceStore(directory: directory)
+        #expect(!FileManager.default.fileExists(atPath: old.path(percentEncoded: false)))
+        #expect(store.version(for: request) == nil)
+
+        // 同じ版なら消さない
+        let saved = try store.save(SpeechAPI.Audio(wav: silentWAV(), version: "v1"), for: request)
+        _ = ReadAloudVoiceStore(directory: directory)
+        #expect(FileManager.default.fileExists(atPath: saved.path(percentEncoded: false)))
     }
 
     @Test("置き場が無ければ残さない（一時ファイルで鳴らす）")

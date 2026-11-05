@@ -1,3 +1,4 @@
+import Accelerate
 import AVFoundation
 import CryptoKit
 import Foundation
@@ -8,7 +9,11 @@ import OSLog
 /// 1 文 1 ファイル。鍵は「版・読む人・種類・文」のハッシュで、版はサーバーが返す `x-speech-version`
 /// （モデル・声・スタイルが変われば変わる）。読む人と種類ごとに最後に見た版を覚えておき、
 /// 版が変わったら古い音声は使わずに作り直す。WAV は大きいので AAC（m4a）にして残す。
-/// Caches は OS に消されることがあるが、そのときは作り直すだけ
+/// Caches は OS に消されることがあるが、そのときは作り直すだけ。
+///
+/// Gemini の音声はピークがほぼ上限（-1 dBFS 前後）で大きく、AAC にして鳴らすと上限を超えて
+/// iPhone のスピーカーで割れて聞こえる。残すときに大きさをそろえ（RMS -20 dBFS、ピークは -4 dBFS まで）、
+/// AAC は 64 kbps にする（2026-11-04、docs/plans/read-aloud-gemini-voice.md）
 nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
     static let shared = ReadAloudVoiceStore(directory: defaultDirectory)
 
@@ -25,13 +30,23 @@ nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
     private var versions: [String: String]
 
     private static let versionsFileName = "versions.json"
+    private static let formatFileName = "format"
     private static let extensions = ["m4a", "wav"]
+
+    /// 残し方（大きさのそろえ方・AAC の設定）の版。変えたら上げると、残してある音声をすべて消して作り直す
+    static let formatVersion = "2"
+
+    /// 大きさのそろえ方: 平均（RMS）を -20 dBFS に、ただしピークは -4 dBFS を超えない、上げるのは +6 dB まで
+    static let targetRMS: Float = 0.1
+    static let peakCeiling: Float = 0.631
+    static let maxGain: Float = 2.0
+    static let aacBitRate = 64_000
 
     /// directory が nil なら何も残さない（毎回サーバーから取る）
     init(directory: URL?) {
         self.directory = directory
         if let directory {
-            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            Self.prepareDirectory(directory)
         }
         if let url = directory?.appending(path: Self.versionsFileName),
            let data = try? Data(contentsOf: url),
@@ -40,6 +55,20 @@ nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
         } else {
             versions = [:]
         }
+    }
+
+    /// 置き場を作る。残し方の版が違えば（古いアプリで残した音声なら）中身を消す
+    private static func prepareDirectory(_ directory: URL) {
+        let manager = FileManager.default
+        let formatURL = directory.appending(path: formatFileName)
+        let current = (try? String(contentsOf: formatURL, encoding: .utf8))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard current != formatVersion else { return }
+        if let contents = try? manager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
+            contents.forEach { try? manager.removeItem(at: $0) }
+        }
+        try? manager.createDirectory(at: directory, withIntermediateDirectories: true)
+        try? Data(formatVersion.utf8).write(to: formatURL, options: .atomic)
     }
 
     static func key(version: String, request: SpeechAPI.Request) -> String {
@@ -115,26 +144,55 @@ nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
         return url
     }
 
+    /// 大きさをそろえる倍率（ピーク・RMS は 0〜1）
+    static func normalizationGain(peak: Float, rms: Float) -> Float {
+        guard peak > 0, rms > 0 else { return 1 }
+        return min(targetRMS / rms, peakCeiling / peak, maxGain)
+    }
+
+    /// WAV を読み、大きさをそろえて AAC で書く（1 文は数秒なので、まとめて読む）
     static func convertToAAC(from wavURL: URL, to outputURL: URL) throws {
         let input = try AVAudioFile(forReading: wavURL)
         let format = input.processingFormat
+        guard input.length > 0,
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(input.length))
+        else { throw CocoaError(.fileReadCorruptFile) }
+        try input.read(into: buffer)
+        normalize(buffer)
+
         let settings: [String: Any] = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVSampleRateKey: input.fileFormat.sampleRate,
             AVNumberOfChannelsKey: input.fileFormat.channelCount,
+            AVEncoderBitRateKey: aacBitRate,
         ]
         let output = try AVAudioFile(
             forWriting: outputURL, settings: settings,
             commonFormat: format.commonFormat, interleaved: format.isInterleaved
         )
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 8192) else {
-            throw CocoaError(.fileWriteUnknown)
-        }
-        while input.framePosition < input.length {
-            try input.read(into: buffer)
-            if buffer.frameLength == 0 { break }
-            try output.write(from: buffer)
-        }
+        try output.write(from: buffer)
         output.close()
+    }
+
+    private static func normalize(_ buffer: AVAudioPCMBuffer) {
+        guard let channels = buffer.floatChannelData else { return }
+        let count = vDSP_Length(buffer.frameLength)
+        let channelCount = Int(buffer.format.channelCount)
+        guard count > 0 else { return }
+        var peak: Float = 0
+        var sumOfSquares: Float = 0
+        for channel in 0..<channelCount {
+            var channelPeak: Float = 0
+            var channelSum: Float = 0
+            vDSP_maxmgv(channels[channel], 1, &channelPeak, count)
+            vDSP_svesq(channels[channel], 1, &channelSum, count)
+            peak = max(peak, channelPeak)
+            sumOfSquares += channelSum
+        }
+        let rms = (sumOfSquares / Float(Int(count) * channelCount)).squareRoot()
+        var gain = normalizationGain(peak: peak, rms: rms)
+        for channel in 0..<channelCount {
+            vDSP_vsmul(channels[channel], 1, &gain, channels[channel], 1, count)
+        }
     }
 }
