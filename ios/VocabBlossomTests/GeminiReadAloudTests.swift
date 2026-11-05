@@ -158,6 +158,8 @@ private struct Harness {
     let fallback: InstantFallbackSpeaker
     let store: ReadAloudVoiceStore
     let clock: Box<Date>
+    /// 設定画面で選んだ声のモデル（テストから切り替える）
+    let model: Box<TTSModel>
 
     init(
         fetcher: FakeSpeechFetcher = FakeSpeechFetcher(),
@@ -169,6 +171,7 @@ private struct Harness {
         let store = temporaryStore()
         let clock = Box(Date(timeIntervalSince1970: 1_000_000))
         let queue = Box(speakers)
+        let model = Box(TTSModel.flash38)
         self.speaker = GeminiReadAloudSpeaker(
             fallback: fallback, store: store, audio: audio,
             fetcher: withFetcher ? fetcher : nil,
@@ -176,6 +179,7 @@ private struct Harness {
                 // 決めた並びを順に返し、尽きたら最後のものを返し続ける
                 queue.value.count > 1 ? queue.value.removeFirst() : (queue.value.first ?? .chobi)
             },
+            ttsModel: { model.value },
             now: { clock.value },
             lineGap: .zero, itemGap: .zero
         )
@@ -184,6 +188,7 @@ private struct Harness {
         self.fallback = fallback
         self.store = store
         self.clock = clock
+        self.model = model
     }
 
     /// 1 語を読み終えるまで待ち、読み始めた文の位置を返す
@@ -221,7 +226,9 @@ struct GeminiReadAloudSpeakerTests {
 
     @Test("文の種類はサーバーの種類に直す（意味・和訳は japanese）")
     func requestKinds() {
-        let kinds = lines("apple").map { GeminiReadAloudSpeaker.request(for: $0, speaker: .naruko).kind }
+        let kinds = lines("apple").map {
+            GeminiReadAloudSpeaker.request(for: $0, speaker: .naruko, model: .flash38).kind
+        }
         #expect(kinds == [.word, .japanese, .example, .japanese])
     }
 
@@ -318,6 +325,22 @@ struct GeminiReadAloudSpeakerTests {
         #expect(harness.fetcher.recorded.allSatisfy { $0.speaker == .naruko })
     }
 
+    @Test("設定の声のモデルで頼み、モデルを変えたら新しく作る（戻せば前の音声を使う）")
+    func followsTTSModel() async {
+        let harness = Harness()
+        await harness.speakToEnd(lines("apple"))
+        #expect(harness.fetcher.recorded.allSatisfy { $0.model == .flash38 })
+
+        harness.model.value = .flashLite38
+        await harness.speakToEnd(lines("apple"))
+        #expect(harness.fetcher.recorded.count == 8)
+        #expect(harness.fetcher.recorded.suffix(4).allSatisfy { $0.model == .flashLite38 })
+
+        harness.model.value = .flash38
+        await harness.speakToEnd(lines("apple"))
+        #expect(harness.fetcher.recorded.count == 8)
+    }
+
     @Test("prepare で、これから読む語の音声を 2 人分取っておく")
     func prefetchesBothSpeakers() async {
         let harness = Harness()
@@ -327,7 +350,7 @@ struct GeminiReadAloudSpeakerTests {
         let expected = Set(
             SpeechAPI.Speaker.allCases.flatMap { speaker in
                 (lines("apple") + lines("banana")).map {
-                    GeminiReadAloudSpeaker.request(for: $0, speaker: speaker)
+                    GeminiReadAloudSpeaker.request(for: $0, speaker: speaker, model: .flash38)
                 }
             }
         )
@@ -344,7 +367,7 @@ struct GeminiReadAloudSpeakerTests {
 
 @Suite("読み上げの音声の置き場")
 struct ReadAloudVoiceStoreTests {
-    private let request = SpeechAPI.Request(text: "apple", speaker: .chobi, kind: .word)
+    private let request = SpeechAPI.Request(text: "apple", speaker: .chobi, kind: .word, model: .flash38)
 
     @Test("鍵は版・読む人・種類・文のどれかが変われば変わる")
     func keys() {
@@ -386,12 +409,13 @@ struct ReadAloudVoiceStoreTests {
         #expect(reopened.cachedURL(for: request) != nil)
 
         // 同じ人・種類で新しい版の音声が届いたら、前の版の音声は使わない
-        let other = SpeechAPI.Request(text: "banana", speaker: .chobi, kind: .word)
+        let other = SpeechAPI.Request(text: "banana", speaker: .chobi, kind: .word, model: .flash38)
         _ = try reopened.save(SpeechAPI.Audio(wav: silentWAV(), version: "v2"), for: other)
         #expect(reopened.cachedURL(for: request) == nil)
         #expect(reopened.cachedURL(for: other) != nil)
         // 別の人の版は変わらない
-        #expect(reopened.version(for: SpeechAPI.Request(text: "x", speaker: .naruko, kind: .word)) == nil)
+        let narukoWord = SpeechAPI.Request(text: "x", speaker: .naruko, kind: .word, model: .flash38)
+        #expect(reopened.version(for: narukoWord) == nil)
     }
 
     @Test("大きさをそろえる倍率: RMS を -20 dBFS に、ピークは -4 dBFS まで、上げるのは 2 倍まで")
@@ -444,6 +468,23 @@ struct ReadAloudVoiceStoreTests {
         #expect(FileManager.default.fileExists(atPath: saved.path(percentEncoded: false)))
     }
 
+    @Test("鍵と版はモデルごとに分かれる")
+    func perModel() throws {
+        var lite = request
+        lite.model = .flashLite38
+        #expect(ReadAloudVoiceStore.key(version: "v1", request: lite)
+            != ReadAloudVoiceStore.key(version: "v1", request: request))
+
+        let store = temporaryStore()
+        _ = try store.save(SpeechAPI.Audio(wav: silentWAV(), version: "flash-v1"), for: request)
+        _ = try store.save(SpeechAPI.Audio(wav: silentWAV(), version: "lite-v1"), for: lite)
+        // 別のモデルの版が届いても、もう一方のモデルの音声はそのまま使える
+        #expect(store.cachedURL(for: request) != nil)
+        #expect(store.cachedURL(for: lite) != nil)
+        #expect(store.version(for: request) == "flash-v1")
+        #expect(store.version(for: lite) == "lite-v1")
+    }
+
     @Test("置き場が無ければ残さない（一時ファイルで鳴らす）")
     func withoutDirectory() throws {
         let store = ReadAloudVoiceStore(directory: nil)
@@ -469,7 +510,7 @@ struct SpeechClientTests {
             return (200, wav)
         }
         let audio = try await SpeechClient(config: config, session: session)
-            .fetch(SpeechAPI.Request(text: "sit down", speaker: .naruko, kind: .word))
+            .fetch(SpeechAPI.Request(text: "sit down", speaker: .naruko, kind: .word, model: .flashLite38))
 
         #expect(audio.wav == wav)
         #expect(audio.version == "abc123")
@@ -478,7 +519,9 @@ struct SpeechClientTests {
         #expect(request.url?.absoluteString == "https://vocab.example.com/api/speech")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer secret")
         let sentJSON = try #require(try JSONSerialization.jsonObject(with: body) as? [String: String])
-        #expect(sentJSON == ["text": "sit down", "speaker": "naruko", "kind": "word"])
+        #expect(sentJSON == [
+            "text": "sit down", "speaker": "naruko", "kind": "word", "model": "gemini-3.8-flash-lite-tts",
+        ])
     }
 
     @Test("状態コードは AI チェックと同じエラーにする")
@@ -490,7 +533,7 @@ struct SpeechClientTests {
             let session = StubURLProtocol.session { _, _ in (status, Data("{}".utf8)) }
             await #expect(throws: expected) {
                 try await SpeechClient(config: config, session: session)
-                    .fetch(SpeechAPI.Request(text: "a", speaker: .chobi, kind: .word))
+                    .fetch(SpeechAPI.Request(text: "a", speaker: .chobi, kind: .word, model: .flash38))
             }
         }
     }
@@ -502,7 +545,7 @@ struct SpeechClientTests {
         }
         await #expect(throws: WordAssistError.invalidResponse) {
             try await SpeechClient(config: config, session: session)
-                .fetch(SpeechAPI.Request(text: "a", speaker: .chobi, kind: .word))
+                .fetch(SpeechAPI.Request(text: "a", speaker: .chobi, kind: .word, model: .flash38))
         }
     }
 }

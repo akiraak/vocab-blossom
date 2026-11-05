@@ -27,14 +27,15 @@ struct WordAssistClientTests {
             sent.set(request, body)
             return (200, json(sampleResponse))
         }
-        let response = try await WordAssistClient(config: config, session: session).suggest("beautifull")
+        let response = try await WordAssistClient(config: config, session: session, model: { .sonnet55 })
+            .suggest("beautifull")
 
         let (request, body) = try #require(sent.value)
         #expect(request.httpMethod == "POST")
         #expect(request.url?.absoluteString == "https://vocab.example.com/api/word-assist")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer secret")
         let sentJSON = try #require(try JSONSerialization.jsonObject(with: body) as? [String: String])
-        #expect(sentJSON == ["text": "beautifull"])
+        #expect(sentJSON == ["text": "beautifull", "model": "claude-sonnet-5-5"])
 
         #expect(response.candidates.count == 2)
         #expect(response.candidates[0].bundled?.id == "a1-0050")

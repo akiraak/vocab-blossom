@@ -14,6 +14,8 @@ nonisolated enum PassageAPI {
 
     struct Request: Encodable, Sendable {
         var words: [Word]
+        /// 設定画面で選んだモデル（サーバーの許可リストにあるもの）
+        var model: String
     }
 
     struct Result: Decodable, Equatable, Sendable {
@@ -40,10 +42,17 @@ nonisolated struct PassageClient: PassageFetching {
 
     let config: ServerConfig
     let session: URLSession
+    /// 送るときに読む（設定を変えたら次の呼び出しから効く）
+    let model: @Sendable () -> ClaudeModel
 
-    init(config: ServerConfig, session: URLSession = .shared) {
+    init(
+        config: ServerConfig,
+        session: URLSession = .shared,
+        model: @escaping @Sendable () -> ClaudeModel = { AIModelPreference.claudeModel() }
+    ) {
         self.config = config
         self.session = session
+        self.model = model
     }
 
     func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result] {
@@ -52,7 +61,7 @@ nonisolated struct PassageClient: PassageFetching {
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.httpBody = try JSONEncoder().encode(PassageAPI.Request(words: words))
+        request.httpBody = try JSONEncoder().encode(PassageAPI.Request(words: words, model: model().rawValue))
 
         let data: Data
         let response: URLResponse

@@ -6,8 +6,8 @@ import OSLog
 
 /// サーバー（Gemini TTS）で作った読み上げの音声を端末に残す置き場（`Library/Caches/read-aloud/`）。
 ///
-/// 1 文 1 ファイル。鍵は「版・読む人・種類・文」のハッシュで、版はサーバーが返す `x-speech-version`
-/// （モデル・声・スタイルが変われば変わる）。読む人と種類ごとに最後に見た版を覚えておき、
+/// 1 文 1 ファイル。鍵は「版・モデル・読む人・種類・文」のハッシュで、版はサーバーが返す `x-speech-version`
+/// （モデル・声・スタイルが変われば変わる）。モデル・読む人・種類ごとに最後に見た版を覚えておき、
 /// 版が変わったら古い音声は使わずに作り直す。WAV は大きいので AAC（m4a）にして残す。
 /// Caches は OS に消されることがあるが、そのときは作り直すだけ。
 ///
@@ -34,7 +34,8 @@ nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
     private static let extensions = ["m4a", "wav"]
 
     /// 残し方（大きさのそろえ方・AAC の設定）の版。変えたら上げると、残してある音声をすべて消して作り直す
-    static let formatVersion = "2"
+    /// 3: 鍵と版にモデルを入れた（設定画面で TTS のモデルを選べるようにした）
+    static let formatVersion = "3"
 
     /// 大きさのそろえ方: 平均（RMS）を -20 dBFS に、ただしピークは -4 dBFS を超えない、上げるのは +6 dB まで
     static let targetRMS: Float = 0.1
@@ -72,13 +73,14 @@ nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
     }
 
     static func key(version: String, request: SpeechAPI.Request) -> String {
-        let source = [version, request.speaker.rawValue, request.kind.rawValue, request.text]
-            .joined(separator: "\n")
+        let source = [
+            version, request.model.rawValue, request.speaker.rawValue, request.kind.rawValue, request.text,
+        ].joined(separator: "\n")
         return SHA256.hash(data: Data(source.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
     private static func versionKey(_ request: SpeechAPI.Request) -> String {
-        "\(request.speaker.rawValue)/\(request.kind.rawValue)"
+        "\(request.model.rawValue)/\(request.speaker.rawValue)/\(request.kind.rawValue)"
     }
 
     func version(for request: SpeechAPI.Request) -> String? {

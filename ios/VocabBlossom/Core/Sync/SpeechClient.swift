@@ -15,10 +15,12 @@ nonisolated enum SpeechAPI {
         case japanese
     }
 
+    /// 端末に残す音声の鍵にもなる（モデル・人・種類・文が同じなら同じ音声）
     struct Request: Encodable, Hashable, Sendable {
         var text: String
         var speaker: Speaker
         var kind: Kind
+        var model: TTSModel
     }
 
     /// サーバーが返す 1 文分の音声

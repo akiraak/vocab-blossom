@@ -37,6 +37,8 @@ final class AppSettings {
         soundEnabled = defaults.object(forKey: Key.soundEnabled) as? Bool ?? true
         effectSoundEnabled = defaults.object(forKey: Key.effectSoundEnabled) as? Bool ?? true
         hasOnboarded = defaults.bool(forKey: Key.hasOnboarded)
+        claudeModel = AIModelPreference.claudeModel(defaults: defaults)
+        ttsModel = AIModelPreference.ttsModel(defaults: defaults)
     }
 
     /// 新規語を出すレベル。変更しても学習済みの進捗・復習スケジュールは保持される
@@ -64,5 +66,15 @@ final class AppSettings {
 
     var hasOnboarded: Bool {
         didSet { defaults.set(hasOnboarded, forKey: Key.hasOnboarded) }
+    }
+
+    /// 自作語の AI チェック・穴埋めの文章のモデル（サーバーがあるときだけ使う）
+    var claudeModel: ClaudeModel {
+        didSet { defaults.set(claudeModel.rawValue, forKey: AIModelPreference.Key.claudeModel) }
+    }
+
+    /// 読み上げの声のモデル（サーバーがあるときだけ使う）
+    var ttsModel: TTSModel {
+        didSet { defaults.set(ttsModel.rawValue, forKey: AIModelPreference.Key.ttsModel) }
     }
 }

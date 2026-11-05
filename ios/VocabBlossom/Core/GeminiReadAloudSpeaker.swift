@@ -37,6 +37,8 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     private let store: ReadAloudVoiceStore
     private let audio: any ReadAloudAudioPlaying
     private let randomSpeaker: () -> SpeechAPI.Speaker
+    /// 設定画面で選んだ声のモデル。語を読み始めるとき・先読みのときに読む
+    private let ttsModel: () -> TTSModel
     private let now: () -> Date
     /// 文の間・語の間（秒）。内蔵の声（`ReadAloudSpeechEngine`）とそろえる
     private let lineGap: Duration
@@ -68,6 +70,7 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         randomSpeaker: @escaping () -> SpeechAPI.Speaker = {
             SpeechAPI.Speaker.allCases.randomElement() ?? .chobi
         },
+        ttsModel: @escaping () -> TTSModel = { AIModelPreference.ttsModel() },
         now: @escaping () -> Date = Date.init,
         lineGap: Duration = .milliseconds(250),
         itemGap: Duration = .milliseconds(800)
@@ -77,6 +80,7 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         self.audio = audio
         self.fetcher = fetcher
         self.randomSpeaker = randomSpeaker
+        self.ttsModel = ttsModel
         self.now = now
         self.lineGap = lineGap
         self.itemGap = itemGap
@@ -101,8 +105,9 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         SpeechService.shared.stop()
         LearningAudioSession.shared.activate(for: .readAloud)
 
-        let speaker = chooseSpeaker(for: lines)
-        let audios = lines.map { audioTask(for: Self.request(for: $0, speaker: speaker)) }
+        let model = ttsModel()
+        let speaker = chooseSpeaker(for: lines, model: model)
+        let audios = lines.map { audioTask(for: Self.request(for: $0, speaker: speaker, model: model)) }
         let current = generation
         log.info("読み上げ開始（\(speaker.rawValue)）: \(lines.map(\.spokenText).joined(separator: " / "))")
         runTask = Task { [weak self] in
@@ -115,9 +120,10 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     func prepare(_ upcoming: [[ReadAloudLine]]) {
         guard fetcher != nil else { return }
         // 先の語ほど後ろ。語ごとに 2 人分（今の語は、選ばなかった人の分も取っておく）
+        let model = ttsModel()
         prefetchQueue = upcoming.flatMap { lines in
             SpeechAPI.Speaker.allCases.flatMap { speaker in
-                lines.map { Self.request(for: $0, speaker: speaker) }
+                lines.map { Self.request(for: $0, speaker: speaker, model: model) }
             }
         }
         pumpPrefetch()
@@ -149,8 +155,10 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
 
     // MARK: - 読む
 
-    static func request(for line: ReadAloudLine, speaker: SpeechAPI.Speaker) -> SpeechAPI.Request {
-        SpeechAPI.Request(text: line.spokenText, speaker: speaker, kind: kind(of: line))
+    static func request(
+        for line: ReadAloudLine, speaker: SpeechAPI.Speaker, model: TTSModel
+    ) -> SpeechAPI.Request {
+        SpeechAPI.Request(text: line.spokenText, speaker: speaker, kind: kind(of: line), model: model)
     }
 
     private static func kind(of line: ReadAloudLine) -> SpeechAPI.Kind {
@@ -223,14 +231,16 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
 
     /// 1 語を読む人。ランダムだが、2 語続けて同じ人なら次はもう 1 人にする。
     /// 片方の音声だけそろっている（もう片方は取れていない）なら、そろっている方で読む
-    private func chooseSpeaker(for lines: [ReadAloudLine]) -> SpeechAPI.Speaker {
+    private func chooseSpeaker(for lines: [ReadAloudLine], model: TTSModel) -> SpeechAPI.Speaker {
         var speaker = randomSpeaker()
         if recentSpeakers.count >= 2, let last = recentSpeakers.last,
            recentSpeakers.suffix(2).allSatisfy({ $0 == last }) {
             speaker = Self.other(than: last)
         }
         let ready = SpeechAPI.Speaker.allCases.filter { candidate in
-            lines.allSatisfy { store.cachedURL(for: Self.request(for: $0, speaker: candidate)) != nil }
+            lines.allSatisfy {
+                store.cachedURL(for: Self.request(for: $0, speaker: candidate, model: model)) != nil
+            }
         }
         if ready.count == 1, let only = ready.first {
             speaker = only

@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 設定。初学者が迷わないよう、項目は学習・音声・データ（+ サーバーとの同期）に絞る。
+/// 設定。初学者が迷わないよう、項目は学習・音声・データ（+ サーバーとの同期・AI のモデル）に絞る。
 struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(SyncService.self) private var sync
@@ -91,6 +91,10 @@ struct SettingsView: View {
                 }
 
                 SyncSection()
+
+                if sync.config != nil {
+                    AIModelSection()
+                }
 
                 Section("このアプリ") {
                     LabeledContent("バージョン", value: appVersion)
@@ -215,6 +219,37 @@ private struct SyncSection: View {
             if sync.isEnabled {
                 Text("グループと自分で作った単語を、管理画面と同期します。学習の記録はこの端末の中だけに残ります。")
             }
+        }
+    }
+}
+
+/// AI のモデル（サーバーがあるときだけ）。端末ごとの設定で、次にサーバーへ頼むときから効く
+private struct AIModelSection: View {
+    @Environment(AppSettings.self) private var settings
+
+    var body: some View {
+        @Bindable var settings = settings
+        Section {
+            Picker("問題作成・AI チェック", selection: $settings.claudeModel) {
+                ForEach(ClaudeModel.allCases) { model in
+                    Text(model.label).tag(model)
+                }
+            }
+            Picker("読み上げの声", selection: $settings.ttsModel) {
+                ForEach(TTSModel.allCases) { model in
+                    Text(model.label).tag(model)
+                }
+            }
+        } header: {
+            Text("AI")
+        } footer: {
+            Text(
+                """
+                「問題作成」は穴埋めの文章づくり、「AI チェック」は自分で単語を作るときの確認です。\
+                速い・安いモデルは、品質が少し下がることがあります。\
+                読み上げの声を変えると、その声で読む音声を新しく作ります。
+                """
+            )
         }
     }
 }

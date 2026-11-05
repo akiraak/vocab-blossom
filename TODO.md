@@ -12,3 +12,7 @@
   - [x] Phase 2: サーバー（`POST /api/speech`）
   - [x] Phase 3: iOS（声の差し替え・端末に残す・先読み・内蔵 TTS への切り替え）
   - [ ] Phase 4: 実機確認
+- [ ] AI のモデルを iOS の設定画面で選べるようにする（Claude は Opus 5.5 / Sonnet 5.5、TTS は Gemini 3.8 Flash / Flash-Lite）→ [plan](docs/plans/ai-model-settings.md)
+  - [x] Phase 1: サーバー（リクエストの `model` を許可リストで受け付ける）
+  - [x] Phase 2: iOS（設定画面・リクエストに `model` を付ける・読み上げの置き場をモデルごとに）
+  - [ ] Phase 3: デプロイ・実機確認

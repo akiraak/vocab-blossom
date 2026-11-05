@@ -5,6 +5,8 @@ import SwiftUI
 nonisolated enum WordAssistAPI {
     struct Request: Encodable, Sendable {
         var text: String
+        /// 設定画面で選んだモデル（サーバーの許可リストにあるもの）
+        var model: String
     }
 
     struct Response: Decodable, Equatable, Sendable {
@@ -86,10 +88,17 @@ nonisolated struct WordAssistClient: Sendable {
 
     let config: ServerConfig
     let session: URLSession
+    /// 送るときに読む（設定を変えたら次の呼び出しから効く）
+    let model: @Sendable () -> ClaudeModel
 
-    init(config: ServerConfig, session: URLSession = .shared) {
+    init(
+        config: ServerConfig,
+        session: URLSession = .shared,
+        model: @escaping @Sendable () -> ClaudeModel = { AIModelPreference.claudeModel() }
+    ) {
         self.config = config
         self.session = session
+        self.model = model
     }
 
     func suggest(_ text: String) async throws -> WordAssistAPI.Response {
@@ -98,7 +107,8 @@ nonisolated struct WordAssistClient: Sendable {
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.httpBody = try JSONEncoder().encode(WordAssistAPI.Request(text: text))
+        let body = WordAssistAPI.Request(text: text, model: model().rawValue)
+        request.httpBody = try JSONEncoder().encode(body)
 
         let data: Data
         let response: URLResponse

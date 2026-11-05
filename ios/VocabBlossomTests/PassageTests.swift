@@ -202,13 +202,19 @@ struct PassageClientTests {
             PassageAPI.Word(id: "a#0", word: "apple", pos: .noun, meaning: "りんご", example: "I eat an apple."),
             PassageAPI.Word(id: "b#0", word: "run", pos: .verb, meaning: "走る", example: ""),
         ]
-        let results = try await PassageClient(config: config, session: session).fetch(words)
+        let client = PassageClient(config: config, session: session, model: { .sonnet55 })
+        let results = try await client.fetch(words)
 
         let (request, body) = try #require(sent.value)
         #expect(request.url?.absoluteString == "https://vocab.example.com/api/passages")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer secret")
-        let sentBody = try JSONDecoder().decode([String: [PassageAPI.Word]].self, from: body)
-        #expect(sentBody["words"] == words)
+        struct SentBody: Decodable {
+            var words: [PassageAPI.Word]
+            var model: String
+        }
+        let sentBody = try JSONDecoder().decode(SentBody.self, from: body)
+        #expect(sentBody.words == words)
+        #expect(sentBody.model == "claude-sonnet-5-5")
         #expect(results == [
             PassageAPI.Result(id: "a#0", passages: [Passage(text: "t", ja: "j")]),
             PassageAPI.Result(id: "b#0", passages: []),

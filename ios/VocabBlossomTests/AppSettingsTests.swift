@@ -47,6 +47,8 @@ struct AppSettingsTests {
         settings.soundEnabled = false
         settings.effectSoundEnabled = false
         settings.hasOnboarded = true
+        settings.claudeModel = .sonnet55
+        settings.ttsModel = .flashLite38
 
         let restored = AppSettings(defaults: UserDefaults(suiteName: name)!)
         #expect(restored.level == .a2)
@@ -55,5 +57,24 @@ struct AppSettingsTests {
         #expect(!restored.soundEnabled)
         #expect(!restored.effectSoundEnabled)
         #expect(restored.hasOnboarded)
+        #expect(restored.claudeModel == .sonnet55)
+        #expect(restored.ttsModel == .flashLite38)
+        // サーバーへ送るときも同じ値を読む
+        #expect(AIModelPreference.claudeModel(defaults: UserDefaults(suiteName: name)!) == .sonnet55)
+        #expect(AIModelPreference.ttsModel(defaults: UserDefaults(suiteName: name)!) == .flashLite38)
+    }
+
+    @Test("AI のモデルの既定は Opus 5.5 と Gemini 3.8 Flash。知らない値なら既定に戻す")
+    func aiModelDefaults() {
+        let name = "settings-tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        let settings = AppSettings(defaults: defaults)
+        #expect(settings.claudeModel == .opus55)
+        #expect(settings.ttsModel == .flash38)
+
+        defaults.set("claude-haiku-5-5", forKey: AIModelPreference.Key.claudeModel)
+        defaults.set("gemini-2.5-pro-preview-tts", forKey: AIModelPreference.Key.ttsModel)
+        #expect(AIModelPreference.claudeModel(defaults: defaults) == .opus55)
+        #expect(AIModelPreference.ttsModel(defaults: defaults) == .flash38)
     }
 }
