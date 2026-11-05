@@ -12,6 +12,8 @@ import { BundledWords } from './words/bundled.ts'
 import { createClaudeWordAssistant } from './ai/claude.ts'
 import { createClaudePassageWriter } from './ai/claude-passages.ts'
 import { PassageStore, type PassageWriter, passagesHandler } from './ai/passages.ts'
+import { createClaudeChoiceJudge } from './ai/claude-fill-blank-check.ts'
+import { CheckStore, type ChoiceJudge, fillBlankChecksHandler } from './ai/fill-blank-checks.ts'
 import { createGeminiSpeechSynthesizer } from './ai/gemini-tts.ts'
 import { SPEECH_RATE_LIMIT, type SpeechSynthesizer, speechHandler } from './ai/speech.ts'
 import {
@@ -46,6 +48,8 @@ export type AppDeps = {
   assistant?: WordAssistant | null
   /** 穴埋め用の文章を作る AI。省略時は ANTHROPIC_API_KEY があれば Claude、無ければ null（ためた文章だけ返す） */
   passageWriter?: PassageWriter | null
+  /** 穴埋めの選択肢を判定する AI。省略時は ANTHROPIC_API_KEY があれば Claude、無ければ null（ためた判定だけ。足りなければ 503） */
+  choiceJudge?: ChoiceJudge | null
   /** 読み上げの声。省略時は GEMINI_API_KEY があれば Gemini TTS、無ければ null（503） */
   speechSynthesizer?: SpeechSynthesizer | null
 }
@@ -64,6 +68,7 @@ export function createApp({
   bundled = BundledWords.load(),
   assistant,
   passageWriter,
+  choiceJudge,
   speechSynthesizer,
 }: AppDeps): Handle {
   const store = new SyncStore(db)
@@ -94,6 +99,19 @@ export function createApp({
     now,
     logError: (message, error) => logger.error(message, error),
   })
+  const fillBlankChecks = fillBlankChecksHandler({
+    judge:
+      choiceJudge !== undefined
+        ? choiceJudge
+        : config.anthropicApiKey
+          ? createClaudeChoiceJudge({ apiKey: config.anthropicApiKey, model: config.anthropicModel })
+          : null,
+    store: new CheckStore(db),
+    // AI チェック・文章とは別の枠。AI を呼んだ回数で数える
+    limiter: new RateLimiter(RATE_LIMIT, RATE_WINDOW_MS, now),
+    now,
+    logError: (message, error) => logger.error(message, error),
+  })
   const speech = speechHandler({
     synthesizer:
       speechSynthesizer !== undefined
@@ -113,6 +131,7 @@ export function createApp({
     { method: 'POST', pattern: '/api/sync', handler: syncHandler(store) },
     { method: 'POST', pattern: '/api/word-assist', handler: wordAssist },
     { method: 'POST', pattern: '/api/passages', handler: passages },
+    { method: 'POST', pattern: '/api/fill-blank-checks', handler: fillBlankChecks },
     { method: 'POST', pattern: '/api/speech', handler: speech },
 
     // 管理画面のフォームから呼ぶ AI チェック（Access + ADMIN_ENABLED + Origin の確認は関所で）

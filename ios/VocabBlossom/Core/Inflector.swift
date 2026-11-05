@@ -87,8 +87,47 @@ enum Inflector {
         return Array(out)
     }
 
-    /// 例文中で見出し語が現れている範囲を返す。見つからなければ nil
+    /// 「…」の間に入ってよい語数（サーバーの `MAX_ELLIPSIS_GAP_WORDS` と同じ）
+    static let maxEllipsisGapWords = 6
+
+    /// 「either … or …」のように「…」（または ...）で間を空ける見出し語を、空けたところで区切る。「…」が無ければ nil
+    static func ellipsisSegments(_ headword: String) -> [String]? {
+        guard headword.contains("…") || headword.contains("...") else { return nil }
+        let segments = headword.lowercased()
+            .replacingOccurrences(of: "...", with: "…")
+            .split(separator: "…")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        return segments.isEmpty ? nil : segments
+    }
+
+    /// 空欄にする範囲。ふつうの見出し語は 1 つ、「either … or …」は区切りごと（間の語は空欄にしない）。見つからなければ nil
+    ///
+    /// 「…」の区切りはそのまま（活用させない）照合し、間には 1〜6 語入ってよい（サーバーの照合と同じ）
+    static func findHeadwordRanges(in example: String, headword: String) -> [Range<String.Index>]? {
+        guard let segments = ellipsisSegments(headword) else {
+            return findHeadword(in: example, headword: headword).map { [$0] }
+        }
+        let segmentPattern = { (segment: String) in
+            "(" + segment.split(separator: " ").map { NSRegularExpression.escapedPattern(for: String($0)) }
+                .joined(separator: "\\s+") + ")(?![A-Za-z])"
+        }
+        let gap = "\\s+(?:\\S+\\s+){1,\(maxEllipsisGapWords)}?"
+        let pattern = "(?<![A-Za-z])" + segments.map(segmentPattern).joined(separator: gap)
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = regex.firstMatch(in: example, range: NSRange(example.startIndex..., in: example))
+        else { return nil }
+        let ranges = (1..<match.numberOfRanges).compactMap { Range(match.range(at: $0), in: example) }
+        return ranges.count == segments.count ? ranges : nil
+    }
+
+    /// 例文中で見出し語が現れている範囲を返す。見つからなければ nil。「either … or …」は区切りの最初から最後まで
     static func findHeadword(in example: String, headword: String) -> Range<String.Index>? {
+        if ellipsisSegments(headword) != nil {
+            guard let ranges = findHeadwordRanges(in: example, headword: headword),
+                  let first = ranges.first, let last = ranges.last else { return nil }
+            return first.lowerBound..<last.upperBound
+        }
         let parts = headword.lowercased().split(separator: " ").map(String.init)
         guard !parts.isEmpty else { return nil }
         let candidates = parts.count > 1 ? phraseForms(of: parts) : forms(of: parts[0])

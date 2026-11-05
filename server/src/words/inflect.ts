@@ -211,23 +211,60 @@ function headwordPattern(headword: string): string {
   return pattern
 }
 
-export interface HeadwordMatch {
-  /** 例文中で実際に使われている語形 */
+/** 「either … or …」のように「…」（または ...）で間を空ける見出し語を、空けたところで区切る。「…」が無ければ null */
+export function ellipsisSegments(headword: string): string[] | null {
+  if (!/…|\.\.\./.test(headword)) return null
+  const segments = headword
+    .toLowerCase()
+    .split(/…|\.\.\./)
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+  return segments.length > 0 ? segments : null
+}
+
+/** 「…」の間に入ってよい語数。A1〜A2 の短い文章で either と or の間に入るのはせいぜい数語 */
+export const MAX_ELLIPSIS_GAP_WORDS = 6
+
+/**
+ * 「…」で間を空ける見出し語の正規表現。区切りはそのまま（活用させない）照合し、間には 1〜6 語入ってよい。
+ * 区切りごとに捕獲グループを付け、空欄にする場所を取り出せるようにする
+ */
+function ellipsisPattern(segments: string[]): string {
+  const segmentPattern = (segment: string) => `(${segment.split(/\s+/).map(escapeRegExp).join('\\s+')})(?![A-Za-z])`
+  const gap = `\\s+(?:\\S+\\s+){1,${MAX_ELLIPSIS_GAP_WORDS}}?`
+  return segments.map(segmentPattern).join(gap)
+}
+
+function headwordRegExp(headword: string, flags: string): RegExp {
+  const segments = ellipsisSegments(headword)
+  const pattern = segments ? ellipsisPattern(segments) : headwordPattern(headword)
+  return new RegExp(`(?<![A-Za-z])${pattern}(?![A-Za-z])`, flags)
+}
+
+export interface HeadwordPart {
   surface: string
   start: number
   end: number
 }
 
-/** 例文中の見出し語（活用形を含む）を探す。見つからなければ null */
+export interface HeadwordMatch extends HeadwordPart {
+  /** 空欄にする場所。ふつうの見出し語は 1 つ（全体と同じ）、「either … or …」は区切りごと */
+  parts: HeadwordPart[]
+}
+
+/** 例文中の見出し語（活用形を含む）を探す。見つからなければ null。surface・start・end は見出し語の全体（「…」の間も含む） */
 export function findHeadword(sentence: string, headword: string): HeadwordMatch | null {
-  const regex = new RegExp(`(?<![A-Za-z])${headwordPattern(headword)}(?![A-Za-z])`, 'i')
-  const match = regex.exec(sentence)
+  const match = headwordRegExp(headword, 'id').exec(sentence)
   if (!match) return null
-  return { surface: match[0], start: match.index, end: match.index + match[0].length }
+  const whole = { surface: match[0], start: match.index, end: match.index + match[0].length }
+  const groups = (match.indices ?? []).slice(1).filter((range): range is [number, number] => range !== undefined)
+  const parts = groups.length > 0
+    ? groups.map(([start, end]) => ({ surface: sentence.slice(start, end), start, end }))
+    : [whole]
+  return { ...whole, parts }
 }
 
 /** 文章中に見出し語（活用形を含む）が何回出てくるか。穴埋めの文章は 1 回だけにする（2 回目が答えを明かすため） */
 export function countHeadword(text: string, headword: string): number {
-  const regex = new RegExp(`(?<![A-Za-z])${headwordPattern(headword)}(?![A-Za-z])`, 'gi')
-  return [...text.matchAll(regex)].length
+  return [...text.matchAll(headwordRegExp(headword, 'gi'))].length
 }

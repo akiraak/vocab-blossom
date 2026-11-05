@@ -41,6 +41,7 @@ struct VocabBlossomApp: App {
                 .environment(sync)
                 .environment(\.wordAssist, sync.config.map { WordAssistClient(config: $0) })
                 .environment(\.passageFetcher, sync.config.map { PassageClient(config: $0) })
+                .environment(\.fillBlankChecker, sync.config.map { FillBlankCheckClient(config: $0) })
                 .tint(Theme.accent)
                 .task {
                     #if DEBUG

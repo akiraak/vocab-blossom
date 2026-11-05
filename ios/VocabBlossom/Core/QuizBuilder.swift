@@ -16,6 +16,8 @@ struct Quiz: Identifiable {
     let blankedExample: String?
     /// 穴埋めに使った文章（例文で出したときは nil）。答えたあと全文と和訳を見せる
     let passage: Passage?
+    /// 誤答肢のうち、空欄に入れても正しい文になる語（AI の判定。グループの穴埋めモードだけ）。選ぶと正解にする
+    let alsoCorrectWordIds: Set<String>
 
     static let blankPlaceholder = "＿＿＿＿"
 
@@ -25,7 +27,8 @@ struct Quiz: Identifiable {
         type: QuizType,
         choices: [WordEntry],
         blankedExample: String?,
-        passage: Passage? = nil
+        passage: Passage? = nil,
+        alsoCorrectWordIds: Set<String> = []
     ) {
         self.word = word
         self.sense = sense ?? word.primarySense
@@ -33,9 +36,44 @@ struct Quiz: Identifiable {
         self.choices = choices
         self.blankedExample = blankedExample
         self.passage = passage
+        self.alsoCorrectWordIds = alsoCorrectWordIds.subtracting([word.id])
     }
 
+    /// 出題した語の位置
     var answerIndex: Int { choices.firstIndex(of: word) ?? 0 }
+
+    /// 選んだ選択肢が正解か（出題した語か、ほかにも正解の語）
+    func isCorrect(choiceIndex: Int) -> Bool {
+        guard choices.indices.contains(choiceIndex) else { return false }
+        return choiceIndex == answerIndex || alsoCorrectWordIds.contains(choices[choiceIndex].id)
+    }
+
+    /// ほかにも正解の語（選択肢の並び順）
+    var alsoCorrectChoices: [WordEntry] {
+        choices.filter { alsoCorrectWordIds.contains($0.id) }
+    }
+
+    /// 穴埋めで空欄にした元の文（文章か例文）。穴埋めでなければ nil
+    var fillBlankSourceText: String? {
+        guard type == .fillBlank, blankedExample != nil else { return nil }
+        return passage?.text ?? sense.example
+    }
+
+    /// ほかにも正解の語を入れた問題（中身は同じで、別の問題として出す）
+    func with(alsoCorrectWordIds ids: Set<String>) -> Quiz {
+        Quiz(
+            word: word, sense: sense, type: type, choices: choices, blankedExample: blankedExample,
+            passage: passage, alsoCorrectWordIds: ids
+        )
+    }
+
+    /// 選択肢の並びだけ変えた問題（再出題用）
+    func reshuffled(using rng: inout some RandomNumberGenerator) -> Quiz {
+        Quiz(
+            word: word, sense: sense, type: type, choices: choices.shuffled(using: &rng),
+            blankedExample: blankedExample, passage: passage, alsoCorrectWordIds: alsoCorrectWordIds
+        )
+    }
 
     /// 選択肢の語に見せる意味。正解は出題する意味、誤答肢は同じ品詞の意味
     func sense(of entry: WordEntry) -> WordSense {
@@ -70,21 +108,42 @@ struct Quiz: Identifiable {
     }
 }
 
+/// 誤答肢を選ぶのに使うグループ（名前と単語 ID の並び）
+struct QuizGroup: Equatable, Sendable {
+    var name: String
+    var wordIds: [String]
+
+    /// つなぎ言葉のグループの名前の頭。データは data/groups/connectives.json
+    static let connectivePrefix = "つなぎ言葉・"
+
+    /// つなぎ言葉のグループなら働きの名前（「つなぎ言葉・逆接と対比 2」→「逆接と対比」）。そうでなければ nil。
+    ///
+    /// 似た語を「1」「2」に分けたグループは同じ働きとみなす（末尾の番号を除く）
+    var connectiveFunction: String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix(Self.connectivePrefix) else { return nil }
+        let function = trimmed.dropFirst(Self.connectivePrefix.count)
+            .replacingOccurrences(of: "\\s*[0-9０-９]+$", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+        return function.isEmpty ? nil : function
+    }
+}
+
 /// ステージに応じた出題を組み立てる。
 struct QuizBuilder {
     /// 4 択の選択肢数
     static let choiceCount = 4
 
     let store: WordStore
-    /// グループごとの単語 ID の並び。自作語の誤答肢を同じグループの語から優先して選ぶのに使う
-    let groups: [[String]]
+    /// グループ。自作語の誤答肢を同じグループの語から、つなぎ言葉の誤答肢を働きの違うグループの語から選ぶのに使う
+    let groups: [QuizGroup]
     /// 穴埋め用の文章（端末にためたもの）。あれば例文より優先して使う
     let passages: PassageLookup
     var rng: any RandomNumberGenerator
 
     init(
         store: WordStore,
-        groups: [[String]] = [],
+        groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator()
     ) {
@@ -138,6 +197,11 @@ struct QuizBuilder {
         )
     }
 
+    /// 選択肢の並びだけ変えた問題（組み立て済みの問題の再出題用）
+    mutating func reshuffle(_ quiz: Quiz) -> Quiz {
+        quiz.reshuffled(using: &rng)
+    }
+
     /// 1 つなら乱数を使わずにそれを返す（意味が 1 つの語で、これまでと同じ乱数の並びにする）
     private mutating func pickSense<T>(from items: [T]) -> T? {
         items.count > 1 ? items.randomElement(using: &rng) : items.first
@@ -151,10 +215,16 @@ struct QuizBuilder {
         }
     }
 
-    /// 文中の見出し語（活用形を含む）を空欄にする。見つからなければ nil
+    /// 文中の見出し語（活用形を含む）を空欄にする。見つからなければ nil。
+    /// 「either … or …」は区切りごとに空欄にする（「＿＿＿＿ tea ＿＿＿＿ coffee is fine.」のように 2 か所になる）
     static func blank(_ text: String, headword: String) -> String? {
-        guard let range = Inflector.findHeadword(in: text, headword: headword) else { return nil }
-        return text.replacingCharacters(in: range, with: Quiz.blankPlaceholder)
+        guard let ranges = Inflector.findHeadwordRanges(in: text, headword: headword) else { return nil }
+        var blanked = text
+        // 後ろから置き換えて、前の範囲がずれないようにする
+        for range in ranges.reversed() {
+            blanked.replaceSubrange(range, with: Quiz.blankPlaceholder)
+        }
+        return blanked
     }
 
     /// 例文中の該当語を空欄にする。見つからなければ nil
@@ -176,6 +246,10 @@ struct QuizBuilder {
     /// 自作語を誤答肢にするのは、出題する語と同じグループに入っているものだけ。
     /// グループから外した自作語や、ほかのグループの自作語が選択肢に出ると不自然なため
     ///
+    /// つなぎ言葉のグループ（`QuizGroup.connectiveFunction`）に入っている語は、その前に
+    /// 働きの違うつなぎ言葉のグループの語（同品詞 → 全品詞）を使う。同じ働きの語（because と since など）が並ぶと、
+    /// どれを入れても文が成り立ってしまうため。同じ働きの 1・2 のグループの語も使わない
+    ///
     /// 品詞は出題する意味（`sense`。省略時は 1 つ目の意味）に合わせる。
     /// 意味が複数ある語は、どれかの意味が同じ品詞なら同品詞とみなす。
     ///
@@ -185,7 +259,7 @@ struct QuizBuilder {
         let needed = Self.choiceCount - 1
         let pos = (sense ?? word.primarySense).pos
         func samePos(_ entry: WordEntry) -> Bool { entry.senses.contains { $0.pos == pos } }
-        let pools: [[WordEntry]]
+        var pools: [[WordEntry]]
         if word.isCustom {
             let related = relatedWords(for: word)
             pools = [
@@ -201,6 +275,10 @@ struct QuizBuilder {
                 sameLevel,
                 store.bundledWords,
             ]
+        }
+        let otherConnectives = otherFunctionConnectives(for: word)
+        if !otherConnectives.isEmpty {
+            pools.insert(contentsOf: [otherConnectives.filter(samePos), otherConnectives], at: 0)
         }
 
         var picked: [WordEntry] = []
@@ -226,8 +304,25 @@ struct QuizBuilder {
 
     /// 自作語と関係の近い語: その語が入っているグループの語（重複なし・本人を除く）
     func relatedWords(for word: WordEntry) -> [WordEntry] {
-        let groupIds = groups.filter { $0.contains(word.id) }.flatMap { $0 }
+        let groupIds = groups.filter { $0.wordIds.contains(word.id) }.flatMap(\.wordIds)
         var seen: Set<String> = [word.id]
         return store.words(ids: groupIds).filter { seen.insert($0.id).inserted }
+    }
+
+    /// つなぎ言葉の語の誤答肢の候補: 働きの違うつなぎ言葉のグループの語（重複なし）。
+    /// 出題する語が入っている働きのグループの語は除く。つなぎ言葉のグループに入っていない語は空
+    func otherFunctionConnectives(for word: WordEntry) -> [WordEntry] {
+        let ownGroups = groups.filter { $0.wordIds.contains(word.id) }
+        let ownFunctions = Set(ownGroups.compactMap(\.connectiveFunction))
+        guard !ownFunctions.isEmpty else { return [] }
+        var excluded = Set(
+            groups.filter { $0.connectiveFunction.map(ownFunctions.contains) ?? false }.flatMap(\.wordIds)
+        )
+        excluded.insert(word.id)
+        let ids = groups
+            .filter { $0.connectiveFunction.map { !ownFunctions.contains($0) } ?? false }
+            .flatMap(\.wordIds)
+            .filter { excluded.insert($0).inserted }
+        return store.words(ids: ids)
     }
 }

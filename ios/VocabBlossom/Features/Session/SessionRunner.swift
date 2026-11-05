@@ -22,6 +22,8 @@ final class SessionRunner {
     enum Item: Equatable {
         case present(wordId: String)
         case quiz(wordId: String, kind: AnswerKind)
+        /// 組み立て済みの問題（`preparedQuizzes` の位置）。再出題でも同じ問題を選択肢の並びだけ変えて出す
+        case prepared(index: Int, kind: AnswerKind)
     }
 
     /// 画面に出す状態
@@ -65,6 +67,10 @@ final class SessionRunner {
     private(set) var selectedIndex: Int?
 
     private var queue: [Item]
+    /// 表示中のステップの元になったキューの項目
+    private var currentItem: Item?
+    /// 組み立て済みの問題（グループの穴埋めモード。選択肢を AI で判定してある）
+    private let preparedQuizzes: [Quiz]
     private var requeueCounts: [String: Int] = [:]
     private var completed = 0
 
@@ -77,7 +83,7 @@ final class SessionRunner {
         plan: SessionPlan,
         engine: LearningEngine,
         store: WordStore = .shared,
-        groups: [[String]] = [],
+        groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
@@ -87,6 +93,7 @@ final class SessionRunner {
         self.clock = clock
         mode = .learning
         drillQuizType = nil
+        preparedQuizzes = []
         builder = QuizBuilder(store: store, groups: groups, passages: passages, rng: rng)
 
         var items: [Item] = plan.reviewWordIds.map { .quiz(wordId: $0, kind: .review) }
@@ -108,7 +115,7 @@ final class SessionRunner {
         quizType: QuizType? = nil,
         engine: LearningEngine,
         store: WordStore = .shared,
-        groups: [[String]] = [],
+        groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
@@ -118,8 +125,30 @@ final class SessionRunner {
         self.clock = clock
         mode = .drill
         drillQuizType = quizType
+        preparedQuizzes = []
         builder = QuizBuilder(store: store, groups: groups, passages: passages, rng: rng)
         queue = drillWordIds.map { .quiz(wordId: $0, kind: .review) }
+        advance()
+    }
+
+    /// 組み立て済みの問題で進めるドリル（グループの穴埋めモード）。渡した順に出す。
+    ///
+    /// 選択肢を AI で判定してあるので、間違えた語の再出題も作り直さず、同じ問題を選択肢の並びだけ変えて出す
+    init(
+        drillQuizzes: [Quiz],
+        engine: LearningEngine,
+        store: WordStore = .shared,
+        rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
+        clock: @escaping () -> Date = { .now }
+    ) {
+        self.engine = engine
+        self.store = store
+        self.clock = clock
+        mode = .drill
+        drillQuizType = drillQuizzes.first?.type
+        preparedQuizzes = drillQuizzes
+        builder = QuizBuilder(store: store, rng: rng)
+        queue = drillQuizzes.indices.map { .prepared(index: $0, kind: .review) }
         advance()
     }
 
@@ -147,7 +176,7 @@ final class SessionRunner {
     /// 回答後の正誤。未回答は nil
     var lastAnswerWasCorrect: Bool? {
         guard let selectedIndex, case .quiz(let quiz, _) = step else { return nil }
-        return selectedIndex == quiz.answerIndex
+        return quiz.isCorrect(choiceIndex: selectedIndex)
     }
 
     // MARK: - 操作
@@ -158,7 +187,8 @@ final class SessionRunner {
         selectedIndex = choiceIndex
 
         let wordId = quiz.word.id
-        let correct = choiceIndex == quiz.answerIndex
+        // ほかにも正解の語（AI の判定。グループの穴埋めモードだけ）を選んでも正解
+        let correct = quiz.isCorrect(choiceIndex: choiceIndex)
 
         stats.answered += 1
         if correct { stats.correct += 1 }
@@ -189,7 +219,11 @@ final class SessionRunner {
             let used = requeueCounts[wordId, default: 0]
             if used < SRS.maxRequeue {
                 requeueCounts[wordId] = used + 1
-                queue.append(.quiz(wordId: wordId, kind: .requeue))
+                if case .prepared(let index, _) = currentItem {
+                    queue.append(.prepared(index: index, kind: .requeue))
+                } else {
+                    queue.append(.quiz(wordId: wordId, kind: .requeue))
+                }
             }
         }
     }
@@ -218,11 +252,13 @@ final class SessionRunner {
             queue.removeFirst()
             if let step = resolve(item) {
                 self.step = step
+                currentItem = item
                 return
             }
             // 単語が見つからない（データ不整合）ときは飛ばす
         }
         step = .summary
+        currentItem = nil
     }
 
     private func resolve(_ item: Item) -> Step? {
@@ -235,6 +271,11 @@ final class SessionRunner {
             // 新規学習の直後クイズは必ず英→日から始める。形式を固定したドリルはその形式
             let type: QuizType = drillQuizType ?? (kind == .new ? .enToJa : SRS.quizType(for: stage))
             return .quiz(builder.make(for: word, type: type), kind: kind)
+        case .prepared(let index, let kind):
+            guard preparedQuizzes.indices.contains(index) else { return nil }
+            let quiz = preparedQuizzes[index]
+            // 再出題は選択肢の並びを変える（Quiz の id も変わり、画面が新しい問題として出す）
+            return .quiz(kind == .requeue ? builder.reshuffle(quiz) : quiz, kind: kind)
         }
     }
 }

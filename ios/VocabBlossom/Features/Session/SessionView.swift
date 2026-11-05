@@ -11,6 +11,8 @@ struct SessionView: View {
         case plan(SessionPlan)
         /// グループのドリル（進捗を動かさない）。`quizType` を渡すとその形式で固定する
         case drill(wordIds: [String], quizType: QuizType?)
+        /// 組み立て済みの問題のドリル（グループの穴埋めモード。選択肢を AI で判定してある）
+        case prepared([Quiz])
     }
 
     let source: Source
@@ -24,6 +26,11 @@ struct SessionView: View {
 
     init(drillWordIds: [String], quizType: QuizType? = nil, closeTitle: String) {
         source = .drill(wordIds: drillWordIds, quizType: quizType)
+        self.closeTitle = closeTitle
+    }
+
+    init(drillQuizzes: [Quiz], closeTitle: String) {
+        source = .prepared(drillQuizzes)
         self.closeTitle = closeTitle
     }
 
@@ -61,8 +68,8 @@ struct SessionView: View {
         .task {
             if runner == nil {
                 let engine = LearningEngine(context: context)
-                // 自作語の誤答肢を同じグループの語から選ぶため、グループの並びを渡す
-                let groups = ((try? context.fetch(FetchDescriptor<WordGroup>())) ?? []).map(\.wordIds)
+                // 自作語の誤答肢を同じグループの語から、つなぎ言葉の誤答肢を働きの違うグループから選ぶため、グループを渡す
+                let groups = WordGroup.quizGroups(in: context)
                 // 穴埋めは、端末にためた文章があれば例文より優先して使う
                 let passages = passageCache.lookup
                 switch source {
@@ -75,6 +82,8 @@ struct SessionView: View {
                         drillWordIds: wordIds, quizType: quizType,
                         engine: engine, store: store, groups: groups, passages: passages
                     )
+                case .prepared(let quizzes):
+                    runner = SessionRunner(drillQuizzes: quizzes, engine: engine, store: store)
                 }
             }
         }

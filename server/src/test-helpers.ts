@@ -4,6 +4,7 @@ import { type DB, migrate, openDatabase } from './db.ts'
 import { BundledWords } from './words/bundled.ts'
 import type { WordAssistant } from './ai/word-assist.ts'
 import type { PassageWriter } from './ai/passages.ts'
+import type { ChoiceJudge } from './ai/fill-blank-checks.ts'
 import type { SpeechSynthesizer } from './ai/speech.ts'
 
 // テスト用: サーバーを起動せずに handle(new Request(...)) で叩く
@@ -45,11 +46,13 @@ export function createTestApp(
     now,
     assistant = null,
     passageWriter = null,
+    choiceJudge = null,
     speechSynthesizer = null,
   }: {
     now?: () => number
     assistant?: WordAssistant | null
     passageWriter?: PassageWriter | null
+    choiceJudge?: ChoiceJudge | null
     speechSynthesizer?: SpeechSynthesizer | null
   } = {},
 ): TestApp {
@@ -69,6 +72,7 @@ export function createTestApp(
     bundled: testBundled(),
     assistant,
     passageWriter,
+    choiceJudge,
     speechSynthesizer,
   })
   return { handle, db, logs, errors }

@@ -20,7 +20,8 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill` / `group-fill-blank`: グループの学習 / ドリル / 穴埋めを起動直後に開く
 /// - `VOCAB_DEMO_SCREEN=group-read-aloud`: グループの読み上げを起動直後に開く（開くと読み始める。
 ///   声は偽のサーバーの音（Chobi は低い音・Naruko は高い音）で、文の長さだけ鳴る）
-/// - `VOCAB_DEMO_SCREEN=fill-blank-preparing`: 穴埋めの文章を作る画面（空のキャッシュ・偽のサーバーでゆっくり作る）
+/// - `VOCAB_DEMO_SCREEN=fill-blank-preparing`: 穴埋めの文章を作る画面（空のキャッシュ・偽のサーバーでゆっくり作る）。
+///   作り終えると選択肢を確かめる画面になり、偽のサーバーが各問の 1 つ目の誤答肢を「ほかの正解」にする
 /// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語を追加」を、単語帳に無い語で検索した状態で開く
 ///   （`VOCAB_DEMO_QUERY=proper` を足すと、その語で検索欄に入力中の状態で開く）
 /// - `VOCAB_DEMO_SCREEN=word-editor`: グループの「単語を追加」から、例文に単語が無い下書きで自作語のエディタを開く
@@ -290,6 +291,14 @@ nonisolated struct DebugPassageFetcher: PassageFetching {
     }
 }
 
+/// 2 秒待って、各問の 1 つ目の誤答肢を「ほかの正解」として返す偽のサーバー
+nonisolated struct DebugFillBlankChecker: FillBlankChecking {
+    func check(_ items: [FillBlankCheckAPI.Item]) async throws -> [FillBlankCheckAPI.Result] {
+        try await Task.sleep(for: .seconds(2))
+        return items.map { FillBlankCheckAPI.Result(id: $0.id, alsoCorrect: Array($0.choices.prefix(1))) }
+    }
+}
+
 // MARK: - 読み上げの声の確認用
 
 /// 0.8 秒待って、文の長さに合わせた音（Chobi は低め・Naruko は高め）の WAV を返す偽のサーバー
@@ -340,6 +349,7 @@ extension View {
         if DebugSeed.variant == .fillBlankPreparing {
             environment(\.passageCache, DebugPassageFetcher.cache)
                 .environment(\.passageFetcher, DebugPassageFetcher())
+                .environment(\.fillBlankChecker, DebugFillBlankChecker())
         } else {
             self
         }

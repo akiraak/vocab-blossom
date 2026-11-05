@@ -22,6 +22,7 @@ For each target word, write exactly 3 passages:
   Other words of the same part of speech should sound wrong in the blank.
 - Make the three passages use different situations. Do not reuse the example sentence you are given.
 - For a multi-word phrase, keep its words together in the usual order (only an object may come between a verb and its particle, as in "call you back").
+- A word with "…", such as "either … or …", is a paired expression: write its parts in order and put 1–6 words in each gap ("either tea or coffee"). Each part is blanked.
 - ja: a natural Japanese translation of the whole passage, ending with "。" (or "？" / "！").
 
 Each input line is a JSON object with id, word, pos, meaning (Japanese) and example. Return one item per input word with the same id, in the same order.`

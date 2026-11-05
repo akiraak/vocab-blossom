@@ -13,7 +13,13 @@ struct QuizCardView: View {
     var onReplay: (() -> Void)?
 
     private var isAnswered: Bool { selectedIndex != nil }
-    private var isCorrect: Bool { selectedIndex == quiz.answerIndex }
+    private var isCorrect: Bool { selectedIndex.map { quiz.isCorrect(choiceIndex: $0) } ?? false }
+
+    /// 正解の色にする選択肢（出題した語と、ほかにも正解の語）
+    private func isCorrectChoice(_ index: Int) -> Bool { quiz.isCorrect(choiceIndex: index) }
+
+    /// ほかにも正解の語（出題した語ではない）
+    private func isAlsoCorrect(_ index: Int) -> Bool { index != quiz.answerIndex && isCorrectChoice(index) }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -126,7 +132,12 @@ struct QuizCardView: View {
                             .font(.body.weight(.medium))
                             .multilineTextAlignment(.leading)
                         Spacer(minLength: 8)
-                        if isAnswered, index == quiz.answerIndex {
+                        if isAnswered, isAlsoCorrect(index) {
+                            Text("これも正解")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Theme.correct)
+                        }
+                        if isAnswered, isCorrectChoice(index) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(Theme.correct)
                         } else if isAnswered, index == selectedIndex {
@@ -153,14 +164,14 @@ struct QuizCardView: View {
 
     private func background(for index: Int) -> Color {
         guard isAnswered else { return Color(.secondarySystemGroupedBackground) }
-        if index == quiz.answerIndex { return Theme.correct.opacity(0.15) }
+        if isCorrectChoice(index) { return Theme.correct.opacity(0.15) }
         if index == selectedIndex { return Theme.incorrect.opacity(0.15) }
         return Color(.secondarySystemGroupedBackground).opacity(0.6)
     }
 
     private func border(for index: Int) -> Color {
         guard isAnswered else { return .clear }
-        if index == quiz.answerIndex { return Theme.correct }
+        if isCorrectChoice(index) { return Theme.correct }
         if index == selectedIndex { return Theme.incorrect }
         return .clear
     }
@@ -177,6 +188,18 @@ struct QuizCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    /// ほかにも正解の語があるときの説明。ほかの正解を選んだときは、出題した語が何だったかも見せる
+    private var alsoCorrectNote: some View {
+        let others = quiz.alsoCorrectChoices.map { "「\($0.word)」" }.joined(separator: "・")
+        let pickedAlso = selectedIndex.map(isAlsoCorrect) ?? false
+        let text = pickedAlso
+            ? "この文の答えは「\(quiz.word.word)」。\(others)も入ります"
+            : "\(others)も入ります"
+        return Label(text, systemImage: "lightbulb")
+            .font(.subheadline)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var feedback: some View {
@@ -198,6 +221,10 @@ struct QuizCardView: View {
                     .foregroundStyle(Theme.accent)
                     .accessibilityLabel("単語と問題の文章をもう一度聞く")
                 }
+            }
+
+            if !quiz.alsoCorrectChoices.isEmpty {
+                alsoCorrectNote
             }
 
             if let passage = quiz.passage {

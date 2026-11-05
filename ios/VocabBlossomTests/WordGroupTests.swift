@@ -537,7 +537,7 @@ struct DrillTests {
         let store = WordStore.shared.including(customWords: [customEntry("custom-1", word: "homeroom")])
         let runner = SessionRunner(
             drillWordIds: ["custom-1"], engine: engine, store: store,
-            groups: [["custom-1", "a1-0004", "a1-0005", "a1-0006"]],
+            groups: [QuizGroup(name: "Unit 1", wordIds: ["custom-1", "a1-0004", "a1-0005", "a1-0006"])],
             rng: SeededRNG(seed: 7), clock: { now }
         )
         guard case .quiz(let quiz, _) = runner.step else {

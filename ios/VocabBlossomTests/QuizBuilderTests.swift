@@ -96,7 +96,7 @@ struct QuizBuilderTests {
         let orphanCustom = customEntry("custom-4", word: "commute")  // グループから外した語
         let store = store.including(customWords: [custom, sameGroupCustom, otherGroupCustom, orphanCustom])
         // グループ外の語（a1-0006 actor・custom-3）は選ばれない
-        let groups = [["a1-0001", "custom-1", "custom-2", "a1-0004"], ["a1-0006", "custom-3"]]
+        let groups = quizGroups([["a1-0001", "custom-1", "custom-2", "a1-0004"], ["a1-0006", "custom-3"]])
         for seed in 1...20 {
             var builder = QuizBuilder(store: store, groups: groups, rng: SeededRNG(seed: UInt64(seed)))
             let ids = Set(builder.distractors(for: custom).map(\.id))
@@ -111,7 +111,8 @@ struct QuizBuilderTests {
         let store = store.including(customWords: [custom] + others)
         for seed in 1...20 {
             var builder = QuizBuilder(
-                store: store, groups: [["custom-1", "a2-0001"]], rng: SeededRNG(seed: UInt64(seed))
+                store: store, groups: quizGroups([["custom-1", "a2-0001"]]),
+                rng: SeededRNG(seed: UInt64(seed))
             )
             let picked = builder.distractors(for: custom)
             #expect(picked.count == QuizBuilder.choiceCount - 1)
@@ -125,16 +126,104 @@ struct QuizBuilderTests {
     func bundledDistractorsExcludeCustomWords() throws {
         let customs = (1...30).map { customEntry("custom-\($0)", word: "custom\($0)") }
         let store = store.including(customWords: customs)
-        var builder = QuizBuilder(store: store, groups: [["a1-0001", "custom-1"]], rng: SeededRNG(seed: 3))
+        var builder = QuizBuilder(
+            store: store, groups: quizGroups([["a1-0001", "custom-1"]]), rng: SeededRNG(seed: 3)
+        )
         for id in ["a1-0001", "a1-0500", "a2-0100", "ph-0001"] {
             let target = try #require(store.word(id: id))
             #expect(builder.distractors(for: target).allSatisfy { !$0.isCustom })
         }
     }
 
-    private func customEntry(_ id: String, word: String) -> WordEntry {
+    // MARK: - つなぎ言葉
+
+    @Test("つなぎ言葉のグループは名前で見分け、末尾の番号を除いた働きの名前を返す")
+    func connectiveFunctionFromName() {
+        #expect(QuizGroup(name: "つなぎ言葉・逆接と対比 2", wordIds: []).connectiveFunction == "逆接と対比")
+        #expect(QuizGroup(name: "つなぎ言葉・逆接と対比 1", wordIds: []).connectiveFunction == "逆接と対比")
+        #expect(QuizGroup(name: "つなぎ言葉・条件", wordIds: []).connectiveFunction == "条件")
+        #expect(QuizGroup(name: "Unit 3", wordIds: []).connectiveFunction == nil)
+        #expect(QuizGroup(name: "つなぎ言葉・", wordIds: []).connectiveFunction == nil)
+    }
+
+    /// 時 1・時 2・条件・理由の 4 グループ（語はすべて接続詞のマイ単語）
+    private func connectiveFixture() -> (store: WordStore, groups: [QuizGroup]) {
+        let ids = (1...12).map { "custom-\($0)" }
+        let words = ids.enumerated().map { index, id in
+            customEntry(id, word: "conj\(index + 1)", pos: .conjunction)
+        }
+        let groups = [
+            QuizGroup(name: "つなぎ言葉・時 1", wordIds: Array(ids[0..<3])),
+            QuizGroup(name: "つなぎ言葉・時 2", wordIds: Array(ids[3..<6])),
+            QuizGroup(name: "つなぎ言葉・条件", wordIds: Array(ids[6..<9])),
+            QuizGroup(name: "つなぎ言葉・理由と結果 1", wordIds: Array(ids[9..<12])),
+        ]
+        return (store.including(customWords: words), groups)
+    }
+
+    @Test("つなぎ言葉の誤答肢は、働きの違うグループから選ぶ（同じ働きの 1・2 のグループからは選ばない）")
+    func connectiveDistractorsComeFromOtherFunctions() throws {
+        let (store, groups) = connectiveFixture()
+        let target = try #require(store.word(id: "custom-1"))
+        let otherFunctions = Set((7...12).map { "custom-\($0)" })
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: store, groups: groups, rng: SeededRNG(seed: UInt64(seed)))
+            let ids = Set(builder.distractors(for: target).map(\.id))
+            #expect(ids.count == QuizBuilder.choiceCount - 1)
+            #expect(ids.isSubset(of: otherFunctions))
+        }
+    }
+
+    @Test("つなぎ言葉のグループに入った単語帳の語も、働きの違うグループから誤答肢を選ぶ")
+    func bundledConnectiveDistractorsComeFromOtherFunctions() throws {
+        let (store, fixtureGroups) = connectiveFixture()
+        var groups = fixtureGroups
+        groups[0].wordIds.append("a1-0075")  // before（単語帳の語）を時 1 に入れる
+        let target = try #require(store.word(id: "a1-0075"))
+        let otherFunctions = Set((7...12).map { "custom-\($0)" })
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: store, groups: groups, rng: SeededRNG(seed: UInt64(seed)))
+            #expect(Set(builder.distractors(for: target).map(\.id)).isSubset(of: otherFunctions))
+        }
+    }
+
+    @Test("働きの違うグループの語が足りなければ、残りは今までのプール（同じグループの語など）で埋める")
+    func connectiveDistractorsFallBack() throws {
+        let words = (1...4).map { customEntry("custom-\($0)", word: "conj\($0)", pos: .conjunction) }
+        let store = store.including(customWords: words)
+        let groups = [
+            QuizGroup(name: "つなぎ言葉・時 1", wordIds: ["custom-1", "custom-2", "custom-3"]),
+            QuizGroup(name: "つなぎ言葉・条件", wordIds: ["custom-4"]),
+        ]
+        let target = try #require(store.word(id: "custom-1"))
+        for seed in 1...20 {
+            var builder = QuizBuilder(store: store, groups: groups, rng: SeededRNG(seed: UInt64(seed)))
+            let ids = Set(builder.distractors(for: target).map(\.id))
+            #expect(ids.count == QuizBuilder.choiceCount - 1)
+            #expect(ids.contains("custom-4"))
+        }
+    }
+
+    @Test("つなぎ言葉でないグループの語は、ほかのグループにつなぎ言葉があっても今のまま同じグループから選ぶ")
+    func nonConnectiveGroupUnaffected() throws {
+        let (fixtureStore, fixtureGroups) = connectiveFixture()
+        let custom = customEntry("custom-x", word: "homeroom")
+        // including は自作語を置き換えるので、つなぎ言葉の語と合わせて渡す
+        let store = fixtureStore.including(customWords: fixtureStore.customWords + [custom])
+        let groups = fixtureGroups + [
+            QuizGroup(name: "Unit 3", wordIds: ["custom-x", "a1-0001", "a1-0004", "a1-0006"]),
+        ]
+        var builder = QuizBuilder(store: store, groups: groups, rng: SeededRNG(seed: 1))
+        #expect(Set(builder.distractors(for: custom).map(\.id)) == ["a1-0001", "a1-0004", "a1-0006"])
+    }
+
+    private func quizGroups(_ ids: [[String]]) -> [QuizGroup] {
+        ids.enumerated().map { QuizGroup(name: "グループ \($0.offset + 1)", wordIds: $0.element) }
+    }
+
+    private func customEntry(_ id: String, word: String, pos: PartOfSpeech = .noun) -> WordEntry {
         WordEntry(
-            id: id, word: word, pos: .noun, level: nil, meaning: "\(word) の意味",
+            id: id, word: word, pos: pos, level: nil, meaning: "\(word) の意味",
             example: "", exampleJa: ""
         )
     }
@@ -333,6 +422,26 @@ struct QuizBuilderTests {
     }
 }
 
+@Suite("穴埋めの空欄")
+struct BlankTests {
+    @Test("「…」を含む見出し語は区切りごとに空欄にする")
+    func ellipsisBlanks() {
+        #expect(
+            QuizBuilder.blank("You can have either cake or ice cream.", headword: "either … or …")
+                == "You can have ＿＿＿＿ cake ＿＿＿＿ ice cream."
+        )
+        #expect(
+            QuizBuilder.blank("She is not only smart but also kind.", headword: "not only … but also …")
+                == "She is ＿＿＿＿ smart ＿＿＿＿ kind."
+        )
+    }
+
+    @Test("ふつうの見出し語は 1 か所を空欄にする")
+    func singleBlank() {
+        #expect(QuizBuilder.blank("She plays tennis.", headword: "play") == "She ＿＿＿＿ tennis.")
+    }
+}
+
 @Suite("活用形の照合")
 struct InflectorTests {
     @Test("規則変化を照合できる")
@@ -362,6 +471,41 @@ struct InflectorTests {
         #expect(Inflector.findHeadword(in: "This is a pen.", headword: "banana") == nil)
         // 部分一致で誤検出しない
         #expect(Inflector.findHeadword(in: "I like pineapple.", headword: "apple") == nil)
+    }
+
+    @Test("「…」を含む見出し語は、間に語を挟んで区切りごとに見つける")
+    func ellipsisRanges() throws {
+        let cases: [(text: String, headword: String, parts: [String])] = [
+            ("You can have either cake or ice cream.", "either … or …", ["either", "or"]),
+            ("He can neither swim nor ride a bike.", "neither … nor …", ["neither", "nor"]),
+            ("She is not only smart but also kind.", "not only … but also …", ["not only", "but also"]),
+            ("Both my father and my mother are teachers.", "both … and …", ["Both", "and"]),
+            ("You can have either cake or ice cream.", "either ... or ...", ["either", "or"]),
+        ]
+        for item in cases {
+            let ranges = try #require(Inflector.findHeadwordRanges(in: item.text, headword: item.headword))
+            #expect(ranges.map { String(item.text[$0]) } == item.parts)
+        }
+        // 全体の範囲は、最初の区切りから最後の区切りまで
+        let text = "You can have either cake or ice cream."
+        let whole = try #require(Inflector.findHeadword(in: text, headword: "either … or …"))
+        #expect(text[whole] == "either cake or")
+    }
+
+    @Test("「…」を含む見出し語: 区切りがほかの語の一部・間が無い・間が長すぎる・片方しか無いときは当たらない")
+    func ellipsisMisses() {
+        #expect(Inflector.findHeadword(in: "Either orange juice is fine.", headword: "either … or …") == nil)
+        #expect(Inflector.findHeadword(in: "Either or is fine.", headword: "either … or …") == nil)
+        #expect(Inflector.findHeadword(
+            in: "Either one two three four five six seven or eight.", headword: "either … or …"
+        ) == nil)
+        #expect(Inflector.findHeadword(in: "I have both cats.", headword: "both … and …") == nil)
+    }
+
+    @Test("ふつうの見出し語の範囲は 1 つ")
+    func singleRange() throws {
+        let ranges = try #require(Inflector.findHeadwordRanges(in: "She plays tennis.", headword: "play"))
+        #expect(ranges.count == 1)
     }
 
     @Test("同梱データの 99% 以上で例文中の見出し語を特定できる")

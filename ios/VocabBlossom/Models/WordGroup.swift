@@ -34,4 +34,10 @@ final class WordGroup {
     var needsSync: Bool {
         syncedUpdatedAt?.syncMillis != updatedAt.syncMillis
     }
+
+    /// 出題（誤答肢の選び方）に使う、すべてのグループの名前と単語 ID
+    static func quizGroups(in context: ModelContext) -> [QuizGroup] {
+        ((try? context.fetch(FetchDescriptor<WordGroup>())) ?? [])
+            .map { QuizGroup(name: $0.name, wordIds: $0.wordIds) }
+    }
 }
