@@ -142,7 +142,7 @@
   - 失敗: 入力不正 400 / キー未設定 503（`tts-unavailable`）/ 上限 429 / Gemini の失敗 502（Gemini の 429 は 429 で返す）
   - 上限は AI チェック・文章とは別の枠で 10 分 600 回（1 語 = 2 人 × 4 文 = 8 回）
   - サーバーには音声を残さない（端末に残す）。実際のキーで `adjust` を読ませ、200・1.7 秒の WAV が返ることを確かめた
-  - **g3plus の `.env` に `GEMINI_API_KEY` を足すのは手作業**（まだ。足してから Phase 3 の実機確認）
+  - g3plus の `.env` に `GEMINI_API_KEY` を足してデプロイした（2026-11-04）。本番で Bearer なし 401、Bearer ありで 200・`audio/wav`（24kHz mono 16bit）を確認
 
 ### Phase 3: iOS（声の差し替え）
 
