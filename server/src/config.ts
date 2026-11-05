@@ -13,6 +13,10 @@ export type Config = {
   anthropicApiKey: string | undefined
   /** 自作語の AI チェックに使うモデル（未設定なら ai/claude.ts の既定） */
   anthropicModel: string | undefined
+  /** 未設定ならグループの読み上げの声（Gemini TTS）だけ使えない（iOS は内蔵 TTS で読む） */
+  geminiApiKey: string | undefined
+  /** 読み上げの声のモデル（未設定なら ai/gemini-tts.ts の既定） */
+  geminiTtsModel: string | undefined
 }
 
 export const DEFAULT_PORT = 3015
@@ -39,5 +43,7 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     dbPath: env.VOCAB_DB_PATH?.trim() || DEFAULT_DB_PATH,
     anthropicApiKey: env.ANTHROPIC_API_KEY?.trim() || undefined,
     anthropicModel: env.ANTHROPIC_MODEL?.trim() || undefined,
+    geminiApiKey: env.GEMINI_API_KEY?.trim() || undefined,
+    geminiTtsModel: env.GEMINI_TTS_MODEL?.trim() || undefined,
   }
 }

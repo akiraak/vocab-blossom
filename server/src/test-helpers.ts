@@ -4,6 +4,7 @@ import { type DB, migrate, openDatabase } from './db.ts'
 import { BundledWords } from './words/bundled.ts'
 import type { WordAssistant } from './ai/word-assist.ts'
 import type { PassageWriter } from './ai/passages.ts'
+import type { SpeechSynthesizer } from './ai/speech.ts'
 
 // テスト用: サーバーを起動せずに handle(new Request(...)) で叩く
 
@@ -18,6 +19,8 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     dbPath: ':memory:',
     anthropicApiKey: undefined,
     anthropicModel: undefined,
+    geminiApiKey: undefined,
+    geminiTtsModel: undefined,
     ...overrides,
   }
 }
@@ -42,7 +45,13 @@ export function createTestApp(
     now,
     assistant = null,
     passageWriter = null,
-  }: { now?: () => number; assistant?: WordAssistant | null; passageWriter?: PassageWriter | null } = {},
+    speechSynthesizer = null,
+  }: {
+    now?: () => number
+    assistant?: WordAssistant | null
+    passageWriter?: PassageWriter | null
+    speechSynthesizer?: SpeechSynthesizer | null
+  } = {},
 ): TestApp {
   const db = openDatabase(':memory:')
   migrate(db)
@@ -60,6 +69,7 @@ export function createTestApp(
     bundled: testBundled(),
     assistant,
     passageWriter,
+    speechSynthesizer,
   })
   return { handle, db, logs, errors }
 }

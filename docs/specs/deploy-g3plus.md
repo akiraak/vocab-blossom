@@ -30,6 +30,9 @@ vocab-blossom の管理画面とアプリ同期のサーバー（`server/`）を
   - `ANTHROPIC_API_KEY` — Claude API。自作語を作る前の AI チェック（`POST /api/word-assist`・`POST /admin/word-assist`。
     打ち間違い・変化形を同梱語に寄せ、無い語は意味・例文を下書き）に使う。未設定なら AI チェックだけ 503 で、他の機能は動く
   - `ANTHROPIC_MODEL` — AI チェックのモデル（既定 `claude-opus-5-5`。安くしたいときは `claude-haiku-5-5` など）
+  - `GEMINI_API_KEY` — Gemini API。グループの読み上げの声（`POST /api/speech`。1 文を Gemini TTS で読ませて WAV で返す）に使う。
+    未設定なら `/api/speech` だけ 503 で、iOS は OS 内蔵の声で読む
+  - `GEMINI_TTS_MODEL` — 読み上げの声のモデル（既定 `gemini-3.8-flash-tts`。安くしたいときは `gemini-3.8-flash-lite-tts`）
   - `PORT` — 既定 3015
 - **永続化**: SQLite（`VOCAB_DB_PATH` のディレクトリ）。volume `/home/ubuntu/vocab-blossom/server/data:/app/server/data`。
   `/app/data` は同梱の単語 JSON の置き場所なので volume にしない。

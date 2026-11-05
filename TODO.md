@@ -6,3 +6,9 @@
   - [x] Phase 2: 読み上げ画面とグループ詳細のボタン
   - [x] Phase 3: 画面を消しても鳴らす（バックグラウンド再生・ロック画面の操作）
   - [ ] Phase 4: 実機確認
+- [ ] 読み上げの声を Gemini TTS にする（esl-speaking-coach の Chobi / Naruko の声を持ってくる）→ [plan](docs/plans/read-aloud-gemini-voice.md)
+  - [x] Phase 0: 声（2 人分作ってランダム）・音声を作る場所（サーバー）を決める
+  - [x] Phase 1: 試聴して声と前置文を決める
+  - [x] Phase 2: サーバー（`POST /api/speech`）
+  - [ ] Phase 3: iOS（声の差し替え・端末に残す・先読み・内蔵 TTS への切り替え）
+  - [ ] Phase 4: 実機確認

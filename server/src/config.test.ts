@@ -32,10 +32,14 @@ describe('loadConfig', () => {
       PORT: '4000',
       VOCAB_DB_PATH: '/app/server/data/vocab-blossom.db',
       ANTHROPIC_API_KEY: 'sk-ant',
+      GEMINI_API_KEY: ' gm-key ',
+      GEMINI_TTS_MODEL: 'gemini-3.8-flash-lite-tts',
     })
     expect(config.port).toBe(4000)
     expect(config.dbPath).toBe('/app/server/data/vocab-blossom.db')
     expect(config.anthropicApiKey).toBe('sk-ant')
+    expect(config.geminiApiKey).toBe('gm-key')
+    expect(config.geminiTtsModel).toBe('gemini-3.8-flash-lite-tts')
   })
 
   it('PORT が不正なら起動しない', () => {
