@@ -16,3 +16,4 @@
   - [x] Phase 1: サーバー（リクエストの `model` を許可リストで受け付ける）
   - [x] Phase 2: iOS（設定画面・リクエストに `model` を付ける・読み上げの置き場をモデルごとに）
   - [ ] Phase 3: デプロイ・実機確認
+- [ ] グループに接続詞・つなぎの語句（if, when, first, finally, so that など）を入れても、穴埋めの文章が問題なく作れるか検証し、ダメなら直す（品詞 `conjunction` はサーバー・iOS とも既にある。first / finally は副詞、so that は熟語の扱いになりそう）
