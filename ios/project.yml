@@ -51,6 +51,9 @@ targets:
           - UIInterfaceOrientationPortrait
         UIRequiresFullScreen: true
         ITSAppUsesNonExemptEncryption: false
+        # グループの読み上げを、画面を消しても続ける（ロック画面・コントロールセンターから操作する）
+        UIBackgroundModes:
+          - audio
         # ローカルの管理画面サーバー（http://<Mac の IP>:3015）で同期を試せるようにする。本番は https
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true

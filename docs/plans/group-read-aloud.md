@@ -55,13 +55,31 @@
 - 読み上げる項目の組み立て（決めた内容で、語 → 文の並び）、再生・一時停止・前後・ループ、割り込みでの一時停止
 - Swift Testing（偽の声で）
 
+実装メモ（2026-11-04）:
+
+- `ReadAloudScript`（`Core/ReadAloud.swift`）: 語 → 文（`ReadAloudLine`）の並び。日本語は声に出す文だけ整える
+  （「／」→「、」、「〜」は消す、「［で］」のような言い換えは読まない。画面の文はそのまま）
+- `ReadAloudPlayer`: 声の部分はプロトコル `ReadAloudSpeaking`（`speak(lines, onLineStart, onFinish)`・`stop`・`finish`・`onInterruption`）。
+  前の `speak` の知らせは番号（generation）で無視する。前後の語へは再生中ならそこから読み、止まっていれば位置だけ動かす。
+  最後の語の「次へ」はループなら頭へ（周回 +1）。読み終えて止まったら `finish` でほかのアプリの音を戻す
+- 声は `SpeechService` を広げず、読み上げ専用の `ReadAloudSpeechEngine` に分けた（読み終わりの知らせ・日本語の声・カテゴリが違うため）。
+  読み始めるときに `SpeechService` を止める。読み終えて次の語へ進むときは `AVSpeechSynthesizer` を使い回し、途中で止めたら作り直す
+- `LearningAudioSession` は `activate(for: .learning / .readAloud)`。読み上げ中は学習側からの無効化・カテゴリの変更を無視する
+  （`SpeechService.stop()` の遅れた無効化で読み上げが止まらないように）
+- 割り込みに加えて、イヤホンが抜けたとき（`routeChangeNotification` の `.oldDeviceUnavailable`）も一時停止にした
+- 速さ: 英語の単語 0.42・文 0.45、日本語は仮に 0.5。文の間 0.25 秒・語の間 0.8 秒
+
 ### Phase 2: 読み上げ画面とグループ詳細のボタン
 
 - 上の「画面」のとおり。DebugSeed `group-read-aloud`
+- 実装メモ（2026-11-04）: `Features/Groups/ReadAloudView.swift`。開くとすぐ頭から読む。今の語のカード（読んでいる文に色）・「N / M 語」・
+  ループ中は「N 周目」・ループ / 前 / 再生・一時停止 / 次・一覧（今の語へ自動スクロール、押すとそこから読む）。閉じたら止める
 
 ### Phase 3: 画面を消しても鳴らす
 
 - `UIBackgroundModes: audio`（`project.yml`）、ロック画面・コントロールセンターの表示と操作
+- 実装メモ（2026-11-04）: `ReadAloudNowPlaying`。読み上げ画面を開いている間だけ、今の語（タイトル）・意味（アーティスト）・
+  グループ名（アルバム）・N / M を出し、再生・一時停止・切り替え・前後のコマンドを受ける。シミュレータでは確かめられないので Phase 4 で見る
 
 ### Phase 4: 実機確認
 

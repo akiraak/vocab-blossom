@@ -28,12 +28,15 @@ struct GroupDetailView: View {
         case drill([String])
         /// 形式を穴埋めに固定したドリル。文章の無い語は始める前に作る
         case fillBlank([WordEntry])
+        /// グループの単語を順に読み上げる（学習の記録には残さない）
+        case readAloud([WordEntry])
 
         var id: String {
             switch self {
             case .learn: "learn"
             case .drill: "drill"
             case .fillBlank: "fill-blank"
+            case .readAloud: "read-aloud"
             }
         }
     }
@@ -148,6 +151,8 @@ struct GroupDetailView: View {
                     #if DEBUG
                     .debugPassagePreparation()
                     #endif
+            case .readAloud(let words):
+                ReadAloudView(groupName: group.name, words: words)
             }
         }
         #if DEBUG
@@ -159,6 +164,7 @@ struct GroupDetailView: View {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
             case .groupFillBlank, .fillBlankPreparing: session = .fillBlank(words)
+            case .groupReadAloud: session = .readAloud(words)
             case .drillSenses: session = .drill(words.filter { !$0.extraSenses.isEmpty }.map(\.id))
             case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult, .wordEditorSenses:
                 isPickingWords = true
@@ -268,6 +274,7 @@ struct GroupDetailView: View {
             .disabled(words.isEmpty)
 
             fillBlankButton
+            readAloudButton
         }
         .cardStyle()
     }
@@ -278,6 +285,19 @@ struct GroupDetailView: View {
             session = .fillBlank(words)
         } label: {
             Label("穴埋め（全 \(words.count) 語）", systemImage: "questionmark.square.dashed")
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
+        }
+        .buttonStyle(.bordered)
+        .disabled(words.isEmpty)
+    }
+
+    /// 読み上げ（単語 → 意味 → 例文 → 和訳を順に読む。ループもできる）
+    private var readAloudButton: some View {
+        Button {
+            session = .readAloud(words)
+        } label: {
+            Label("読み上げ（全 \(words.count) 語）", systemImage: "speaker.wave.2")
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 4)
         }

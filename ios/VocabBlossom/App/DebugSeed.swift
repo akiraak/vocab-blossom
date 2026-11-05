@@ -18,6 +18,7 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill` / `group-fill-blank`: グループの学習 / ドリル / 穴埋めを起動直後に開く
+/// - `VOCAB_DEMO_SCREEN=group-read-aloud`: グループの読み上げを起動直後に開く（開くと読み始める）
 /// - `VOCAB_DEMO_SCREEN=fill-blank-preparing`: 穴埋めの文章を作る画面（空のキャッシュ・偽のサーバーでゆっくり作る）
 /// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語を追加」を、単語帳に無い語で検索した状態で開く
 ///   （`VOCAB_DEMO_QUERY=proper` を足すと、その語で検索欄に入力中の状態で開く）
@@ -42,6 +43,7 @@ enum DebugSeed {
         case groupLearn = "group-learn"
         case groupDrill = "group-drill"
         case groupFillBlank = "group-fill-blank"
+        case groupReadAloud = "group-read-aloud"
         case fillBlankPreparing = "fill-blank-preparing"
         case groupSelect = "group-select"
         case wordPicker = "word-picker"
@@ -57,8 +59,8 @@ enum DebugSeed {
 
         var seedsGroups: Bool {
             switch self {
-            case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .fillBlankPreparing,
-                 .groupSelect,
+            case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud,
+                 .fillBlankPreparing, .groupSelect,
                  .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
                  .wordEditorSenses, .wordDetailSenses, .drillSenses:
                 true
@@ -92,7 +94,7 @@ enum DebugSeed {
 
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
-        [.groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .fillBlankPreparing,
+        [.groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud, .fillBlankPreparing,
                  .groupSelect,
          .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
          .wordEditorSenses, .wordDetailSenses, .drillSenses]
@@ -108,8 +110,8 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
-        case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .fillBlankPreparing,
-                 .groupSelect,
+        case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud,
+             .fillBlankPreparing, .groupSelect,
              .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
              .wordEditorSenses, .wordDetailSenses, .drillSenses:
             .groups
