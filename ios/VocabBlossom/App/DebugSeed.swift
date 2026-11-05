@@ -18,7 +18,8 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill` / `group-fill-blank`: グループの学習 / ドリル / 穴埋めを起動直後に開く
-/// - `VOCAB_DEMO_SCREEN=group-read-aloud`: グループの読み上げを起動直後に開く（開くと読み始める）
+/// - `VOCAB_DEMO_SCREEN=group-read-aloud`: グループの読み上げを起動直後に開く（開くと読み始める。
+///   声は偽のサーバーの音（Chobi は低い音・Naruko は高い音）で、文の長さだけ鳴る）
 /// - `VOCAB_DEMO_SCREEN=fill-blank-preparing`: 穴埋めの文章を作る画面（空のキャッシュ・偽のサーバーでゆっくり作る）
 /// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語を追加」を、単語帳に無い語で検索した状態で開く
 ///   （`VOCAB_DEMO_QUERY=proper` を足すと、その語で検索欄に入力中の状態で開く）
@@ -286,6 +287,49 @@ nonisolated struct DebugPassageFetcher: PassageFetching {
             }
             return PassageAPI.Result(id: word.id, passages: word.word == "dream" ? [] : passages)
         }
+    }
+}
+
+// MARK: - 読み上げの声の確認用
+
+/// 0.8 秒待って、文の長さに合わせた音（Chobi は低め・Naruko は高め）の WAV を返す偽のサーバー
+nonisolated struct DebugSpeechFetcher: SpeechFetching {
+    func fetch(_ request: SpeechAPI.Request) async throws -> SpeechAPI.Audio {
+        try await Task.sleep(for: .milliseconds(800))
+        let seconds = min(3.0, max(0.4, 0.3 + 0.06 * Double(request.text.count)))
+        let frequency: Double = request.speaker == .chobi ? 523 : 784
+        let wav = Self.toneWAV(seconds: seconds, frequency: frequency)
+        return SpeechAPI.Audio(wav: wav, version: "debug-tone")
+    }
+
+    static func toneWAV(seconds: Double, frequency: Double, sampleRate: Int = 24000) -> Data {
+        let count = Int(seconds * Double(sampleRate))
+        var pcm = Data(capacity: count * 2)
+        for index in 0..<count {
+            let time = Double(index) / Double(sampleRate)
+            // 頭とお尻を 20ms でなめらかにする（プツッと鳴らないように）
+            let fade = min(1, time / 0.02, (seconds - time) / 0.02)
+            let value = Int16(sin(2 * .pi * frequency * time) * 0.2 * fade * Double(Int16.max))
+            withUnsafeBytes(of: value.littleEndian) { pcm.append(contentsOf: $0) }
+        }
+        var wav = Data()
+        func append<T: FixedWidthInteger>(_ value: T) {
+            withUnsafeBytes(of: value.littleEndian) { wav.append(contentsOf: $0) }
+        }
+        wav.append(contentsOf: Array("RIFF".utf8))
+        append(UInt32(36 + pcm.count))
+        wav.append(contentsOf: Array("WAVEfmt ".utf8))
+        append(UInt32(16))
+        append(UInt16(1))
+        append(UInt16(1))
+        append(UInt32(sampleRate))
+        append(UInt32(sampleRate * 2))
+        append(UInt16(2))
+        append(UInt16(16))
+        wav.append(contentsOf: Array("data".utf8))
+        append(UInt32(pcm.count))
+        wav.append(pcm)
+        return wav
     }
 }
 

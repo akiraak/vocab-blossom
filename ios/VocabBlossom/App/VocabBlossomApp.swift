@@ -17,9 +17,15 @@ struct VocabBlossomApp: App {
             fatalError("学習データの保存領域を開けませんでした: \(error)")
         }
         self.container = container
-        _sync = State(
-            initialValue: SyncService(config: SyncService.appConfig(), context: container.mainContext)
-        )
+        let config = SyncService.appConfig()
+        _sync = State(initialValue: SyncService(config: config, context: container.mainContext))
+        // グループの読み上げの声（Gemini TTS）。サーバーの設定が無ければ OS 内蔵の声で読む
+        GeminiReadAloudSpeaker.shared.fetcher = config.map { SpeechClient(config: $0) }
+        #if DEBUG
+        if DebugSeed.variant == .groupReadAloud {
+            GeminiReadAloudSpeaker.shared.fetcher = DebugSpeechFetcher()
+        }
+        #endif
     }
 
     var body: some Scene {

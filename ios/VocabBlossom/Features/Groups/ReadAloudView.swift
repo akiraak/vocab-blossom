@@ -15,7 +15,7 @@ struct ReadAloudView: View {
     init(
         groupName: String,
         words: [WordEntry],
-        speaker: any ReadAloudSpeaking = ReadAloudSpeechEngine.shared
+        speaker: any ReadAloudSpeaking = GeminiReadAloudSpeaker.shared
     ) {
         self.groupName = groupName
         _player = State(initialValue: ReadAloudPlayer(words: words, speaker: speaker))

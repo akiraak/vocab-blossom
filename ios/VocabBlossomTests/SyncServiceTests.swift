@@ -11,10 +11,15 @@ nonisolated final class StubURLProtocol: URLProtocol {
     static let tokenHeader = "X-Stub-Token"
     private static let lock = NSLock()
     nonisolated(unsafe) private static var handlers: [String: Handler] = [:]
+    nonisolated(unsafe) private static var headersByToken: [String: [String: String]] = [:]
 
-    static func session(handler: @escaping Handler) -> URLSession {
+    /// headers は応答に足すヘッダ（既定は Content-Type: application/json だけ）
+    static func session(headers: [String: String] = [:], handler: @escaping Handler) -> URLSession {
         let token = UUID().uuidString
-        lock.withLock { handlers[token] = handler }
+        lock.withLock {
+            handlers[token] = handler
+            headersByToken[token] = headers
+        }
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [StubURLProtocol.self]
         configuration.httpAdditionalHeaders = [tokenHeader: token]
@@ -26,6 +31,7 @@ nonisolated final class StubURLProtocol: URLProtocol {
 
     override func startLoading() {
         let token = request.value(forHTTPHeaderField: Self.tokenHeader) ?? ""
+        let extraHeaders = Self.lock.withLock { Self.headersByToken[token] ?? [:] }
         guard let handler = Self.lock.withLock({ Self.handlers[token] }) else {
             client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
             return
@@ -33,7 +39,7 @@ nonisolated final class StubURLProtocol: URLProtocol {
         let (status, body) = handler(request, Self.body(of: request))
         let response = HTTPURLResponse(
             url: request.url!, statusCode: status, httpVersion: "HTTP/1.1",
-            headerFields: ["Content-Type": "application/json"]
+            headerFields: ["Content-Type": "application/json"].merging(extraHeaders) { _, new in new }
         )!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: body)

@@ -9,6 +9,8 @@ final class FakeReadAloudSpeaker: ReadAloudSpeaking {
     var onInterruption: (() -> Void)?
 
     private(set) var spoken: [[ReadAloudLine]] = []
+    /// `prepare` で渡された語（単語の文）の並び
+    private(set) var prepared: [[String]] = []
     private(set) var stopCount = 0
     private(set) var finishCount = 0
     private var onLineStart: ((Int) -> Void)?
@@ -25,6 +27,10 @@ final class FakeReadAloudSpeaker: ReadAloudSpeaking {
         spoken.append(lines)
         self.onLineStart = onLineStart
         self.onFinish = onFinish
+    }
+
+    func prepare(_ upcoming: [[ReadAloudLine]]) {
+        prepared.append(upcoming.compactMap { $0.first?.text })
     }
 
     func stop() {
@@ -285,5 +291,27 @@ struct ReadAloudPlayerTests {
         #expect(!player.isPlaying)
         #expect(speaker.spoken.isEmpty)
         #expect(!player.canGoNext)
+    }
+
+    @Test("読み始めるたび、今の語と次の 3 語を声に先に用意させる（ループなら頭に戻って数える）")
+    func preparesUpcoming() {
+        let (player, speaker) = makePlayer(["a", "b", "c", "d", "e"])
+        player.play()
+        #expect(speaker.prepared.last == ["a", "b", "c", "d"])
+
+        player.start(at: 3)
+        #expect(speaker.prepared.last == ["d", "e"])
+
+        player.isLooping = true
+        player.next()
+        #expect(speaker.prepared.last == ["e", "a", "b", "c"])
+    }
+
+    @Test("語が少なければ、ループでも同じ語を二度は用意させない")
+    func preparesFewWords() {
+        let (player, speaker) = makePlayer(["a", "b"])
+        player.isLooping = true
+        player.play()
+        #expect(speaker.prepared.last == ["a", "b"])
     }
 }

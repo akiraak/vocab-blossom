@@ -17,11 +17,19 @@ protocol ReadAloudSpeaking: AnyObject {
         onFinish: @escaping () -> Void
     )
 
+    /// これから読む語の文（今の語を先頭に、次の数語）。音声を先に用意できる声はここで取りに行く
+    func prepare(_ upcoming: [[ReadAloudLine]])
+
     /// 読んでいる途中でも止める（音声セッションはそのまま）
     func stop()
 
     /// 読み上げを終える。止めたうえで、ほかのアプリの音を戻す
     func finish()
+}
+
+extension ReadAloudSpeaking {
+    /// その場で声を作る（OS 内蔵の）声は、先に用意するものが無い
+    func prepare(_ upcoming: [[ReadAloudLine]]) {}
 }
 
 /// グループの単語を順に読み上げる。再生・一時停止・前後・ループを持つ。
@@ -41,6 +49,9 @@ final class ReadAloudPlayer {
     private(set) var isFinished = false
     /// 最後まで読んだら頭から繰り返す
     var isLooping = false
+
+    /// 読み始めるときに、声に先に用意させる語の数（今の語の次から）
+    static let prepareAhead = 3
 
     @ObservationIgnored private let speaker: any ReadAloudSpeaking
     /// 前の `speak` の知らせを無視するための番号。読み始めるたび・止めるたびに進める
@@ -149,6 +160,15 @@ final class ReadAloudPlayer {
                 self.advance()
             }
         )
+        speaker.prepare([item.lines] + upcomingItems().map(\.lines))
+    }
+
+    /// 今の語の次から `prepareAhead` 語。ループなら頭に戻って数える
+    func upcomingItems() -> [ReadAloudItem] {
+        guard !items.isEmpty else { return [] }
+        let count = min(Self.prepareAhead, isLooping ? items.count - 1 : items.count - 1 - index)
+        guard count > 0 else { return [] }
+        return (1...count).map { items[(index + $0) % items.count] }
     }
 
     /// 1 語読み終えたら次へ。最後まで読んだら、ループなら頭へ、そうでなければ止まる

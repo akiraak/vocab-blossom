@@ -148,6 +148,21 @@
 
 - `SpeechClient`（`POST /api/speech`）、音声の置き場（ハッシュ → m4a）、`GeminiReadAloudSpeaker`、先読み、内蔵 TTS への切り替え
 - 読み上げ画面は変えない。DebugSeed `group-read-aloud` は偽のクライアントで動くようにする
+- 実装メモ（2026-11-04）
+  - `Core/Sync/SpeechClient.swift`（`SpeechAPI`・`SpeechFetching`・`SpeechClient`）。タイムアウト 20 秒。エラーは AI チェックと同じ `WordAssistError`
+  - `Core/ReadAloudVoiceStore.swift`: `Library/Caches/read-aloud/` に 1 文 1 ファイル。鍵は「版・人・種類・文」の SHA-256。
+    人・種類ごとに最後に見た版を `versions.json` に覚え、版が変わったら古い音声は使わない。WAV → m4a（AAC）に変換して残す（失敗したら WAV のまま）
+  - `Core/GeminiReadAloudSpeaker.swift`: `ReadAloudSpeaking` の実装（`.shared`）。読み上げ画面の既定の声をこれにした
+    - 1 語の 4 文をまとめて頼み、届いた順ではなく文の順に `AVAudioPlayer` で鳴らす。文の間 0.25 秒・語の間 0.8 秒
+    - 読む人は 1 語ごとにランダム。2 語続けて同じなら次はもう 1 人。片方の人の音声だけそろっていれば、そろっている方
+    - 取れなかった文はその文だけ内蔵の声（`ReadAloudSpeechEngine`）。失敗したら 30 秒（キー未設定・認証・上限は 5 分）サーバーへ頼まない
+    - 割り込み（通話・イヤホンが抜けた）は内蔵の声の側の見張りを使い回す
+    - `fetcher` は起動時にサーバーの設定から入れる（`VocabBlossomApp`）。設定が無ければすべて内蔵の声
+  - 先読み: `ReadAloudSpeaking.prepare(_:)` を足した（既定は何もしない）。`ReadAloudPlayer` は読み始めるたびに「今の語 + 次の 3 語」
+    （ループなら頭に戻って数える）を渡し、Gemini の声は 2 人分を同時 2 本まで取りに行く
+  - DebugSeed `group-read-aloud` は偽のサーバー（`DebugSpeechFetcher`。0.8 秒待って、文の長さだけ Chobi は低い音・Naruko は高い音）
+  - テスト: Swift Testing 18 件（順に鳴らす・残した音声を使う・文ごとの切り替え・失敗後の休み・停止・人の選び方・先読み・置き場・通信）。
+    全 256 件が通り、SwiftLint 警告 0。シミュレータで DebugSeed を起動し、文の強調と語ごとの人の切り替えを確かめた
 
 ### Phase 4: 実機確認
 
