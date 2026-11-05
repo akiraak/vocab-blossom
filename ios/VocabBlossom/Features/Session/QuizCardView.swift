@@ -9,6 +9,8 @@ struct QuizCardView: View {
     let selectedIndex: Int?
     let onSelect: (Int) -> Void
     let onNext: () -> Void
+    /// 答えたあとの「もう一度聞く」（穴埋めだけ。単語 → 出題した文章を読む）。nil ならボタンを出さない
+    var onReplay: (() -> Void)?
 
     private var isAnswered: Bool { selectedIndex != nil }
     private var isCorrect: Bool { selectedIndex == quiz.answerIndex }
@@ -179,12 +181,24 @@ struct QuizCardView: View {
 
     private var feedback: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(
-                isCorrect ? "正解！" : "おしい！",
-                systemImage: isCorrect ? "checkmark.seal.fill" : "arrow.uturn.left.circle.fill"
-            )
-            .font(.headline)
-            .foregroundStyle(isCorrect ? Theme.correct : Theme.incorrect)
+            HStack {
+                Label(
+                    isCorrect ? "正解！" : "おしい！",
+                    systemImage: isCorrect ? "checkmark.seal.fill" : "arrow.uturn.left.circle.fill"
+                )
+                .font(.headline)
+                .foregroundStyle(isCorrect ? Theme.correct : Theme.incorrect)
+                Spacer(minLength: 8)
+                if let onReplay {
+                    Button(action: onReplay) {
+                        Image(systemName: "speaker.wave.2.fill")
+                            .font(.title3)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Theme.accent)
+                    .accessibilityLabel("単語と問題の文章をもう一度聞く")
+                }
+            }
 
             if let passage = quiz.passage {
                 passageView(passage)

@@ -64,6 +64,26 @@ enum ReadAloudScript {
         }
     }
 
+    /// 穴埋めに答えたあとに読む文: 単語 → 出題した文章（1 文ずつ）。
+    ///
+    /// 文章は AI で作った文章で出したときはその全文、例文で出したときは出題した意味の例文。
+    /// 1 文ずつに分けるのは、サーバーの 1 回の文字数の上限を超えないため
+    static func fillBlankAnswerLines(for quiz: Quiz) -> [ReadAloudLine] {
+        let senseIndex = quiz.word.senses.firstIndex(of: quiz.sense) ?? 0
+        let text = quiz.passage?.text ?? quiz.sense.example
+        let sentences = sentences(in: text).compactMap { line(.example, $0, senseIndex: senseIndex) }
+        return [line(.word, quiz.word.word, senseIndex: 0)].compactMap { $0 } + sentences
+    }
+
+    /// 英文を文ごとに分ける（「. ! ?」のあとの空白で切る）。A1〜A2 の文章なので略語はほぼ出ない前提
+    static func sentences(in text: String) -> [String] {
+        text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "([.!?][\"')\\]]*) ", with: "$1\n", options: .regularExpression)
+            .split(separator: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
     private static func line(_ kind: ReadAloudLine.Kind, _ text: String, senseIndex: Int) -> ReadAloudLine? {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         var result = ReadAloudLine(kind: kind, text: text, spokenText: text, senseIndex: senseIndex)

@@ -49,7 +49,7 @@ struct SessionView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        SpeechService.shared.stop()
+                        stopSpeaking()
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
@@ -78,7 +78,7 @@ struct SessionView: View {
                 }
             }
         }
-        .onDisappear { SpeechService.shared.stop() }
+        .onDisappear { stopSpeaking() }
     }
 
     @ViewBuilder
@@ -111,7 +111,8 @@ struct SessionView: View {
                 isDrill: runner.mode == .drill,
                 selectedIndex: runner.selectedIndex,
                 onSelect: { runner.answer(choiceIndex: $0) },
-                onNext: { runner.next() }
+                onNext: { runner.next() },
+                onReplay: quiz.type == .fillBlank ? { speakFillBlankAnswer(quiz) } : nil
             )
         case .summary:
             SessionSummaryView(
@@ -137,6 +138,7 @@ struct SessionView: View {
 
     /// 回答直後のフィードバック。正誤の効果音を鳴らし、少し置いてから
     /// 単語と例文を読み上げて定着を促す（正誤にかかわらず読む）。
+    /// 穴埋めは、単語と出題した文章を Gemini の声で読む（取れなければ内蔵の声）。
     /// 読み上げ前に「次へ」で進んだら読み上げは取りやめる（次のカードと衝突させない）
     private func feedbackAfterAnswer(_ runner: SessionRunner) async {
         guard let correct = runner.lastAnswerWasCorrect,
@@ -147,20 +149,44 @@ struct SessionView: View {
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
         }
-        // 意味が複数ある語は、出題した意味の例文を読む
-        speak(word: quiz.word.word, example: quiz.sense.example)
+        if quiz.type == .fillBlank {
+            speakFillBlankAnswer(quiz)
+        } else {
+            // 意味が複数ある語は、出題した意味の例文を読む
+            speak(word: quiz.word.word, example: quiz.sense.example)
+        }
     }
 
     private func speakIfNeeded(_ step: SessionRunner.Step) {
+        // 前の問題の回答後の読み上げ（Gemini の声）が残っていれば止める
+        GeminiReadAloudSpeaker.quiz.stop()
         switch step {
         case .present(let word):
             speak(word: word.word, example: word.example)
         case .quiz(let quiz, _):
+            if quiz.type == .fillBlank, settings.soundEnabled {
+                // 考えている間に、答えたあとに読む文の音声を取っておく（答えたらすぐ鳴らすため）
+                GeminiReadAloudSpeaker.quiz.prefetch(ReadAloudScript.fillBlankAnswerLines(for: quiz))
+            }
             guard let speech = quiz.speechOnPrompt else { return }
             speak(word: speech.word, example: speech.example)
         case .summary:
             SpeechService.shared.stop()
         }
+    }
+
+    /// 穴埋めの回答後: 単語 → 出題した文章（文章で出したときはその全文、例文で出したときは例文）
+    private func speakFillBlankAnswer(_ quiz: Quiz) {
+        guard settings.soundEnabled else { return }
+        GeminiReadAloudSpeaker.quiz.speak(
+            ReadAloudScript.fillBlankAnswerLines(for: quiz), onLineStart: { _ in }, onFinish: {}
+        )
+    }
+
+    /// 読み上げをすべて止め、少し待ってから音声セッションを無効化する（閉じるとき）
+    private func stopSpeaking() {
+        GeminiReadAloudSpeaker.quiz.stop()
+        SpeechService.shared.stop()
     }
 
     private func speak(word: String, example: String) {

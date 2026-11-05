@@ -420,6 +420,38 @@ struct GeminiReadAloudSpeakerTests {
         #expect(harness.fetcher.recorded.count == 4)
         #expect(harness.audio.played.count == 4)
     }
+
+    @Test("prefetch は読む予定の人の分だけ取り、読み始めたらサーバーへ頼まずにその人で鳴らす")
+    func prefetchFetchesPlannedSpeakerOnly() async {
+        let harness = Harness(speakers: [.naruko, .chobi])
+        let answer = [
+            line(.word, "commute"), line(.example, "He has to commute."), line(.example, "It is far."),
+        ]
+        harness.speaker.prefetch(answer)
+        await waitUntil { harness.fetcher.recorded.count == 3 }
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(harness.fetcher.recorded.count == 3)
+        #expect(harness.fetcher.recorded.allSatisfy { $0.speaker == .naruko })
+
+        let started = await harness.speakToEnd(answer)
+        #expect(started == [0, 1, 2])
+        #expect(harness.fetcher.recorded.count == 3)
+        #expect(harness.audio.played.count == 3)
+    }
+
+    @Test("長すぎる文はサーバーへ頼まず、その文だけ内蔵の声で読む（ほかの文はサーバーの声のまま）")
+    func longLineUsesFallbackWithoutPausing() async {
+        let harness = Harness()
+        let long = String(repeating: "word ", count: 70) + "end."
+        let started = await harness.speakToEnd([
+            line(.word, "apple"), line(.example, long), line(.example, "Short."),
+        ])
+
+        #expect(started == [0, 1, 2])
+        #expect(!harness.fetcher.recorded.map(\.text).contains(long))
+        #expect(harness.fallback.spoken.map { $0.map(\.text) } == [[long]])
+        #expect(harness.audio.played.count == 2)
+    }
 }
 
 // MARK: - 置き場

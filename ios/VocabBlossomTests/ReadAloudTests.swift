@@ -127,6 +127,58 @@ struct ReadAloudScriptTests {
     }
 }
 
+@Suite("穴埋めの回答後に読む文")
+struct FillBlankAnswerLinesTests {
+    private let word = entry(
+        "commute", meaning: "通勤する", example: "I commute by bus.", exampleJa: "バスで通勤する。",
+        extraSenses: [
+            WordSense(pos: .noun, meaning: "通勤", example: "My commute is long.", exampleJa: "通勤が長い。"),
+        ]
+    )
+
+    private func quiz(sense: WordSense? = nil, passage: Passage? = nil) -> Quiz {
+        Quiz(
+            word: word, sense: sense, type: .fillBlank, choices: [word],
+            blankedExample: "＿＿＿＿", passage: passage
+        )
+    }
+
+    @Test("文章で出したときは 単語 → 文章を 1 文ずつ")
+    func passage() {
+        let text = "Tom lives far from his office.  He has to commute for an hour! Is that hard? Yes."
+        let passage = Passage(text: text, ja: "和訳。")
+        let lines = ReadAloudScript.fillBlankAnswerLines(for: quiz(passage: passage))
+        #expect(lines.map(\.kind) == [.word, .example, .example, .example, .example])
+        #expect(lines.map(\.text) == [
+            "commute", "Tom lives far from his office.", "He has to commute for an hour!",
+            "Is that hard?", "Yes.",
+        ])
+    }
+
+    @Test("例文で出したときは 単語 → 出題した意味の例文")
+    func example() {
+        let lines = ReadAloudScript.fillBlankAnswerLines(for: quiz(sense: word.senses[1]))
+        #expect(lines.map(\.text) == ["commute", "My commute is long."])
+        #expect(lines.map(\.senseIndex) == [0, 1])
+    }
+
+    @Test("例文が空なら単語だけ")
+    func emptyExample() {
+        let bare = entry("homeroom", meaning: "ホームルーム")
+        let quiz = Quiz(word: bare, type: .fillBlank, choices: [bare], blankedExample: nil)
+        #expect(ReadAloudScript.fillBlankAnswerLines(for: quiz).map(\.text) == ["homeroom"])
+    }
+
+    @Test("文の分け方: 文末記号のあとの空白で切り、引用符は前の文に付ける")
+    func sentences() {
+        #expect(ReadAloudScript.sentences(in: "She said \"Hi.\" Then she left.\nOK") == [
+            "She said \"Hi.\"", "Then she left.", "OK",
+        ])
+        #expect(ReadAloudScript.sentences(in: "  ") == [])
+        #expect(ReadAloudScript.sentences(in: "It costs 3.5 dollars.") == ["It costs 3.5 dollars."])
+    }
+}
+
 @Suite("読み上げの再生")
 struct ReadAloudPlayerTests {
     private func makePlayer(_ words: [String] = ["a", "b", "c"]) -> (ReadAloudPlayer, FakeReadAloudSpeaker) {

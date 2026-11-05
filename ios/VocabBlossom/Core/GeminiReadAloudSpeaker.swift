@@ -18,13 +18,26 @@ protocol ReadAloudAudioPlaying: AnyObject {
 /// - 音声が取れない文（オフライン・サーバーの失敗・キー未設定）は、その文だけ OS 内蔵の声（`fallback`）で読む
 /// - サーバーの設定が無ければ（`fetcher == nil`）、すべて内蔵の声で読む
 ///
-/// 設計は docs/plans/archive/read-aloud-gemini-voice.md
+/// 設計は docs/plans/archive/read-aloud-gemini-voice.md。
+/// 穴埋めの回答後の読み上げ（`quiz`）にも使う（docs/plans/fill-blank-answer-voice.md）
 final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
+    /// グループの読み上げ（ほかのアプリの音を止める）
     static let shared = GeminiReadAloudSpeaker(
         fallback: ReadAloudSpeechEngine.shared,
         store: .shared,
         audio: SystemReadAloudAudioPlayer()
     )
+
+    /// 穴埋めの回答後の読み上げ（ほかのアプリの音は小さくするだけ。効果音・提示カードの読み上げと同じ）
+    static let quiz = GeminiReadAloudSpeaker(
+        fallback: ReadAloudSpeechEngine.quiz,
+        store: .shared,
+        audio: SystemReadAloudAudioPlayer(),
+        purpose: .learning
+    )
+
+    /// サーバーが 1 回で受け付ける文字数（`MAX_SPEECH_TEXT_LENGTH`）。超える文は頼まずに内蔵の声で読む
+    static let maxTextLength = 300
 
     private nonisolated let log = Logger(subsystem: "com.akiraak.VocabBlossom", category: "read-aloud")
 
@@ -36,6 +49,8 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     var hasJapaneseVoice: Bool { fetcher != nil || fallback.hasJapaneseVoice }
 
     private let fallback: any ReadAloudSpeaking
+    /// 音声セッションの使い道
+    private let purpose: LearningAudioSession.Purpose
     private let store: ReadAloudVoiceStore
     private let audio: any ReadAloudAudioPlaying
     private let randomSpeaker: () -> SpeechAPI.Speaker
@@ -72,6 +87,7 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         fallback: any ReadAloudSpeaking,
         store: ReadAloudVoiceStore,
         audio: any ReadAloudAudioPlaying,
+        purpose: LearningAudioSession.Purpose = .readAloud,
         fetcher: (any SpeechFetching)? = nil,
         randomSpeaker: @escaping () -> SpeechAPI.Speaker = {
             SpeechAPI.Speaker.allCases.randomElement() ?? .chobi
@@ -82,6 +98,7 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         itemGap: Duration = .milliseconds(800)
     ) {
         self.fallback = fallback
+        self.purpose = purpose
         self.store = store
         self.audio = audio
         self.fetcher = fetcher
@@ -108,8 +125,8 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
 
         cancelRun()
         deactivateTask?.cancel()
-        SpeechService.shared.stop()
-        LearningAudioSession.shared.activate(for: .readAloud)
+        SpeechService.shared.interrupt()
+        LearningAudioSession.shared.activate(for: purpose)
 
         let model = ttsModel()
         let speaker = chooseSpeaker(for: lines, model: model)
@@ -136,13 +153,20 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     /// グループ詳細を開いたとき。最初の語の、読む予定の人の分だけを先に取っておく（読み上げを押したらすぐ鳴らすため）。
     /// 端末に残っていれば何もしない。読み上げ中は先読みを崩さないよう何もしない
     func warmUp(for words: [WordEntry]) {
-        guard fetcher != nil, runTask == nil,
+        guard runTask == nil,
               let first = ReadAloudScript.items(for: words, includesJapanese: hasJapaneseVoice).first
         else { return }
+        prefetch(first.lines)
+    }
+
+    /// これから読む 1 回分の文の音声を、読む予定の人の分だけ先に取っておく（もう 1 人の分は取らない）。
+    /// 穴埋めの問題を出したときに、答えたあとに読む文を取っておくのに使う
+    func prefetch(_ lines: [ReadAloudLine]) {
+        guard fetcher != nil, !lines.isEmpty else { return }
         let model = ttsModel()
-        let speakers = plan([first.lines], model: model)
+        let speakers = plan([lines], model: model)
         prefetchQueue = Self.prefetchRequests(
-            [first.lines], speakers: speakers, model: model, includesAlternates: false
+            [lines], speakers: speakers, model: model, includesAlternates: false
         )
         pumpPrefetch()
     }
@@ -165,10 +189,11 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         speakingLines = nil
         // 鳴らしている途中で無効化すると失敗したり詰まったりするので、少し待ってから
         deactivateTask?.cancel()
+        let purpose = purpose
         deactivateTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, self?.runTask == nil else { return }
-            LearningAudioSession.shared.deactivate(for: .readAloud)
+            LearningAudioSession.shared.deactivate(for: purpose)
         }
     }
 
@@ -339,7 +364,10 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
             return Task { url }
         }
         if let running = inFlight[request] { return running }
-        guard let fetcher, isServerAvailable else { return Task { nil } }
+        // 長すぎる文は頼まない（サーバーが 400 を返し、失敗が続いた扱いでしばらくすべて内蔵の声になってしまう）
+        guard let fetcher, isServerAvailable, request.text.count <= Self.maxTextLength else {
+            return Task { nil }
+        }
 
         let store = store
         let task = Task<URL?, Never> { [weak self] in
@@ -374,7 +402,8 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     private func pumpPrefetch() {
         while prefetchRunning < Self.maxPrefetchConcurrency, isServerAvailable, !prefetchQueue.isEmpty {
             let request = prefetchQueue.removeFirst()
-            guard store.cachedURL(for: request) == nil, inFlight[request] == nil else { continue }
+            guard store.cachedURL(for: request) == nil, inFlight[request] == nil,
+                  request.text.count <= Self.maxTextLength else { continue }
             let task = audioTask(for: request)
             prefetchRunning += 1
             Task { [weak self] in

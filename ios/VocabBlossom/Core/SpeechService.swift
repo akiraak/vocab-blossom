@@ -57,6 +57,15 @@ final class SpeechService: NSObject {
         scheduleDeactivate()
     }
 
+    /// ほかの声（グループの読み上げ・穴埋めの回答後の Gemini の声）で読み始めるときに呼ぶ。
+    /// 読み上げを止めるだけで音声セッションは無効化しない（予定していた無効化も取り消す）。
+    /// 無効化すると、そちらで鳴らし始めた音声が途中で切れてしまうため
+    func interrupt() {
+        deactivateTask?.cancel()
+        deactivateTask = nil
+        discardSynthesizer()
+    }
+
     private func enqueue(_ items: [(text: String, rate: Float)]) {
         let utterances = items
             .filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }

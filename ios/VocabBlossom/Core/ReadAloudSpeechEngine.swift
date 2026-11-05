@@ -8,7 +8,13 @@ import OSLog
 /// 「読み終えたら次の語へ」のために読み終わりを知らせる・日本語の声でも読む・ほかのアプリの音を止める、が違う。
 /// 読み上げを始めるときは `SpeechService` を止め、同時に鳴らないようにする
 final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
-    static let shared = ReadAloudSpeechEngine()
+    /// グループの読み上げ（ほかのアプリの音を止める）
+    static let shared = ReadAloudSpeechEngine(purpose: .readAloud)
+    /// 穴埋めの回答後の読み上げで、Gemini の声が取れない文を読む（ほかのアプリの音は小さくするだけ）
+    static let quiz = ReadAloudSpeechEngine(purpose: .learning)
+
+    /// 音声セッションの使い道
+    private let purpose: LearningAudioSession.Purpose
 
     private nonisolated let log = Logger(
         subsystem: "com.akiraak.VocabBlossom", category: "read-aloud"
@@ -52,7 +58,8 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
 
     var hasJapaneseVoice: Bool { japaneseVoice != nil }
 
-    private override init() {
+    private init(purpose: LearningAudioSession.Purpose) {
+        self.purpose = purpose
         super.init()
         observeAudioSession()
     }
@@ -63,8 +70,8 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
         onFinish: @escaping () -> Void
     ) {
         deactivateTask?.cancel()
-        SpeechService.shared.stop()
-        LearningAudioSession.shared.activate(for: .readAloud)
+        SpeechService.shared.interrupt()
+        LearningAudioSession.shared.activate(for: purpose)
 
         // 読んでいる途中で次を頼まれた（前後の語へ動いた）なら、止めて作り直す
         if request != nil { discardSynthesizer() }
@@ -100,7 +107,7 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
         deactivateTask = Task {
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, request == nil else { return }
-            LearningAudioSession.shared.deactivate(for: .readAloud)
+            LearningAudioSession.shared.deactivate(for: purpose)
         }
     }
 
@@ -173,7 +180,7 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
     }
 
     private func interrupted(reason: String) {
-        guard LearningAudioSession.shared.isReadAloudActive else { return }
+        guard purpose == .readAloud, LearningAudioSession.shared.isReadAloudActive else { return }
         log.info("読み上げを一時停止: \(reason)")
         onInterruption?()
     }
