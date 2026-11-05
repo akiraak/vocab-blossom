@@ -361,6 +361,65 @@ struct GeminiReadAloudSpeakerTests {
         await harness.speakToEnd(lines("banana"))
         #expect(harness.fetcher.recorded.count == 16)
     }
+
+    @Test("先読みは各語の読む予定の人の分を先に、もう 1 人の分はそのあとに頼む")
+    func prefetchOrderPutsPlannedSpeakerFirst() {
+        let requests = GeminiReadAloudSpeaker.prefetchRequests(
+            [lines("apple"), lines("banana")],
+            speakers: [.chobi, .naruko], model: .flash38, includesAlternates: true
+        )
+        func expected(_ word: String, _ speaker: SpeechAPI.Speaker) -> [SpeechAPI.Request] {
+            lines(word).map { GeminiReadAloudSpeaker.request(for: $0, speaker: speaker, model: .flash38) }
+        }
+        #expect(requests == expected("apple", .chobi) + expected("banana", .naruko)
+            + expected("apple", .naruko) + expected("banana", .chobi))
+
+        let plannedOnly = GeminiReadAloudSpeaker.prefetchRequests(
+            [lines("apple")], speakers: [.naruko], model: .flash38, includesAlternates: false
+        )
+        #expect(plannedOnly == expected("apple", .naruko))
+    }
+
+    @Test("先読みで決めた人で読む")
+    func speaksWithPlannedSpeaker() async {
+        let harness = Harness(speakers: [.naruko, .chobi])
+        harness.speaker.prepare([lines("apple"), lines("banana")])
+        await waitUntil { harness.fetcher.recorded.count == 16 }
+
+        await harness.speakToEnd(lines("banana"))
+        let bananaWord = GeminiReadAloudSpeaker.request(
+            for: lines("banana")[0], speaker: .chobi, model: .flash38
+        )
+        #expect(harness.audio.played.first == harness.store.cachedURL(for: bananaWord))
+        #expect(harness.fetcher.recorded.count == 16)
+    }
+
+    @Test("warmUp は最初の語の 1 人分だけ取り、読み始めたらサーバーへ頼まずに鳴らす")
+    func warmUpFetchesFirstWordForOneSpeaker() async {
+        let harness = Harness(speakers: [.naruko, .chobi])
+        let words = [
+            WordEntry(
+                id: "a1-0001", word: "apple", pos: .noun, level: .a1,
+                meaning: "りんご", example: "I eat an apple.", exampleJa: "りんごを食べる。"
+            ),
+            WordEntry(
+                id: "a1-0002", word: "banana", pos: .noun, level: .a1,
+                meaning: "バナナ", example: "", exampleJa: ""
+            ),
+        ]
+        harness.speaker.warmUp(for: words)
+        await waitUntil { harness.fetcher.recorded.count == 4 }
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(harness.fetcher.recorded.count == 4)
+        #expect(harness.fetcher.recorded.allSatisfy { $0.speaker == .naruko })
+        #expect(Set(harness.fetcher.recorded.map(\.text)) == ["apple", "りんご", "I eat an apple.", "りんごを食べる。"])
+
+        let first = ReadAloudScript.items(for: words, includesJapanese: true)[0]
+        let started = await harness.speakToEnd(first.lines)
+        #expect(started == [0, 1, 2, 3])
+        #expect(harness.fetcher.recorded.count == 4)
+        #expect(harness.audio.played.count == 4)
+    }
 }
 
 // MARK: - 置き場

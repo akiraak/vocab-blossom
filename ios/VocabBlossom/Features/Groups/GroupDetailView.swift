@@ -140,6 +140,10 @@ struct GroupDetailView: View {
             Button("変更") { GroupEditor(context: context).rename(group, to: renameText) }
             Button("キャンセル", role: .cancel) {}
         }
+        .task(id: words.first) {
+            // 最初の語の音声を先に取っておき、読み上げを押したらすぐ鳴らす（端末に残っていれば何もしない）
+            GeminiReadAloudSpeaker.shared.warmUp(for: words)
+        }
         .fullScreenCover(item: $session) { session in
             switch session {
             case .learn(let plan):

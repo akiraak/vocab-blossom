@@ -12,7 +12,9 @@ protocol ReadAloudAudioPlaying: AnyObject {
 /// グループの読み上げを、サーバー（Gemini TTS）で作った Chobi / Naruko の声で読む。
 ///
 /// - 1 語ごとに読む人をランダムに選ぶ（3 語続けて同じ人にはしない）。1 語の中は同じ人が読む
-/// - 音声は端末に残し（`ReadAloudVoiceStore`）、次の数語は 2 人分を先に取っておく（`prepare`）
+/// - 音声は端末に残し（`ReadAloudVoiceStore`）、次の数語は 2 人分を先に取っておく（`prepare`）。
+///   先に語ごとに読む人を決め、その人の分から取る（もう 1 人の分は後回し）
+/// - グループ詳細を開いたら最初の語の 1 人分を取っておき、読み上げを押したらすぐ鳴らす（`warmUp`）
 /// - 音声が取れない文（オフライン・サーバーの失敗・キー未設定）は、その文だけ OS 内蔵の声（`fallback`）で読む
 /// - サーバーの設定が無ければ（`fetcher == nil`）、すべて内蔵の声で読む
 ///
@@ -52,6 +54,10 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     private var deactivateTask: Task<Void, Never>?
     /// 最近読んだ人（3 語続けて同じ人にしないため）
     private var recentSpeakers: [SpeechAPI.Speaker] = []
+    /// 語（文の並び）ごとに読む予定の人。先読みでこの人の分から取る。今の語と、先読みした語の分だけ持つ
+    private var plannedSpeakers: [[ReadAloudLine]: SpeechAPI.Speaker] = [:]
+    /// 今読んでいる語（`recentSpeakers` に数え済み）
+    private var speakingLines: [ReadAloudLine]?
 
     /// 取りに行っている途中の音声（同じ文を二重に頼まない）
     private var inFlight: [SpeechAPI.Request: Task<URL?, Never>] = [:]
@@ -119,13 +125,25 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
 
     func prepare(_ upcoming: [[ReadAloudLine]]) {
         guard fetcher != nil else { return }
-        // 先の語ほど後ろ。語ごとに 2 人分（今の語は、選ばなかった人の分も取っておく）
         let model = ttsModel()
-        prefetchQueue = upcoming.flatMap { lines in
-            SpeechAPI.Speaker.allCases.flatMap { speaker in
-                lines.map { Self.request(for: $0, speaker: speaker, model: model) }
-            }
-        }
+        let speakers = plan(upcoming, model: model)
+        prefetchQueue = Self.prefetchRequests(
+            upcoming, speakers: speakers, model: model, includesAlternates: true
+        )
+        pumpPrefetch()
+    }
+
+    /// グループ詳細を開いたとき。最初の語の、読む予定の人の分だけを先に取っておく（読み上げを押したらすぐ鳴らすため）。
+    /// 端末に残っていれば何もしない。読み上げ中は先読みを崩さないよう何もしない
+    func warmUp(for words: [WordEntry]) {
+        guard fetcher != nil, runTask == nil,
+              let first = ReadAloudScript.items(for: words, includesJapanese: hasJapaneseVoice).first
+        else { return }
+        let model = ttsModel()
+        let speakers = plan([first.lines], model: model)
+        prefetchQueue = Self.prefetchRequests(
+            [first.lines], speakers: speakers, model: model, includesAlternates: false
+        )
         pumpPrefetch()
     }
 
@@ -144,6 +162,7 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         }
         cancelRun()
         prefetchQueue = []
+        speakingLines = nil
         // 鳴らしている途中で無効化すると失敗したり詰まったりするので、少し待ってから
         deactivateTask?.cancel()
         deactivateTask = Task { [weak self] in
@@ -151,6 +170,24 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
             guard !Task.isCancelled, self?.runTask == nil else { return }
             LearningAudioSession.shared.deactivate(for: .readAloud)
         }
+    }
+
+    /// 先読みで頼む順。各語の読む予定の人の分（先の語ほど後ろ）を先に、もう 1 人の分はそのあと
+    static func prefetchRequests(
+        _ upcoming: [[ReadAloudLine]],
+        speakers: [SpeechAPI.Speaker],
+        model: TTSModel,
+        includesAlternates: Bool
+    ) -> [SpeechAPI.Request] {
+        let pairs = Array(zip(upcoming, speakers))
+        let planned = pairs.flatMap { lines, speaker in
+            lines.map { request(for: $0, speaker: speaker, model: model) }
+        }
+        guard includesAlternates else { return planned }
+        let alternates = pairs.flatMap { lines, speaker in
+            lines.map { request(for: $0, speaker: other(than: speaker), model: model) }
+        }
+        return planned + alternates
     }
 
     // MARK: - 読む
@@ -229,24 +266,60 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         resumeFallbackWait()
     }
 
-    /// 1 語を読む人。ランダムだが、2 語続けて同じ人なら次はもう 1 人にする。
-    /// 片方の音声だけそろっている（もう片方は取れていない）なら、そろっている方で読む
+    /// 1 語を読む人。先読みで決めてあればその人。決めていなければ `pickSpeaker` で選ぶ。
+    /// 決めた人の音声がまだそろっておらず、もう 1 人の分がそろっていれば、待たずに読めるそちらで読む
     private func chooseSpeaker(for lines: [ReadAloudLine], model: TTSModel) -> SpeechAPI.Speaker {
-        var speaker = randomSpeaker()
-        if recentSpeakers.count >= 2, let last = recentSpeakers.last,
-           recentSpeakers.suffix(2).allSatisfy({ $0 == last }) {
-            speaker = Self.other(than: last)
-        }
-        let ready = SpeechAPI.Speaker.allCases.filter { candidate in
-            lines.allSatisfy {
-                store.cachedURL(for: Self.request(for: $0, speaker: candidate, model: model)) != nil
-            }
-        }
-        if ready.count == 1, let only = ready.first {
-            speaker = only
+        var speaker = plannedSpeakers[lines] ?? pickSpeaker(for: lines, recent: recentSpeakers, model: model)
+        let other = Self.other(than: speaker)
+        if !isCached(lines, speaker: speaker, model: model), isCached(lines, speaker: other, model: model) {
+            speaker = other
         }
         recentSpeakers = Array((recentSpeakers + [speaker]).suffix(2))
+        plannedSpeakers[lines] = speaker
+        speakingLines = lines
         return speaker
+    }
+
+    /// これから読む語の人を決める（決めてある語はそのまま）。今の語のあとに続けて読む順で、3 語続けて同じ人にしない
+    private func plan(_ upcoming: [[ReadAloudLine]], model: TTSModel) -> [SpeechAPI.Speaker] {
+        var recent = recentSpeakers
+        var plans: [[ReadAloudLine]: SpeechAPI.Speaker] = [:]
+        let speakers = upcoming.map { lines in
+            if let speaker = plans[lines] { return speaker }
+            // 今読んでいる語は読み始めたときに決めて、`recentSpeakers` にも数えてある
+            if lines == speakingLines, let speaker = plannedSpeakers[lines] {
+                plans[lines] = speaker
+                return speaker
+            }
+            let speaker = plannedSpeakers[lines] ?? pickSpeaker(for: lines, recent: recent, model: model)
+            plans[lines] = speaker
+            recent = Array((recent + [speaker]).suffix(2))
+            return speaker
+        }
+        plannedSpeakers = plans
+        return speakers
+    }
+
+    /// ランダムだが、2 語続けて同じ人なら次はもう 1 人にする。
+    /// 片方の人の音声だけそろっている（もう片方は取れていない）なら、そろっている方
+    private func pickSpeaker(
+        for lines: [ReadAloudLine], recent: [SpeechAPI.Speaker], model: TTSModel
+    ) -> SpeechAPI.Speaker {
+        let ready = SpeechAPI.Speaker.allCases.filter { isCached(lines, speaker: $0, model: model) }
+        if ready.count == 1, let only = ready.first {
+            return only
+        }
+        let speaker = randomSpeaker()
+        if recent.count >= 2, let last = recent.last, recent.suffix(2).allSatisfy({ $0 == last }) {
+            return Self.other(than: last)
+        }
+        return speaker
+    }
+
+    private func isCached(_ lines: [ReadAloudLine], speaker: SpeechAPI.Speaker, model: TTSModel) -> Bool {
+        lines.allSatisfy {
+            store.cachedURL(for: Self.request(for: $0, speaker: speaker, model: model)) != nil
+        }
     }
 
     private static func other(than speaker: SpeechAPI.Speaker) -> SpeechAPI.Speaker {
