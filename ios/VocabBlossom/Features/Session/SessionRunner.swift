@@ -168,7 +168,7 @@ final class SessionRunner {
 
     /// 残りの問題数（提示カードは数えない）
     var remainingCount: Int {
-        let pending = queue.count { if case .quiz = $0 { true } else { false } }
+        let pending = queue.count { if case .present = $0 { false } else { true } }
         if case .quiz = step { return pending + 1 }
         return pending
     }

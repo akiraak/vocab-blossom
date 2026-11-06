@@ -182,6 +182,20 @@ struct FillBlankCheckTests {
         if case .quiz(_, let kind) = runner.step { #expect(kind == .requeue) }
     }
 
+    @Test("残りの問題数は、組み立て済みの問題と再出題を数える")
+    func drillRemainingCount() throws {
+        let runner = runner([quiz(), quiz(), quiz()])
+        #expect(runner.remainingCount == 3)
+        // 間違えると再出題が後ろに付くので、残りは減らない
+        let first = try currentQuiz(runner)
+        runner.answer(choiceIndex: try #require(first.choices.firstIndex(of: however)))
+        runner.next()
+        #expect(runner.remainingCount == 3)
+        runner.answer(choiceIndex: try currentQuiz(runner).answerIndex)
+        runner.next()
+        #expect(runner.remainingCount == 2)
+    }
+
     @Test("組み立て済みの問題のドリルは、渡した順に出して締めに進む")
     func drillRunsInOrder() throws {
         let second = Quiz(
@@ -190,9 +204,11 @@ struct FillBlankCheckTests {
         )
         let runner = runner([quiz(), second])
         #expect(try currentQuiz(runner).word == moreover)
+        #expect(runner.remainingCount == 2)
         runner.answer(choiceIndex: try currentQuiz(runner).answerIndex)
         runner.next()
         #expect(try currentQuiz(runner).word == however)
+        #expect(runner.remainingCount == 1)
         runner.answer(choiceIndex: try currentQuiz(runner).answerIndex)
         runner.next()
         #expect(runner.isFinished)

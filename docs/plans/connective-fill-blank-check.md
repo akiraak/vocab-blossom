@@ -162,6 +162,19 @@
 - 実機で、つなぎ言葉のグループの穴埋めと 4 択を始めて確かめる: 誤答肢が働きの違うグループから出る・「…」の 4 語が穴埋めで出る・ほかの正解を選ぶと正解になり表示がおかしくない・
   オフラインでも出題が始まる
 
+#### Step 5 の結果（2026-11-05）
+
+- `988ccb9` を push → g3plus で pull・再ビルド。起動ログ「マイグレーションを 1 件適用した」（`fill_blank_checks`）・`ai: on`
+- 反映前に DB をバックアップ: `/home/ubuntu/vocab-blossom/server/data/backup-20261105-before-fill-blank-checks.db`（版 3）
+- 本番の確認: `/health` 200・`/api/fill-blank-checks` Bearer なし 401・`/api/ping` Bearer ありで `{"ok":true}`
+- 本物の AI での判定（4 問・約 9 秒、2 回目はためた判定で 0.5 秒）:
+  moreover の文に besides が入る（however・in order to は入らない）／however の文に but は入らない／
+  because の文に since が入る／either … or … の文に both … and … が入る（「You can have both cake and ice cream」も文として成り立つ）。Phase 2 と食い違いなし
+- 「…」の 4 語を本番の `/api/passages` で作った: 4 語とも 3 パターンすべて検証を通った（直す前は 0）。アプリと同じ入力（綴り・品詞・意味）なので、ためた文章は実機の穴埋めでそのまま使われる
+- 実機（iPhone 14 Pro）に Debug ビルドを入れた。実機での確認は未
+- 実機で見つけた不具合: グループの穴埋めで右上の「残り N 問」がずっと 1。`SessionRunner.remainingCount` がキューの `.quiz` だけを数え、
+  組み立て済みの問題（`.prepared`）を数えていなかった。提示カード以外を数えるように直し、テストを足した（Swift Testing 292 件・SwiftLint 警告 0）
+
 ## 影響範囲
 
 - Phase 1・2 はスクリプトを動かすだけ（コードは変えない。本番 DB にも書かない）。Claude API を 94 語分 + 判定の分だけ使う
