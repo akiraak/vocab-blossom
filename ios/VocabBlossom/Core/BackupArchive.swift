@@ -9,8 +9,9 @@ import SwiftData
 /// - version 1: 設定・進捗・回答ログ
 /// - version 2: グループと自作語を追加（v1 のファイルには無いので nil として読む）
 /// - version 3: 自作語の 2 つ目以降の意味（`extraSenses`）を追加（v2 のファイルには無いので空として読む）
+/// - version 4: グループの問題に答えた記録（`groupAnswers`）を追加（v3 以前のファイルには無いので空として読む）
 struct BackupArchive: Codable, Equatable {
-    static let currentVersion = 3
+    static let currentVersion = 4
 
     var version = currentVersion
     var exportedAt: Date
@@ -19,6 +20,7 @@ struct BackupArchive: Codable, Equatable {
     var logs: [Log]
     var groups: [Group]?
     var customWords: [Custom]?
+    var groupAnswers: [GroupAnswer]?
 
     struct Settings: Codable, Equatable {
         var level: CefrLevel
@@ -52,6 +54,16 @@ struct BackupArchive: Codable, Equatable {
         var wordIds: [String]
         var createdAt: Date
         var updatedAt: Date
+    }
+
+    struct GroupAnswer: Codable, Equatable {
+        var groupId: UUID
+        var wordId: String
+        var answeredAt: Date
+        var correct: Bool
+        var quizType: QuizType
+        var source: GroupAnswerSource
+        var kind: AnswerKind
     }
 
     struct Custom: Codable, Equatable {
@@ -116,6 +128,9 @@ enum BackupService {
         let customWords = try context.fetch(
             FetchDescriptor<CustomWord>(sortBy: [SortDescriptor(\.createdAt)])
         )
+        let groupAnswers = try context.fetch(
+            FetchDescriptor<GroupAnswerLog>(sortBy: [SortDescriptor(\.answeredAt)])
+        )
         return BackupArchive(
             exportedAt: now,
             settings: BackupArchive.Settings(
@@ -150,6 +165,12 @@ enum BackupService {
                     extraSenses: $0.extraSenses.isEmpty ? nil : $0.extraSenses,
                     createdAt: $0.createdAt, updatedAt: $0.updatedAt
                 )
+            },
+            groupAnswers: groupAnswers.map {
+                BackupArchive.GroupAnswer(
+                    groupId: $0.groupId, wordId: $0.wordId, answeredAt: $0.answeredAt,
+                    correct: $0.correct, quizType: $0.quizType, source: $0.source, kind: $0.kind
+                )
             }
         )
     }
@@ -183,6 +204,7 @@ enum BackupService {
         try context.delete(model: AnswerLog.self)
         try context.delete(model: WordGroup.self)
         try context.delete(model: CustomWord.self)
+        try context.delete(model: GroupAnswerLog.self)
         // 復元より前の削除記録は捨てる（復元後は全件を送り直し、サーバーの全件も受け取り直す: SyncService.resendAll）
         try context.delete(model: SyncDeletion.self)
 
@@ -218,6 +240,14 @@ enum BackupService {
                     example: item.example, exampleJa: item.exampleJa,
                     extraSenses: item.extraSenses ?? [],
                     createdAt: item.createdAt, updatedAt: item.updatedAt
+                )
+            )
+        }
+        for item in archive.groupAnswers ?? [] {
+            context.insert(
+                GroupAnswerLog(
+                    groupId: item.groupId, wordId: item.wordId, answeredAt: item.answeredAt,
+                    correct: item.correct, quizType: item.quizType, source: item.source, kind: item.kind
                 )
             )
         }

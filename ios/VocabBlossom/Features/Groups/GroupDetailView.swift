@@ -9,6 +9,8 @@ struct GroupDetailView: View {
     @Environment(\.wordStore) private var store
     @Environment(AppSettings.self) private var settings
     @Query private var progresses: [WordProgress]
+    /// このグループの問題に答えた記録（回答数・達成度）
+    @Query private var groupAnswers: [GroupAnswerLog]
 
     @State private var session: GroupSession?
     @State private var isPickingWords = false
@@ -41,6 +43,12 @@ struct GroupDetailView: View {
         }
     }
 
+    init(group: WordGroup) {
+        self.group = group
+        let groupId = group.id
+        _groupAnswers = Query(filter: #Predicate<GroupAnswerLog> { $0.groupId == groupId })
+    }
+
     private var words: [WordEntry] { store.words(ids: group.wordIds) }
 
     private var progressByWordId: [String: WordProgress] {
@@ -64,11 +72,12 @@ struct GroupDetailView: View {
             progressByWordId: progressByWordId.mapValues(\.snapshot),
             now: .now
         )
+        let activity = GroupStudy.activity(wordIds: words.map(\.id), answers: groupAnswers.map(\.snapshot))
 
         List(selection: $selection) {
             if !isSelecting {
                 Section {
-                    studyCard(plan: plan, summary: summary, words: words)
+                    studyCard(plan: plan, summary: summary, activity: activity, words: words)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                 }
@@ -147,11 +156,19 @@ struct GroupDetailView: View {
         .fullScreenCover(item: $session) { session in
             switch session {
             case .learn(let plan):
-                SessionView(plan: plan, closeTitle: "グループにもどる")
+                SessionView(
+                    plan: plan,
+                    closeTitle: "グループにもどる",
+                    group: GroupAnswerContext(groupId: group.id, source: .learning)
+                )
             case .drill(let wordIds):
-                SessionView(drillWordIds: wordIds, closeTitle: "グループにもどる")
+                SessionView(
+                    drillWordIds: wordIds,
+                    closeTitle: "グループにもどる",
+                    group: GroupAnswerContext(groupId: group.id, source: .drill)
+                )
             case .fillBlank(let words):
-                FillBlankSessionView(words: words, closeTitle: "グループにもどる")
+                FillBlankSessionView(words: words, closeTitle: "グループにもどる", groupId: group.id)
                     #if DEBUG
                     .debugPassagePreparation()
                     #endif
@@ -239,6 +256,7 @@ struct GroupDetailView: View {
     private func studyCard(
         plan: SessionPlan,
         summary: GroupStudy.Summary,
+        activity: GroupStudy.Activity,
         words: [WordEntry]
     ) -> some View {
         VStack(spacing: 12) {
@@ -246,7 +264,12 @@ struct GroupDetailView: View {
                 countLabel("単語", summary.total)
                 countLabel("学習済み", summary.learned)
                 countLabel("開花", summary.blossomed)
+                countLabel("回答", activity.answerCount, unit: "回")
                 Spacer()
+            }
+
+            if activity.answerCount > 0 {
+                achievementRow(activity)
             }
 
             if !words.isEmpty {
@@ -335,16 +358,38 @@ struct GroupDetailView: View {
         }
     }
 
-    private func countLabel(_ title: String, _ count: Int) -> some View {
+    private func countLabel(_ title: String, _ count: Int, unit: String = "語") -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Text("\(count) 語")
+            Text("\(count) \(unit)")
                 .font(.title3.weight(.semibold))
                 .monospacedDigit()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title) \(count) 語")
+        .accessibilityLabel("\(title) \(count) \(unit)")
+    }
+
+    /// 達成度: 最後に答えたときに正解だった語の割合（学習・ドリル・穴埋めの回答から）
+    private func achievementRow(_ activity: GroupStudy.Activity) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("達成度")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                let percent = GroupActivityText.percent(activity) ?? 0
+                Text("\(activity.achieved) / \(activity.total) 語（\(percent)%）")
+                    .font(.caption.weight(.medium))
+                    .monospacedDigit()
+            }
+            ProgressView(value: activity.achievement ?? 0)
+                .tint(Theme.accent)
+            Text("最後に答えたときに正解だった語の割合です")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

@@ -79,6 +79,29 @@ struct LearningEngine {
         save()
     }
 
+    /// グループの問題への 1 回答を記録する（グループ一覧の回答数・達成度に使う）。SRS は動かさない
+    func recordGroupAnswer(
+        _ group: GroupAnswerContext,
+        wordId: String,
+        correct: Bool,
+        quizType: QuizType,
+        kind: AnswerKind,
+        now: Date = .now
+    ) {
+        context.insert(
+            GroupAnswerLog(
+                groupId: group.groupId,
+                wordId: wordId,
+                answeredAt: now,
+                correct: correct,
+                quizType: quizType,
+                source: group.source,
+                kind: kind
+            )
+        )
+        save()
+    }
+
     /// 進捗を消して未学習（種）に戻す。「もう知ってる」の取り消しに使う
     func forget(wordId: String) {
         guard let existing = progress(for: wordId) else { return }

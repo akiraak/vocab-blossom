@@ -159,6 +159,7 @@ enum DebugSeed {
         try? context.delete(model: AnswerLog.self)
         try? context.delete(model: WordGroup.self)
         try? context.delete(model: CustomWord.self)
+        try? context.delete(model: GroupAnswerLog.self)
 
         guard variant.hasProgress else {
             try? context.save()
@@ -267,6 +268,23 @@ enum DebugSeed {
             now: now
         )
         editor.createGroup(name: "教科書の熟語", now: DateUtil.addDays(now, -3))
+
+        // 穴埋め・ドリルをこなした記録（一覧の回答数・達成度用）。前半の 8 語を答え、うち 2 語は最後に間違えた
+        for (offset, wordId) in unit.wordIds.prefix(8).enumerated() {
+            for round in 0..<3 {
+                context.insert(
+                    GroupAnswerLog(
+                        groupId: unit.id,
+                        wordId: wordId,
+                        answeredAt: DateUtil.addDays(now, round - 3),
+                        correct: round < 2 || offset % 4 != 3,
+                        quizType: round == 1 ? .enToJa : .fillBlank,
+                        source: round == 1 ? .drill : .fillBlank,
+                        kind: .review
+                    )
+                )
+            }
+        }
     }
 }
 

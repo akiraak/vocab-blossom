@@ -8,6 +8,8 @@ import SwiftUI
 struct FillBlankSessionView: View {
     let words: [WordEntry]
     let closeTitle: String
+    /// 始めたグループ。回答をグループの記録（`GroupAnswerLog`）に残す
+    var groupId: UUID?
 
     @Environment(\.passageFetcher) private var fetcher
     @Environment(\.fillBlankChecker) private var checker
@@ -26,7 +28,11 @@ struct FillBlankSessionView: View {
     var body: some View {
         Group {
             if let startedQuizzes {
-                SessionView(drillQuizzes: startedQuizzes, closeTitle: closeTitle)
+                SessionView(
+                    drillQuizzes: startedQuizzes,
+                    closeTitle: closeTitle,
+                    group: groupId.map { GroupAnswerContext(groupId: $0, source: .fillBlank) }
+                )
                     .transition(.opacity)
             } else {
                 NavigationStack {

@@ -8,6 +8,9 @@ import Observation
 ///
 /// ドリル（`Mode.drill`）は「全語クイズ → 再出題 → 締め」だけで、進捗も回答ログも残さない。
 /// 形式を固定したドリル（穴埋めモードなど）も同じ流れ。
+///
+/// グループから始めたとき（`group` を渡したとき）は、どのモードでも回答を `GroupAnswerLog` に残す
+/// （グループ一覧の回答数・達成度に使う）。
 @Observable
 final class SessionRunner {
     enum Mode: Equatable {
@@ -59,6 +62,8 @@ final class SessionRunner {
     }
 
     let mode: Mode
+    /// グループから始めたときの入口。nil（毎日の学習など）なら `GroupAnswerLog` に残さない
+    let group: GroupAnswerContext?
     /// ドリルで固定する出題形式。nil ならステージで決める
     let drillQuizType: QuizType?
     private(set) var step: Step = .summary
@@ -85,12 +90,14 @@ final class SessionRunner {
         store: WordStore = .shared,
         groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
+        group: GroupAnswerContext? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
         self.engine = engine
         self.store = store
         self.clock = clock
+        self.group = group
         mode = .learning
         drillQuizType = nil
         preparedQuizzes = []
@@ -117,12 +124,14 @@ final class SessionRunner {
         store: WordStore = .shared,
         groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
+        group: GroupAnswerContext? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
         self.engine = engine
         self.store = store
         self.clock = clock
+        self.group = group
         mode = .drill
         drillQuizType = quizType
         preparedQuizzes = []
@@ -138,12 +147,14 @@ final class SessionRunner {
         drillQuizzes: [Quiz],
         engine: LearningEngine,
         store: WordStore = .shared,
+        group: GroupAnswerContext? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
     ) {
         self.engine = engine
         self.store = store
         self.clock = clock
+        self.group = group
         mode = .drill
         drillQuizType = drillQuizzes.first?.type
         preparedQuizzes = drillQuizzes
@@ -194,6 +205,12 @@ final class SessionRunner {
         if correct { stats.correct += 1 }
         if !correct, !stats.missedWordIds.contains(wordId) {
             stats.missedWordIds.append(wordId)
+        }
+
+        if let group {
+            engine.recordGroupAnswer(
+                group, wordId: wordId, correct: correct, quizType: quiz.type, kind: kind, now: clock()
+            )
         }
 
         if mode == .learning {

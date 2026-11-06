@@ -193,6 +193,7 @@ struct SyncEngine {
         case .group:
             guard let id = UUID(uuidString: incoming.id), let local = group(id: id) else { return }
             if local.updatedAt.syncMillis <= incoming.deletedAt.syncMillis {
+                GroupAnswerLog.purge(groupId: id, in: context)
                 context.delete(local)
             }
         case .customWord:

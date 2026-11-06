@@ -60,4 +60,42 @@ enum GroupStudy {
         }
         return result
     }
+
+    /// グループの問題への 1 回答（`GroupAnswerLog` から集計に要る分だけ取り出した値）
+    struct Answer: Equatable {
+        var wordId: String
+        var answeredAt: Date
+        var correct: Bool
+    }
+
+    /// グループの問題をこなした状況。一覧・詳細の表示に使う
+    struct Activity: Equatable {
+        /// 答えた回数（再出題も 1 回と数える。グループから外した語の分も含む）
+        var answerCount = 0
+        /// 今のグループの語のうち、最後に答えたときに正解だった語
+        var achieved = 0
+        /// 今のグループの語数
+        var total = 0
+
+        /// 達成度（0〜1）。語が無いときは nil
+        var achievement: Double? {
+            total > 0 ? Double(achieved) / Double(total) : nil
+        }
+    }
+
+    /// 回答数と達成度。達成度は「今の語のうち、最後の回答が正解の語の割合」。
+    /// 答えたことが無い語・最後に間違えた語は未達成。グループから外した語は数えない
+    static func activity(wordIds: [String], answers: [Answer]) -> Activity {
+        var latest: [String: Answer] = [:]
+        for answer in answers {
+            if let current = latest[answer.wordId], current.answeredAt > answer.answeredAt { continue }
+            latest[answer.wordId] = answer
+        }
+        let ids = Set(wordIds)
+        return Activity(
+            answerCount: answers.count,
+            achieved: ids.count { latest[$0]?.correct == true },
+            total: ids.count
+        )
+    }
 }

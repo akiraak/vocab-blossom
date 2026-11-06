@@ -67,6 +67,7 @@ enum AppModel {
     static var schema: Schema {
         Schema([
             WordProgress.self, AnswerLog.self, WordGroup.self, CustomWord.self, SyncDeletion.self,
+            GroupAnswerLog.self,
         ])
     }
 }

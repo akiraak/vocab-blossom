@@ -18,20 +18,30 @@ struct SessionView: View {
     let source: Source
     /// 締め画面の閉じるボタンの文言
     var closeTitle = "庭にもどる"
+    /// グループから始めたときの入口。回答をグループの記録（`GroupAnswerLog`）に残す
+    var group: GroupAnswerContext?
 
-    init(plan: SessionPlan, closeTitle: String = "庭にもどる") {
+    init(plan: SessionPlan, closeTitle: String = "庭にもどる", group: GroupAnswerContext? = nil) {
         source = .plan(plan)
         self.closeTitle = closeTitle
+        self.group = group
     }
 
-    init(drillWordIds: [String], quizType: QuizType? = nil, closeTitle: String) {
+    init(
+        drillWordIds: [String],
+        quizType: QuizType? = nil,
+        closeTitle: String,
+        group: GroupAnswerContext? = nil
+    ) {
         source = .drill(wordIds: drillWordIds, quizType: quizType)
         self.closeTitle = closeTitle
+        self.group = group
     }
 
-    init(drillQuizzes: [Quiz], closeTitle: String) {
+    init(drillQuizzes: [Quiz], closeTitle: String, group: GroupAnswerContext? = nil) {
         source = .prepared(drillQuizzes)
         self.closeTitle = closeTitle
+        self.group = group
     }
 
     @Environment(\.modelContext) private var context
@@ -75,15 +85,17 @@ struct SessionView: View {
                 switch source {
                 case .plan(let plan):
                     runner = SessionRunner(
-                        plan: plan, engine: engine, store: store, groups: groups, passages: passages
+                        plan: plan, engine: engine, store: store, groups: groups, passages: passages,
+                        group: group
                     )
                 case .drill(let wordIds, let quizType):
                     runner = SessionRunner(
                         drillWordIds: wordIds, quizType: quizType,
-                        engine: engine, store: store, groups: groups, passages: passages
+                        engine: engine, store: store, groups: groups, passages: passages,
+                        group: group
                     )
                 case .prepared(let quizzes):
-                    runner = SessionRunner(drillQuizzes: quizzes, engine: engine, store: store)
+                    runner = SessionRunner(drillQuizzes: quizzes, engine: engine, store: store, group: group)
                 }
             }
         }

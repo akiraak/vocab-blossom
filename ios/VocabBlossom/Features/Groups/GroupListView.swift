@@ -7,6 +7,7 @@ struct GroupListView: View {
     @Environment(SyncService.self) private var sync
     @Query(sort: \WordGroup.createdAt, order: .reverse) private var groups: [WordGroup]
     @Query private var progresses: [WordProgress]
+    @Query private var groupAnswers: [GroupAnswerLog]
 
     @State private var isCreating = false
     @State private var newName = ""
@@ -17,6 +18,10 @@ struct GroupListView: View {
         Dictionary(
             progresses.map { ($0.wordId, $0.snapshot) }, uniquingKeysWith: { first, _ in first }
         )
+    }
+
+    private var answersByGroupId: [UUID: [GroupStudy.Answer]] {
+        Dictionary(grouping: groupAnswers, by: \.groupId).mapValues { $0.map(\.snapshot) }
     }
 
     var body: some View {
@@ -82,6 +87,7 @@ struct GroupListView: View {
 
     private var list: some View {
         let progressByWordId = progressByWordId
+        let answersByGroupId = answersByGroupId
         return List {
             ForEach(groups) { group in
                 NavigationLink(value: group) {
@@ -91,6 +97,10 @@ struct GroupListView: View {
                             wordIds: group.wordIds,
                             progressByWordId: progressByWordId,
                             now: .now
+                        ),
+                        activity: GroupStudy.activity(
+                            wordIds: group.wordIds,
+                            answers: answersByGroupId[group.id] ?? []
                         )
                     )
                 }
@@ -126,10 +136,11 @@ struct GroupListView: View {
     }
 }
 
-/// 一覧の 1 行。語数と育ち具合、今日の復習があるかを見せる。
+/// 一覧の 1 行。語数と育ち具合、今日の復習があるか、問題をこなした回数と達成度を見せる。
 struct GroupRow: View {
     let group: WordGroup
     let summary: GroupStudy.Summary
+    let activity: GroupStudy.Activity
 
     var body: some View {
         HStack(spacing: 12) {
@@ -142,6 +153,10 @@ struct GroupRow: View {
                 Text("\(summary.total) 語・学習済み \(summary.learned) 語")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                // まだ答えていないグループは今までの表示のまま
+                if activity.answerCount > 0 {
+                    activityLine
+                }
             }
             Spacer(minLength: 8)
             if summary.due > 0 {
@@ -154,5 +169,35 @@ struct GroupRow: View {
         }
         .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
+    }
+
+    private var activityLine: some View {
+        HStack(spacing: 8) {
+            Text(GroupActivityText.line(activity))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+            if let achievement = activity.achievement {
+                ProgressView(value: achievement)
+                    .tint(Theme.accent)
+                    .frame(maxWidth: 80)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+}
+
+/// 回答数・達成度の文言。一覧と詳細で同じ書き方にする
+enum GroupActivityText {
+    /// 例:「回答 42 回・達成 67%」
+    static func line(_ activity: GroupStudy.Activity) -> String {
+        var text = "回答 \(activity.answerCount) 回"
+        if let percent = percent(activity) { text += "・達成 \(percent)%" }
+        return text
+    }
+
+    /// 切り捨てる（1 語でも残っていれば 100% にしない）
+    static func percent(_ activity: GroupStudy.Activity) -> Int? {
+        activity.achievement.map { Int(($0 * 100).rounded(.down)) }
     }
 }

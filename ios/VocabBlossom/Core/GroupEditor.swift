@@ -31,6 +31,7 @@ struct GroupEditor {
     /// グループだけを消す。中の単語・進捗・自作語は残す
     func delete(_ group: WordGroup, now: Date = .now) {
         recordDeletion(.group, id: group.id.syncId, at: now)
+        GroupAnswerLog.purge(groupId: group.id, in: context)
         context.delete(group)
         save()
     }
@@ -240,7 +241,7 @@ struct GroupEditor {
         save()
     }
 
-    /// 自作語とその痕跡（グループの中の ID・進捗・回答ログ）を消す。削除記録は作らない（同期で届いた削除にも使う）
+    /// 自作語とその痕跡（グループの中の ID・進捗・回答ログ・グループの回答の記録）を消す。削除記録は作らない（同期で届いた削除にも使う）
     ///
     /// - Parameter groupsUpdatedAt: 外したグループの `updatedAt` をここまで進める。nil なら変えない
     static func purgeCustomWord(id wordId: String, in context: ModelContext, groupsUpdatedAt: Date?) {
@@ -258,6 +259,7 @@ struct GroupEditor {
         }
         try? context.delete(model: WordProgress.self, where: #Predicate { $0.wordId == wordId })
         try? context.delete(model: AnswerLog.self, where: #Predicate { $0.wordId == wordId })
+        try? context.delete(model: GroupAnswerLog.self, where: #Predicate { $0.wordId == wordId })
     }
 
     private func recordDeletion(_ kind: SyncKind, id recordId: String, at now: Date) {
