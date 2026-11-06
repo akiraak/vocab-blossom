@@ -1,0 +1,20 @@
+{
+  "description": "グループ「11-05」に足す語（2026-11-05 にユーザーが挙げた 9 語）。docs/plans/archive/group-11-05-words.md を参照。bundled は単語帳の語、それ以外はマイ単語として作る",
+  "groups": [
+    {
+      "name": "11-05",
+      "words": [
+        { "word": "adjust to", "pos": "phrase", "meaning": "〜に慣れる、〜に順応する", "example": "It took me a month to adjust to life here.", "exampleJa": "ここでの生活に慣れるのに 1 か月かかりました。" },
+        { "word": "adapt", "pos": "verb", "meaning": "適応する、（環境に合わせて）変わる", "example": "Children adapt quickly to a new school.", "exampleJa": "子どもは新しい学校にすぐなじみます。" },
+        { "bundled": "a2-0285", "word": "custom" },
+        { "word": "isolated", "pos": "adjective", "meaning": "孤立した、ひとりぼっちの", "example": "She felt isolated in the new city.", "exampleJa": "彼女は新しい町で孤立していると感じました。" },
+        { "bundled": "a2-0242", "word": "confident" },
+        { "word": "open-minded", "pos": "adjective", "meaning": "心の広い、偏見のない", "example": "He is open-minded about other cultures.", "exampleJa": "彼はほかの文化に対して偏見がありません。" },
+        { "word": "stereotype", "pos": "noun", "meaning": "固定観念、決めつけ", "example": "That is just a stereotype about Americans.", "exampleJa": "それはアメリカ人についてのただの決めつけです。" },
+        { "word": "respect", "pos": "verb", "meaning": "尊重する、尊敬する", "example": "We should respect the customs of other countries.", "exampleJa": "ほかの国の習慣を尊重するべきです。",
+          "extraSenses": [ { "pos": "noun", "meaning": "敬意、尊敬", "example": "People bow to show respect in Japan.", "exampleJa": "日本では敬意を示すためにおじぎをします。" } ] },
+        { "word": "point of view", "pos": "phrase", "meaning": "見方、立場、観点", "example": "Try to see it from her point of view.", "exampleJa": "彼女の立場から考えてみてください。" }
+      ]
+    }
+  ]
+}
