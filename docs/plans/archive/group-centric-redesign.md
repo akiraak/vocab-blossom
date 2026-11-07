@@ -51,7 +51,7 @@
 
 ### Phase 1: 学習中の読み上げを Gemini の声にする
 
-- 詳しいプランと結果: [learning-voice-gemini.md](archive/learning-voice-gemini.md)（2026-11-07 実装済み。待つのは 3 秒まで）
+- 詳しいプランと結果: [learning-voice-gemini.md](learning-voice-gemini.md)（2026-11-07 実装済み。待つのは 3 秒まで）
 
 - 学習の読み上げを `GeminiReadAloudSpeaker.quiz` に寄せる。`SessionView.speak`・`QuizCardView`・`SpeakButton` の `SpeechService` の呼び出しを置き換える
   - 読む文は `ReadAloudLine`（単語・例文）で組む。`ReadAloudScript` に「単語だけ」「単語 → 例文」を作る関数を足す
@@ -66,7 +66,7 @@
 
 ### Phase 2: ホームをグループ中心にする
 
-- 詳しいプランと結果: [group-home.md](archive/group-home.md)（2026-11-07 実装済み。庭はいちばん下）
+- 詳しいプランと結果: [group-home.md](group-home.md)（2026-11-07 実装済み。庭はいちばん下）
 
 - タブを「ホーム / 統計 / 設定」にする（グループタブはホームに入れる。単語帳タブは Phase 3 で外す）
 - ホームの並び
@@ -78,7 +78,7 @@
 
 ### Phase 3: 単語帳タブを外す
 
-- 詳しいプランと結果: [remove-word-list-tab.md](archive/remove-word-list-tab.md)（2026-11-07 実装済み。入口は設定の「データ」の先頭）
+- 詳しいプランと結果: [remove-word-list-tab.md](remove-word-list-tab.md)（2026-11-07 実装済み。入口は設定の「データ」の先頭）
 
 - タブから外す
 - マイ単語の一覧と編集は、設定の「データ」に「マイ単語」として入口を置く（今の `WordListView` を、マイ単語だけを出す形で使う）
@@ -86,7 +86,7 @@
 
 ### Phase 4: CEFR 学習の機能を外す
 
-- 詳しいプランと結果: [remove-cefr-learning.md](archive/remove-cefr-learning.md)（2026-11-07 実装済み。上限は `StudyLimits` の固定値）
+- 詳しいプランと結果: [remove-cefr-learning.md](remove-cefr-learning.md)（2026-11-07 実装済み。上限は `StudyLimits` の固定値）
 
 - オンボーディング: レベル選択と知っている単語の一括登録を外し、短い説明と「最初のグループを作る」にする。もう使っている端末（`hasOnboarded == true`）は出さない
 - 設定: レベル・1 日の新しい単語・知っている単語の一括登録を外す
@@ -97,7 +97,7 @@
 
 ### Phase 5: 仕様書を直す
 
-- 詳しいプランと結果: [group-centric-specs.md](archive/group-centric-specs.md)（2026-11-07 実施）
+- 詳しいプランと結果: [group-centric-specs.md](group-centric-specs.md)（2026-11-07 実施）
 
 - `docs/specs/app-concept.md` の §3（学習ループ）・§4（音声）・§5・§6（画面構成）・§7（音声）・§9 を新しい作りに合わせる
 - `README.md` に画面の説明があれば直す
@@ -130,3 +130,7 @@
 - SwiftLint 警告 0
 - シミュレータで DebugSeed を使ってホーム・設定・オンボーディング・学習の画面を確認する
 - 実機確認は Phase 6
+
+## 実機確認（2026-11-07）
+
+- 実機確認はユーザーが済ませ、2026-11-07 に完了の報告を受けて閉じた

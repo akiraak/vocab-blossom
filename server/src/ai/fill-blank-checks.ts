@@ -8,7 +8,7 @@ import { CLAUDE_MODELS, type ClaudeModel, ModelInputError, parseModel } from './
 
 // 穴埋めの選択肢の判定（POST /api/fill-blank-checks）。iOS がグループの穴埋めを始める前に、組み立てた問題
 // （文章 + 正解 + 誤答肢）を送り、誤答肢のうち空欄に入れても正しい文になる語（ほかの正解）を返す。
-// 判定は「文章・正解・選択肢の語」ごとにためて、同じ組では AI を呼ばない。設計は docs/plans/connective-fill-blank-check.md。
+// 判定は「文章・正解・選択肢の語」ごとにためて、同じ組では AI を呼ばない。設計は docs/plans/archive/connective-fill-blank-check.md。
 
 export const CHECKS_BODY_LIMIT = 32 * 1024
 /** 1 回に送れる問題数。グループ 1 つ分（10 語前後）を 1 回で判定できる量 */

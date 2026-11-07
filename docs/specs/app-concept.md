@@ -1,7 +1,7 @@
 # vocab-blossom アプリコンセプト
 
 作成日: 2026-08-13
-改定: 2026-11-07（グループ中心の作りに変更・読み上げをすべて Gemini の声に変更 → [plan](../plans/group-centric-redesign.md)）
+改定: 2026-11-07（グループ中心の作りに変更・読み上げをすべて Gemini の声に変更 → [plan](../plans/archive/group-centric-redesign.md)）
 
 ## 1. 一言でいうと
 

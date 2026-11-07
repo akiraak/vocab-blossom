@@ -1,7 +1,7 @@
 # 学習中の読み上げを Gemini の声にする
 
 作成日: 2026-11-07
-親プラン: [group-centric-redesign.md](../group-centric-redesign.md) の Phase 1
+親プラン: [group-centric-redesign.md](group-centric-redesign.md) の Phase 1
 
 ## 目的・背景
 

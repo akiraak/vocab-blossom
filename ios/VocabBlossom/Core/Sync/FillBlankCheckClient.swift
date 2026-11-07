@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// 穴埋めの選択肢の判定（`POST /api/fill-blank-checks`）の型。設計は docs/plans/connective-fill-blank-check.md
+/// 穴埋めの選択肢の判定（`POST /api/fill-blank-checks`）の型。設計は docs/plans/archive/connective-fill-blank-check.md
 nonisolated enum FillBlankCheckAPI {
     /// 判定する 1 問。`text` は見出し語の入った全文、`choices` は正解以外の選択肢の綴り
     struct Item: Codable, Equatable, Sendable {

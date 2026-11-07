@@ -1,7 +1,7 @@
 # ホームをグループ中心にする
 
 作成日: 2026-11-07
-親プラン: [group-centric-redesign.md](../group-centric-redesign.md) の Phase 2
+親プラン: [group-centric-redesign.md](group-centric-redesign.md) の Phase 2
 
 ## 目的・背景
 
