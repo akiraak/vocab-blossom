@@ -197,6 +197,12 @@ enum DebugSeed {
         if variant.seedsGroups {
             seedGroups(context: context, pool: pool, now: now)
         }
+        if variant.hasDueReviews {
+            // 今日の復習はグループに入っている語だけなので、学習済みの 45 語をグループに入れておく
+            let editor = GroupEditor(context: context)
+            let group = editor.createGroup(name: "教科書 Unit 1〜3", now: now)
+            editor.add(wordIds: pool.prefix(45).map(\.id), to: group)
+        }
 
         try? context.save()
     }

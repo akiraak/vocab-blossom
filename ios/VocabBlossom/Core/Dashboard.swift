@@ -5,10 +5,11 @@ import Foundation
 /// SwiftData のモデルからは値だけを取り出して渡すことで、集計ロジックを単体テストできる形にする。
 enum Dashboard {
     struct Summary: Equatable {
-        /// 今日の復習（期限が来た語。新しい単語は入れない。新しい単語はグループの「学習する」で始める）
+        /// 今日の復習（グループに入っている語のうち、期限が来た語。新しい単語は入れない。
+        /// 新しい単語はグループの「学習する」で始める）
         var plan = SessionPlan()
         var streak = 0
-        /// ステージ（1〜5）ごとの語数。0（種）は保存していないので含まない
+        /// グループに入っている語の、ステージ（1〜5）ごとの語数。0（種）は保存していないので含まない
         var stageCounts: [Int: Int] = [:]
         var learnedCount = 0
         var blossomCount = 0
@@ -21,6 +22,9 @@ enum Dashboard {
     struct Input {
         var now: Date
         var progress: [ProgressSnapshot]
+        /// 今あるグループの語の ID。今日の復習とステージ別の数は、この語の進捗だけで数える
+        /// （グループから外した語・前の版で学習を始めた語は出さない。進捗は消さずに残る）
+        var groupWordIds: Set<String>
         /// 学習した順（庭の並びに使う）
         var learnedAtByWordId: [String: Date] = [:]
         var logs: [LogSnapshot]
@@ -45,11 +49,12 @@ enum Dashboard {
         let todaysLogs = input.logs.filter { $0.dateKey == todayKey }
         let reviewsDoneToday = todaysLogs.filter { $0.kind == .review }.count
 
-        // 学習を始めた語（グループに入っていない語も）の、期限が来た復習だけ
+        // グループに入っている語の、期限が来た復習だけ
+        let progress = input.progress.filter { input.groupWordIds.contains($0.wordId) }
         let plan = SessionBuilder.build(
             SessionBuilder.Input(
                 now: input.now,
-                progress: input.progress,
+                progress: progress,
                 newWordPool: [],
                 newWordsPerDay: 0,
                 reviewLimitPerDay: input.reviewLimitPerDay,
@@ -62,14 +67,14 @@ enum Dashboard {
         summary.plan = plan
         summary.streak = DateUtil.streak(dateKeys: Set(input.logs.map(\.dateKey)), now: input.now)
         summary.stageCounts = Dictionary(
-            grouping: input.progress, by: \.stage
+            grouping: progress, by: \.stage
         ).mapValues(\.count)
-        summary.learnedCount = input.progress.count
-        summary.blossomCount = input.progress.filter { $0.stage >= SRS.maxStage }.count
+        summary.learnedCount = progress.count
+        summary.blossomCount = progress.filter { $0.stage >= SRS.maxStage }.count
         summary.answeredToday = todaysLogs.count
 
         summary.gardenStages = gardenStages(
-            progress: input.progress, learnedAtByWordId: input.learnedAtByWordId
+            progress: progress, learnedAtByWordId: input.learnedAtByWordId
         )
         return summary
     }

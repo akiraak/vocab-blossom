@@ -24,6 +24,7 @@ struct HomeView: View {
             Dashboard.Input(
                 now: .now,
                 progress: progresses.map(\.snapshot),
+                groupWordIds: Set(groups.flatMap(\.wordIds)),
                 learnedAtByWordId: Dictionary(
                     progresses.map { ($0.wordId, $0.learnedAt) },
                     uniquingKeysWith: { first, _ in first }

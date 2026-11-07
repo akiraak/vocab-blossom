@@ -116,6 +116,30 @@ struct LearningEngineTests {
         #expect(try logs().isEmpty)
     }
 
+    @Test("グループに無い語: 進捗のある語のうち、どのグループにも入っていない語だけ")
+    func wordIdsOutsideGroups() {
+        let outside = LearningEngine.wordIdsOutsideGroups(
+            progressWordIds: ["in-group", "removed", "known-bulk", "removed"],
+            groupWordIds: ["in-group", "not-learned-yet"]
+        )
+        #expect(outside == ["removed", "known-bulk"])
+    }
+
+    @Test("学習記録を消すと、その語の進捗だけが消え、回答の記録は残る")
+    func deleteProgressKeepsLogs() throws {
+        engine.record(wordId: "a1-0001", correct: true, quizType: .enToJa, kind: .new, now: now)
+        engine.record(wordId: "a1-0002", correct: true, quizType: .enToJa, kind: .new, now: now)
+        engine.markKnown(wordIds: ["a1-0003"], now: now)
+
+        let deleted = engine.deleteProgress(wordIds: ["a1-0002", "a1-0003", "not-learned"])
+        #expect(deleted == 2)
+        #expect(engine.progress(for: "a1-0001") != nil)
+        #expect(engine.progress(for: "a1-0002") == nil)
+        #expect(engine.progress(for: "a1-0003") == nil)
+        #expect(try logs().count == 2)
+        #expect(engine.deleteProgress(wordIds: []) == 0)
+    }
+
     @Test("すでに学習済みの語を既知登録しても重複しない")
     func markKnownOnLearnedWord() throws {
         engine.record(wordId: "a1-0200", correct: true, quizType: .enToJa, kind: .new, now: now)

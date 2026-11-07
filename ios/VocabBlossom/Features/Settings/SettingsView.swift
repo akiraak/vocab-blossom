@@ -8,6 +8,8 @@ struct SettingsView: View {
     @Environment(SyncService.self) private var sync
     @Environment(\.modelContext) private var context
     @Environment(\.wordStore) private var store
+    @Query private var progresses: [WordProgress]
+    @Query private var groups: [WordGroup]
 
     @State private var exportDocument: BackupDocument?
     @State private var isExporting = false
@@ -15,6 +17,7 @@ struct SettingsView: View {
     @State private var pendingImport: Data?
     @State private var message: Message?
     @State private var showsMyWords = false
+    @State private var isConfirmingCleanup = false
 
     private struct Message: Identifiable {
         let id = UUID()
@@ -74,6 +77,8 @@ struct SettingsView: View {
                     }
                 }
 
+                cleanupSection
+
                 SyncSection()
 
                 if sync.config != nil {
@@ -123,6 +128,61 @@ struct SettingsView: View {
         .alert(item: $message) { message in
             Alert(title: Text(message.title), message: Text(message.detail))
         }
+    }
+
+    /// どのグループにも入っていない語の学習記録（前の版のおまかせ学習・既知語の一括登録・外した語など）
+    private var wordIdsOutsideGroups: Set<String> {
+        LearningEngine.wordIdsOutsideGroups(
+            progressWordIds: progresses.map(\.wordId),
+            groupWordIds: Set(groups.flatMap(\.wordIds))
+        )
+    }
+
+    /// グループに無い語の学習記録を消す。今日の復習にはもともと出ないが、統計の数などから外したいとき用
+    private var cleanupSection: some View {
+        let count = wordIdsOutsideGroups.count
+        return Section {
+            Button(role: .destructive) {
+                isConfirmingCleanup = true
+            } label: {
+                LabeledContent {
+                    Text("\(count) 語")
+                        .monospacedDigit()
+                } label: {
+                    Label("グループに無い単語の学習記録を消す", systemImage: "leaf.arrow.triangle.circlepath")
+                }
+            }
+            .disabled(count == 0)
+            .confirmationDialog(
+                "グループに無い \(count) 語の学習記録を消しますか？",
+                isPresented: $isConfirmingCleanup,
+                titleVisibility: .visible
+            ) {
+                Button("\(count) 語の学習記録を消す", role: .destructive) { deleteProgressOutsideGroups() }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text(
+                    """
+                    消した単語は種（未学習）に戻ります。グループの単語・回答の記録・連続日数・マイ単語は消えません。\
+                    元に戻せないので、先に「進捗を書き出す」で控えを取っておくと安心です。
+                    """
+                )
+            }
+        } header: {
+            Text("学習記録の整理")
+        } footer: {
+            Text(
+                """
+                今日の復習には、グループに入っている単語だけが出ます。\
+                前の版で学習した単語や、グループから外した単語の学習記録は残っているので、使わなければここで消せます。
+                """
+            )
+        }
+    }
+
+    private func deleteProgressOutsideGroups() {
+        let deleted = LearningEngine(context: context).deleteProgress(wordIds: wordIdsOutsideGroups)
+        message = Message(title: "消しました", detail: "\(deleted) 語の学習記録を消しました。")
     }
 
     private func prepareExport() {

@@ -7,8 +7,10 @@ import Testing
 struct DashboardTests {
     let now = TestDate.at(2026, 8, 14)
 
+    /// `groupWordIds` を省くと、進捗のある語がすべてグループに入っているものとする
     private func input(
         progress: [ProgressSnapshot] = [],
+        groupWordIds: Set<String>? = nil,
         learnedAt: [String: Date] = [:],
         logs: [Dashboard.LogSnapshot] = [],
         reviewLimitPerDay: Int = 60
@@ -16,6 +18,7 @@ struct DashboardTests {
         Dashboard.Input(
             now: now,
             progress: progress,
+            groupWordIds: groupWordIds ?? Set(progress.map(\.wordId)),
             learnedAtByWordId: learnedAt,
             logs: logs,
             reviewLimitPerDay: reviewLimitPerDay,
@@ -32,12 +35,12 @@ struct DashboardTests {
         Dashboard.LogSnapshot(wordId: wordId, dateKey: dateKey, correct: correct, kind: kind)
     }
 
-    @Test("今日の復習は期限が来た語だけで、新しい単語は入れない（グループに入っていない語も出す）")
+    @Test("今日の復習は期限が来た語だけで、新しい単語は入れない")
     func todaysReviewHasNoNewWords() {
         let yesterday = now.addingTimeInterval(-86_400)
         let tomorrow = now.addingTimeInterval(86_400)
         let progress = [
-            // a1-0001 は同梱語（どのグループにも入っていなくても出す）、custom-x はマイ単語
+            // a1-0001 は同梱語、custom-x はマイ単語
             ProgressSnapshot(wordId: "a1-0001", stage: 2, dueAt: yesterday),
             ProgressSnapshot(wordId: "custom-x", stage: 1, dueAt: now),
             ProgressSnapshot(wordId: "a1-0002", stage: 3, dueAt: tomorrow),
@@ -45,6 +48,22 @@ struct DashboardTests {
         let summary = Dashboard.summary(input(progress: progress))
         #expect(Set(summary.plan.reviewWordIds) == ["a1-0001", "custom-x"])
         #expect(summary.plan.newWordIds.isEmpty)
+    }
+
+    @Test("グループに入っていない語（外した語・前の版で学習を始めた語）は、今日の復習にもステージ別の数にも入れない")
+    func todaysReviewOnlyHasGroupWords() {
+        let yesterday = now.addingTimeInterval(-86_400)
+        let progress = [
+            ProgressSnapshot(wordId: "in-group", stage: 2, dueAt: yesterday),
+            ProgressSnapshot(wordId: "removed", stage: 3, dueAt: yesterday),
+            ProgressSnapshot(wordId: "known-bulk", stage: 5, dueAt: now),
+        ]
+        let summary = Dashboard.summary(input(progress: progress, groupWordIds: ["in-group", "unlearned"]))
+        #expect(summary.plan.reviewWordIds == ["in-group"])
+        #expect(summary.plan.deferredReviewCount == 0)
+        #expect(summary.stageCounts == [2: 1])
+        #expect(summary.learnedCount == 1)
+        #expect(summary.blossomCount == 0)
     }
 
     @Test("今日こなした復習の数を 1 日の上限から引く")

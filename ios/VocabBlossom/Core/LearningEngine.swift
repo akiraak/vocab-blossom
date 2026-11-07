@@ -109,6 +109,26 @@ struct LearningEngine {
         save()
     }
 
+    /// どのグループにも入っていない語のうち、進捗（学習記録）がある語。
+    /// 設定の「グループに無い単語の学習記録を消す」の対象（前の版のおまかせ学習・既知語の一括登録・外した語など）
+    static func wordIdsOutsideGroups(progressWordIds: [String], groupWordIds: Set<String>) -> Set<String> {
+        Set(progressWordIds).subtracting(groupWordIds)
+    }
+
+    /// 指定した語の進捗（学習記録）を消して未学習（種）に戻す。消した数を返す。
+    ///
+    /// 回答の記録（`AnswerLog`）は消さない（連続日数・統計のグラフを残すため）。保存は最後の 1 回だけ
+    @discardableResult
+    func deleteProgress(wordIds: Set<String>) -> Int {
+        guard !wordIds.isEmpty else { return 0 }
+        let targets = (try? context.fetch(
+            FetchDescriptor<WordProgress>(predicate: #Predicate { wordIds.contains($0.wordId) })
+        )) ?? []
+        for progress in targets { context.delete(progress) }
+        save()
+        return targets.count
+    }
+
     private func apply(
         _ result: SRS.Result,
         to existing: WordProgress?,
