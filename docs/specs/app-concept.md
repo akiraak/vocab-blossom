@@ -2,7 +2,7 @@
 
 作成日: 2026-08-13
 改定: 2026-11-07（グループ中心の作りに変更・読み上げをすべて Gemini の声に変更 → [plan](../plans/archive/group-centric-redesign.md)）
-改定: 2026-11-07（アプリ名を vocab-blossom から VocabGarden に変更・見た目を「白地にセージ 1 色と植物の線画」に変更 → [plan](../plans/app-rename-redesign.md)）
+改定: 2026-11-07（アプリ名を vocab-blossom から VocabGarden に変更・見た目を「白地にセージ 1 色と植物の線画」に変更 → [plan](../plans/archive/app-rename-redesign.md)）
 
 ## 1. 一言でいうと
 
