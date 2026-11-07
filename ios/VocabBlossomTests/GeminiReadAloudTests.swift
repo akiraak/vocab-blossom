@@ -419,7 +419,9 @@ struct GeminiReadAloudSpeakerTests {
         try? await Task.sleep(for: .milliseconds(50))
         #expect(harness.fetcher.recorded.count == 4)
         #expect(harness.fetcher.recorded.allSatisfy { $0.speaker == .naruko })
-        #expect(Set(harness.fetcher.recorded.map(\.text)) == ["apple", "りんご", "I eat an apple.", "りんごを食べる。"])
+        #expect(
+            Set(harness.fetcher.recorded.map(\.text)) == ["apple", "名詞。りんご", "I eat an apple.", "りんごを食べる。"]
+        )
 
         let first = ReadAloudScript.items(for: words, includesJapanese: true)[0]
         let started = await harness.speakToEnd(first.lines)

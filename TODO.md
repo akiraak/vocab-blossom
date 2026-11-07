@@ -30,3 +30,6 @@
   - [x] Phase 4: CEFR 学習の機能を外す → [plan](docs/plans/archive/remove-cefr-learning.md)
   - [x] Phase 5: 仕様書を直す → [plan](docs/plans/archive/group-centric-specs.md)
   - [ ] Phase 6: 実機確認
+- [ ] グループの読み上げに品詞の表示と読み上げを入れる → [plan](docs/plans/read-aloud-pos.md)
+  - [x] Step 1: 実装（画面の品詞・意味の文の頭で品詞を読む・テスト）
+  - [ ] Step 2: 実機確認（Gemini の声で「名詞。りんご」が自然に聞こえるか）

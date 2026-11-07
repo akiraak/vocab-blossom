@@ -17,7 +17,8 @@ nonisolated struct ReadAloudLine: Hashable, Sendable {
     var kind: Kind
     /// 画面に出す文
     var text: String
-    /// 声に出す文。日本語は「／」「〜」など読ませたくない記号を整えてある
+    /// 声に出す文。日本語は「／」「〜」など読ませたくない記号を整えてある。
+    /// グループの読み上げの意味の文は、頭に品詞を付けてある（「名詞。りんご」）
     var spokenText: String
     /// 何番目の意味の文か（単語は 0）
     var senseIndex: Int
@@ -42,6 +43,8 @@ nonisolated struct ReadAloudItem: Hashable, Identifiable, Sendable {
 enum ReadAloudScript {
     /// 1 語につき「単語 → 意味 → 例文 → 例文の和訳」。意味が複数あれば、単語を 1 回読んだあと意味ごとに繰り返す。
     ///
+    /// 意味の文は、頭でその意味の品詞を読む（「名詞。りんご」。画面の文は意味のまま）。
+    /// 品詞を別の文にすると、音声を作る頼みと文の間の間が 1 語ごとに増えるので、意味の文にまとめる。
     /// 空の文は飛ばす。日本語の声が端末に無ければ（`includesJapanese == false`）日本語の文は入れない
     static func items(for words: [WordEntry], includesJapanese: Bool) -> [ReadAloudItem] {
         words.compactMap { word in
@@ -54,7 +57,11 @@ enum ReadAloudScript {
                     (.exampleJa, sense.exampleJa),
                 ]
                 lines += candidates.compactMap { kind, text in
-                    line(kind, text, senseIndex: index)
+                    guard var result = line(kind, text, senseIndex: index) else { return nil }
+                    if kind == .meaning {
+                        result.spokenText = "\(sense.pos.label)。\(result.spokenText)"
+                    }
+                    return result
                 }
             }
             if !includesJapanese {

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// グループの単語を順に読み上げる画面（フルスクリーン）。開くとすぐ頭から読み始め、閉じたら止める。
 ///
-/// 今読んでいる語を大きく出し、読んでいる文（単語・意味・例文・和訳）を強調する。一覧の語を押すとそこから読む。
+/// 今読んでいる語を大きく出し、読んでいる文（単語・品詞と意味・例文・和訳）を強調する。一覧の語を押すとそこから読む。
 /// 画面を消しても読み続け、ロック画面・コントロールセンターから操作できる（`UIBackgroundModes: audio`）
 struct ReadAloudView: View {
     let groupName: String
@@ -94,7 +94,7 @@ struct ReadAloudView: View {
 
                     ForEach(Array(word.senses.enumerated()), id: \.offset) { index, sense in
                         if index > 0 { Divider() }
-                        senseBlock(sense, index: index, showsPos: word.senses.count > 1)
+                        senseBlock(sense, index: index)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -108,20 +108,19 @@ struct ReadAloudView: View {
         }
     }
 
-    private func senseBlock(_ sense: WordSense, index: Int, showsPos: Bool) -> some View {
+    /// 意味 1 つ分。品詞はいつも出し、意味の文（「品詞。意味」と読む）を読んでいる間は品詞ごと強調する
+    private func senseBlock(_ sense: WordSense, index: Int) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                if showsPos {
-                    Text(sense.pos.label)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Theme.accent.opacity(0.15), in: Capsule())
-                }
+                Text(sense.pos.label)
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Theme.accent.opacity(0.15), in: Capsule())
                 Text(sense.meaning)
                     .font(.title3.weight(.medium))
-                    .readingHighlight(isReading(.meaning, sense: index))
             }
+            .readingHighlight(isReading(.meaning, sense: index))
             if !sense.example.isEmpty {
                 Text(sense.example)
                     .font(.body)

@@ -80,6 +80,26 @@ struct ReadAloudScriptTests {
         #expect(items[0].lines.map(\.text) == ["apple", "りんご", "I like apples.", "私はりんごが好き。"])
     }
 
+    @Test("意味の文は頭で品詞を読む（画面の文は意味のまま）")
+    func meaningStartsWithPartOfSpeech() {
+        let lines = ReadAloudScript.items(
+            for: [entry("apple", meaning: "りんご", example: "I like apples.", exampleJa: "私はりんごが好き。")],
+            includesJapanese: true
+        )[0].lines
+        #expect(lines.map(\.spokenText) == ["apple", "名詞。りんご", "I like apples.", "私はりんごが好き。"])
+        #expect(lines[1].text == "りんご")
+    }
+
+    @Test("意味が複数ある語は、意味ごとにその意味の品詞を読む")
+    func partOfSpeechPerSense() {
+        let word = entry(
+            "cram", meaning: "詰め込み勉強", extraSenses: [WordSense(pos: .verb, meaning: "詰め込み勉強をする")]
+        )
+        let meanings = ReadAloudScript.items(for: [word], includesJapanese: true)[0].lines
+            .filter { $0.kind == .meaning }
+        #expect(meanings.map(\.spokenText) == ["名詞。詰め込み勉強", "動詞。詰め込み勉強をする"])
+    }
+
     @Test("意味が複数ある語は、単語を 1 回読んだあと意味ごとに 意味 → 例文 → 和訳")
     func multipleSenses() {
         let word = entry(
@@ -123,7 +143,7 @@ struct ReadAloudScriptTests {
         let word = entry("take care of", meaning: "〜の世話をする")
         let line = ReadAloudScript.items(for: [word], includesJapanese: true)[0].lines[1]
         #expect(line.text == "〜の世話をする")
-        #expect(line.spokenText == "の世話をする")
+        #expect(line.spokenText == "名詞。の世話をする")
     }
 }
 
