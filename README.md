@@ -94,7 +94,7 @@ SIMCTL_CHILD_VOCAB_SEED_DEMO=1 SIMCTL_CHILD_VOCAB_DEMO_SCREEN=session \
 ```
 
 `VOCAB_DEMO_SCREEN` は `session` / `session-new` / `session-summary` /
-`words` / `stats` / `settings` / `fresh` を指定できる（詳細は `App/DebugSeed.swift`）。
+`my-words` / `stats` / `settings` / `fresh` を指定できる（詳細は `App/DebugSeed.swift`）。
 
 ### アプリアイコン
 

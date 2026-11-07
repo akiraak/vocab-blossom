@@ -7,12 +7,14 @@ struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(SyncService.self) private var sync
     @Environment(\.modelContext) private var context
+    @Environment(\.wordStore) private var store
 
     @State private var exportDocument: BackupDocument?
     @State private var isExporting = false
     @State private var isImporting = false
     @State private var pendingImport: Data?
     @State private var message: Message?
+    @State private var showsMyWords = false
 
     private struct Message: Identifiable {
         let id = UUID()
@@ -65,6 +67,15 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink {
+                        MyWordsView()
+                    } label: {
+                        LabeledContent {
+                            Text("\(store.customWords.count) 語")
+                        } label: {
+                            Label("マイ単語", systemImage: "character.book.closed")
+                        }
+                    }
                     Button {
                         prepareExport()
                     } label: {
@@ -105,7 +116,15 @@ struct SettingsView: View {
             }
             .navigationTitle("設定")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showsMyWords) {
+                MyWordsView()
+            }
         }
+        #if DEBUG
+        .onAppear {
+            if DebugSeed.variant == .myWords { showsMyWords = true }
+        }
+        #endif
         .fileExporter(
             isPresented: $isExporting,
             document: exportDocument,

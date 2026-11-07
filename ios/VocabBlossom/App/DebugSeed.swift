@@ -14,7 +14,8 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=session-summary`: 出題が無い状態（締め画面）
 /// - `session` / `session-new` / `group-learn` / `group-drill` の読み上げの声は、偽のサーバーの音
 ///   （Chobi は低い音・Naruko は高い音。文の長さだけ鳴る）
-/// - `VOCAB_DEMO_SCREEN=words|stats|settings`: そのタブを開いた状態で起動する
+/// - `VOCAB_DEMO_SCREEN=stats|settings`: そのタブを開いた状態で起動する
+/// - `VOCAB_DEMO_SCREEN=my-words`: 設定のマイ単語（自作語の入ったグループも作る）を開く
 /// - `VOCAB_DEMO_SCREEN=fresh`: オンボーディング済み・学習記録なしの状態
 /// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面
 /// - `VOCAB_DEMO_SCREEN=groups`: ホーム（同梱語 + 自作語のグループ入り）を開く
@@ -34,7 +35,8 @@ enum DebugSeed {
         case session
         case sessionNew = "session-new"
         case sessionSummary = "session-summary"
-        case words
+        /// 設定のマイ単語
+        case myWords = "my-words"
         case stats
         case settings
         /// オンボーディング済み・学習記録なし（空の庭）
@@ -63,7 +65,7 @@ enum DebugSeed {
 
         var seedsGroups: Bool {
             switch self {
-            case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud,
+            case .groups, .myWords, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud,
                  .fillBlankPreparing, .groupSelect,
                  .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
                  .wordEditorSenses, .wordDetailSenses, .drillSenses:
@@ -111,9 +113,8 @@ enum DebugSeed {
     /// 起動直後に開くタブ
     static var initialTab: MainTabView.TabId? {
         switch variant {
-        case .words: .words
         case .stats: .stats
-        case .settings: .settings
+        case .settings, .myWords: .settings
         // グループの画面はホームから開く
         default: nil
         }

@@ -110,7 +110,7 @@ struct HomeView: View {
                     pendingDeletion = nil
                 }
             } message: {
-                Text("中の単語と学習の記録は消えません。自分で作った単語は単語帳の「マイ単語」に残ります。")
+                Text("中の単語と学習の記録は消えません。自分で作った単語は設定の「マイ単語」に残ります。")
             }
             .fullScreenCover(isPresented: $isSessionPresented) {
                 SessionView(plan: summary.plan, closeTitle: "ホームにもどる")

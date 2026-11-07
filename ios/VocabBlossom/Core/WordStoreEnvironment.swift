@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 extension EnvironmentValues {
-    /// 同梱語 + 自作語の索引。セッション・単語帳など単語を引く画面はここから取る
+    /// 同梱語 + 自作語の索引。セッション・グループなど単語を引く画面はここから取る
     @Entry var wordStore: WordStore = .shared
 }
 

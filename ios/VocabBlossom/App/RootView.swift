@@ -28,7 +28,7 @@ struct RootView: View {
 
 struct MainTabView: View {
     enum TabId: String {
-        case home, words, stats, settings
+        case home, stats, settings
     }
 
     @State private var selection: TabId = .home
@@ -37,9 +37,6 @@ struct MainTabView: View {
         TabView(selection: $selection) {
             Tab("ホーム", systemImage: "house.fill", value: TabId.home) {
                 HomeView()
-            }
-            Tab("単語帳", systemImage: "book.fill", value: TabId.words) {
-                WordListView()
             }
             Tab("統計", systemImage: "chart.bar.fill", value: TabId.stats) {
                 StatsView()
