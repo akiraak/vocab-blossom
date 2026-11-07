@@ -28,5 +28,5 @@
   - [x] Phase 2: ホームをグループ中心にする → [plan](docs/plans/archive/group-home.md)
   - [x] Phase 3: 単語帳タブを外す → [plan](docs/plans/archive/remove-word-list-tab.md)
   - [x] Phase 4: CEFR 学習の機能を外す → [plan](docs/plans/archive/remove-cefr-learning.md)
-  - [ ] Phase 5: 仕様書を直す
+  - [x] Phase 5: 仕様書を直す → [plan](docs/plans/archive/group-centric-specs.md)
   - [ ] Phase 6: 実機確認

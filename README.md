@@ -1,6 +1,7 @@
 # vocab-blossom
 
 覚えた単語が花になって庭が育つ、英語初学者（CEFR A1〜A2）向けの単語学習 iOS アプリ。
+小テストの範囲などを「グループ」にまとめ、グループごとに学習する・ドリル・穴埋め・読み上げで覚える。
 
 コンセプトの詳細は [docs/specs/app-concept.md](docs/specs/app-concept.md) を参照。
 
@@ -10,7 +11,7 @@
 ## 技術スタック
 
 - SwiftUI + Observation / SwiftData（Deployment Target: iOS 18.0、iPhone 縦向き専用）
-- AVSpeechSynthesizer（TTS）/ Swift Charts（統計）
+- 読み上げ: Gemini の TTS（サーバー経由）。取れないときは AVSpeechSynthesizer / Swift Charts（統計）
 - XcodeGen + SwiftLint + Swift Testing
 - 単語データ整備: Python（CEFR-J からの抽出）+ Vitest（データ内容の検証）
 
@@ -25,9 +26,9 @@ ios/
     App/                エントリポイント、ルート TabView、デバッグ用シード
     Core/               DateUtil / SRS / Inflector / QuizBuilder / SessionBuilder /
                         Dashboard / LearningEngine / WordStore / AppSettings /
-                        SpeechService / BackupArchive / Theme
-    Models/             WordEntry・Deck（JSON）/ WordProgress・AnswerLog（SwiftData）
-    Features/           Onboarding / Home / Session / WordList / Stats / Settings
+                        GroupStudy / GeminiReadAloudSpeaker / BackupArchive / Theme / Sync
+    Models/             WordEntry・Deck（JSON）/ WordProgress・AnswerLog・WordGroup・CustomWord（SwiftData）
+    Features/           Onboarding / Home / Groups / Session / WordList（マイ単語・単語詳細）/ Stats / Settings
     Resources/          Assets.xcassets
   VocabBlossomTests/
 data/decks/             単語 JSON（アプリへフォルダ参照で同梱）
