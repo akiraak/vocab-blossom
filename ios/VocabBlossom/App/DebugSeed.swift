@@ -17,7 +17,7 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=words|stats|settings`: そのタブを開いた状態で起動する
 /// - `VOCAB_DEMO_SCREEN=fresh`: オンボーディング済み・学習記録なしの状態
 /// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面
-/// - `VOCAB_DEMO_SCREEN=groups`: グループタブ（同梱語 + 自作語のグループ入り）を開く
+/// - `VOCAB_DEMO_SCREEN=groups`: ホーム（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill` / `group-fill-blank`: グループの学習 / ドリル / 穴埋めを起動直後に開く
 /// - `VOCAB_DEMO_SCREEN=group-read-aloud`: グループの読み上げを起動直後に開く（開くと読み始める。
@@ -41,7 +41,7 @@ enum DebugSeed {
         case fresh
         /// 既知語の一括登録画面
         case knownWords = "known-words"
-        /// グループタブ
+        /// ホームのグループ
         case groups
         case groupDetail = "group-detail"
         case groupLearn = "group-learn"
@@ -114,11 +114,7 @@ enum DebugSeed {
         case .words: .words
         case .stats: .stats
         case .settings: .settings
-        case .groups, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud,
-             .fillBlankPreparing, .groupSelect,
-             .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
-             .wordEditorSenses, .wordDetailSenses, .drillSenses:
-            .groups
+        // グループの画面はホームから開く
         default: nil
         }
     }

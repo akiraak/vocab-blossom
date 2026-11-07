@@ -6,22 +6,19 @@ import Testing
 @Suite("ホーム・統計の集計")
 struct DashboardTests {
     let now = TestDate.at(2026, 8, 14)
-    let pool = WordStore.shared.newWordPool(level: .a1, order: .test)
 
     private func input(
         progress: [ProgressSnapshot] = [],
         learnedAt: [String: Date] = [:],
         logs: [Dashboard.LogSnapshot] = [],
-        newWordsPerDay: Int = 10
+        reviewLimitPerDay: Int = 60
     ) -> Dashboard.Input {
         Dashboard.Input(
             now: now,
             progress: progress,
             learnedAtByWordId: learnedAt,
             logs: logs,
-            newWordPool: pool,
-            newWordsPerDay: newWordsPerDay,
-            reviewLimitPerDay: 60,
+            reviewLimitPerDay: reviewLimitPerDay,
             order: .test
         )
     }
@@ -35,17 +32,35 @@ struct DashboardTests {
         Dashboard.LogSnapshot(wordId: wordId, dateKey: dateKey, correct: correct, kind: kind)
     }
 
-    @Test("今日こなした復習・新規語がプランに反映される")
-    func todaysProgressFeedsBackIntoThePlan() {
-        let logs = [
-            log("a", "2026-08-14", kind: .new),
-            log("b", "2026-08-14", kind: .new),
-            log("b", "2026-08-14", kind: .requeue),
-            log("c", "2026-08-13", kind: .new),
+    @Test("今日の復習は期限が来た語だけで、新しい単語は入れない（グループに入っていない語も出す）")
+    func todaysReviewHasNoNewWords() {
+        let yesterday = now.addingTimeInterval(-86_400)
+        let tomorrow = now.addingTimeInterval(86_400)
+        let progress = [
+            // a1-0001 は同梱語（どのグループにも入っていなくても出す）、custom-x はマイ単語
+            ProgressSnapshot(wordId: "a1-0001", stage: 2, dueAt: yesterday),
+            ProgressSnapshot(wordId: "custom-x", stage: 1, dueAt: now),
+            ProgressSnapshot(wordId: "a1-0002", stage: 3, dueAt: tomorrow),
         ]
-        let summary = Dashboard.summary(input(logs: logs, newWordsPerDay: 10))
-        // 今日の新規は a, b の 2 語（再出題は重複して数えない）
-        #expect(summary.plan.newWordIds.count == 8)
+        let summary = Dashboard.summary(input(progress: progress))
+        #expect(Set(summary.plan.reviewWordIds) == ["a1-0001", "custom-x"])
+        #expect(summary.plan.newWordIds.isEmpty)
+    }
+
+    @Test("今日こなした復習の数を 1 日の上限から引く")
+    func todaysReviewsReduceTheLimit() {
+        let progress = ["a", "b", "c"].map { ProgressSnapshot(wordId: $0, stage: 2, dueAt: now) }
+        let logs = [
+            log("x", "2026-08-14", kind: .review),
+            log("y", "2026-08-14", kind: .new),
+            log("y", "2026-08-14", kind: .requeue),
+            log("z", "2026-08-13", kind: .review),
+        ]
+        let summary = Dashboard.summary(input(progress: progress, logs: logs, reviewLimitPerDay: 3))
+        // 今日の復習 1 問（x）を引いて残り 2 語。残りは翌日に繰り越す
+        #expect(summary.plan.reviewWordIds.count == 2)
+        #expect(summary.plan.deferredReviewCount == 1)
+        #expect(summary.plan.newWordIds.isEmpty)
         #expect(summary.answeredToday == 3)
     }
 

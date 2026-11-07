@@ -76,7 +76,7 @@ struct GardenView: View {
                 .font(.system(size: 36))
             Text("まだ種だけの庭です")
                 .font(.subheadline.weight(.medium))
-            Text("今日の学習を始めると花が育ちます")
+            Text("グループで学習すると花が育ちます")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

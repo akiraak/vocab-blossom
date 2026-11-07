@@ -5,6 +5,7 @@ import Foundation
 /// SwiftData のモデルからは値だけを取り出して渡すことで、集計ロジックを単体テストできる形にする。
 enum Dashboard {
     struct Summary: Equatable {
+        /// 今日の復習（期限が来た語。新しい単語は入れない。新しい単語はグループの「学習する」で始める）
         var plan = SessionPlan()
         var streak = 0
         /// ステージ（1〜5）ごとの語数。0（種）は保存していないので含まない
@@ -23,8 +24,6 @@ enum Dashboard {
         /// 学習した順（庭の並びに使う）
         var learnedAtByWordId: [String: Date] = [:]
         var logs: [LogSnapshot]
-        var newWordPool: [WordEntry]
-        var newWordsPerDay: Int
         var reviewLimitPerDay: Int
         /// 出題順をランダムにする並び
         var order: ShuffleOrder = .install
@@ -45,19 +44,16 @@ enum Dashboard {
         let todayKey = DateUtil.dateKey(input.now)
         let todaysLogs = input.logs.filter { $0.dateKey == todayKey }
         let reviewsDoneToday = todaysLogs.filter { $0.kind == .review }.count
-        let newWordsDoneToday = Set(
-            todaysLogs.filter { $0.kind == .new }.map(\.wordId)
-        ).count
 
+        // 学習を始めた語（グループに入っていない語も）の、期限が来た復習だけ
         let plan = SessionBuilder.build(
             SessionBuilder.Input(
                 now: input.now,
                 progress: input.progress,
-                newWordPool: input.newWordPool,
-                newWordsPerDay: input.newWordsPerDay,
+                newWordPool: [],
+                newWordsPerDay: 0,
                 reviewLimitPerDay: input.reviewLimitPerDay,
                 reviewsDoneToday: reviewsDoneToday,
-                newWordsDoneToday: newWordsDoneToday,
                 order: input.order
             )
         )

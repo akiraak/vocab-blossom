@@ -25,7 +25,7 @@
     - [x] Step 2: 学習画面の読み上げを置き換え、セッションで先読みする
     - [x] Step 3: `SpeechService` を消す
     - [x] Step 4: 確かめる（テスト・SwiftLint・シミュレータ）
-  - [ ] Phase 2: ホームをグループ中心にする
+  - [x] Phase 2: ホームをグループ中心にする → [plan](docs/plans/archive/group-home.md)
   - [ ] Phase 3: 単語帳タブを外す
   - [ ] Phase 4: CEFR 学習の機能を外す
   - [ ] Phase 5: 仕様書を直す

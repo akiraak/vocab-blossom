@@ -17,11 +17,11 @@ struct SessionView: View {
 
     let source: Source
     /// 締め画面の閉じるボタンの文言
-    var closeTitle = "庭にもどる"
+    var closeTitle = "ホームにもどる"
     /// グループから始めたときの入口。回答をグループの記録（`GroupAnswerLog`）に残す
     var group: GroupAnswerContext?
 
-    init(plan: SessionPlan, closeTitle: String = "庭にもどる", group: GroupAnswerContext? = nil) {
+    init(plan: SessionPlan, closeTitle: String = "ホームにもどる", group: GroupAnswerContext? = nil) {
         source = .plan(plan)
         self.closeTitle = closeTitle
         self.group = group

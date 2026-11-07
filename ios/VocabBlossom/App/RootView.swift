@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 下部タブ + セッションのフルスクリーンモーダル、という MVP の画面構造。
+/// 下部タブ + セッションのフルスクリーンモーダル、という画面構造。ホームがグループの入口を兼ねる
 struct RootView: View {
     @Environment(AppSettings.self) private var settings
 
@@ -28,21 +28,18 @@ struct RootView: View {
 
 struct MainTabView: View {
     enum TabId: String {
-        case home, words, groups, stats, settings
+        case home, words, stats, settings
     }
 
     @State private var selection: TabId = .home
 
     var body: some View {
         TabView(selection: $selection) {
-            Tab("ホーム", systemImage: "leaf.fill", value: TabId.home) {
+            Tab("ホーム", systemImage: "house.fill", value: TabId.home) {
                 HomeView()
             }
             Tab("単語帳", systemImage: "book.fill", value: TabId.words) {
                 WordListView()
-            }
-            Tab("グループ", systemImage: "folder.fill", value: TabId.groups) {
-                GroupListView()
             }
             Tab("統計", systemImage: "chart.bar.fill", value: TabId.stats) {
                 StatsView()

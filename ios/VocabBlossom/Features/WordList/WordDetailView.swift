@@ -80,7 +80,7 @@ struct WordDetailView: View {
     private var groupMenu: some View {
         Menu {
             if groups.isEmpty {
-                Text("グループタブでグループを作ると、ここから追加できます")
+                Text("ホームでグループを作ると、ここから追加できます")
             }
             ForEach(groups) { group in
                 let isMember = group.wordIds.contains(original.id)

@@ -4,7 +4,7 @@ import SwiftUI
 struct SessionSummaryView: View {
     let stats: SessionRunner.Stats
     var mode: SessionRunner.Mode = .learning
-    var closeTitle = "庭にもどる"
+    var closeTitle = "ホームにもどる"
     let onClose: () -> Void
 
     @Environment(\.wordStore) private var store
