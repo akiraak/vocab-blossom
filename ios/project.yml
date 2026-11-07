@@ -44,6 +44,8 @@ targets:
       properties:
         # ホーム画面のアイコンの下に出る名前（Info.plist を xcodegen が作るので、INFOPLIST_KEY_ の設定では効かない）
         CFBundleDisplayName: VocabGarden
+        # いつも白い画面にする（iPhone がダークモードでも暗くしない。デザイン B4 は白地。2026-11-07 にユーザーと決定）
+        UIUserInterfaceStyle: Light
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen:

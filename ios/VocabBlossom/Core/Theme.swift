@@ -46,8 +46,10 @@ enum GrowthStage: String, CaseIterable, Sendable {
 
 /// 配色とレイアウトの共通値。
 ///
-/// 白（ダークは黒に近い緑）の地に、セージ 1 色と細い線画で見せる（2026-11-07 のデザイン B4）。
-/// 枠線は使わず、育ち具合で濃さの変わる薄いセージの色面で区切る
+/// 白の地に、セージ 1 色と細い線画で見せる（2026-11-07 のデザイン B4）。
+/// 枠線は使わず、育ち具合で濃さの変わる薄いセージの色面で区切る。
+/// アプリはいつもライトの見た目で出す（Info.plist の `UIUserInterfaceStyle: Light`）。
+/// ダークの色も持っているのは、ダークモードに戻すときにそのまま使えるようにするため
 enum Theme {
     static let background = Color("LaunchBackground")
     static let accent = Color.accentColor
