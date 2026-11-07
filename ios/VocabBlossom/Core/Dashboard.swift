@@ -68,14 +68,24 @@ enum Dashboard {
         summary.blossomCount = input.progress.filter { $0.stage >= SRS.maxStage }.count
         summary.answeredToday = todaysLogs.count
 
-        let ordered = input.progress.sorted {
+        summary.gardenStages = gardenStages(
+            progress: input.progress, learnedAtByWordId: input.learnedAtByWordId
+        )
+        return summary
+    }
+
+    /// 庭に並べる植物。育った順・同じなら最近始めた順に、庭に入る数まで
+    static func gardenStages(
+        progress: [ProgressSnapshot],
+        learnedAtByWordId: [String: Date]
+    ) -> [GrowthStage] {
+        let ordered = progress.sorted {
             if $0.stage != $1.stage { return $0.stage > $1.stage }
-            let left = input.learnedAtByWordId[$0.wordId] ?? .distantPast
-            let right = input.learnedAtByWordId[$1.wordId] ?? .distantPast
+            let left = learnedAtByWordId[$0.wordId] ?? .distantPast
+            let right = learnedAtByWordId[$1.wordId] ?? .distantPast
             return left > right
         }
-        summary.gardenStages = ordered.prefix(gardenCapacity).map { GrowthStage(stage: $0.stage) }
-        return summary
+        return ordered.prefix(gardenCapacity).map { GrowthStage(stage: $0.stage) }
     }
 
     struct DailyCount: Identifiable, Equatable {

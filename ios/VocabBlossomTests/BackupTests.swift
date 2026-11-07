@@ -138,6 +138,6 @@ struct BackupTests {
 
     @Test("ファイル名は書き出した日付になる")
     func fileNameUsesDate() {
-        #expect(BackupService.fileName(now: now) == "vocab-blossom-2026-08-14.json")
+        #expect(BackupService.fileName(now: now) == "VocabGarden-2026-08-14.json")
     }
 }

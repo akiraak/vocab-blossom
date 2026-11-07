@@ -1,10 +1,10 @@
 import SwiftData
 import SwiftUI
 
-/// ホーム。今日の復習・グループ・庭をまとめる。
+/// ホーム。ロゴ・今日の復習・グループのカードをまとめる（デザイン B4）。
 ///
 /// グループを中心に使うので、起動したらすぐグループを選べ、全グループの復習もまとめてできるようにする。
-/// 新しい単語はグループの「学習する」で始める（ここでは出さない）
+/// 新しい単語はグループの「学習する」で始める（ここでは出さない）。庭の絵は統計に置く
 struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Environment(SyncService.self) private var sync
@@ -47,45 +47,25 @@ struct HomeView: View {
     var body: some View {
         let summary = summary
         NavigationStack(path: $path) {
-            List {
-                Section {
-                    reviewCard(summary)
-                        .cardRow()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+                    header
+                    reviewSection(summary)
+                    groupSection(summary)
                 }
-                Section {
-                    if groups.isEmpty {
-                        emptyGroups
-                    } else {
-                        groupRows
-                    }
-                } header: {
-                    Text("グループ")
-                }
-                Section {
-                    gardenCard(summary)
-                        .cardRow()
-                }
+                .padding(.horizontal, 24)
+                .padding(.top, 4)
+                .padding(.bottom, 24)
             }
-            .scrollContentBackground(.hidden)
             .gardenBackground()
             .refreshable {
                 // サーバーが無ければ何もしない（引っ張ってもすぐ戻る）
                 await sync.syncNow()
             }
-            .navigationTitle("vocab-blossom")
-            .navigationBarTitleDisplayMode(.inline)
+            // ロゴと ＋ は画面の中に置く（ナビゲーションバーの丸い背景を付けない）
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: WordGroup.self) { group in
                 GroupDetailView(group: group)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        startCreating()
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel("グループを作る")
-                }
             }
             .alert("新しいグループ", isPresented: $isCreating) {
                 TextField("例: 小テスト Unit 3", text: $newName)
@@ -128,99 +108,158 @@ struct HomeView: View {
         #endif
     }
 
+    private var header: some View {
+        HStack {
+            BrandWordmark()
+            Spacer()
+            Button {
+                startCreating()
+            } label: {
+                Image(systemName: "plus")
+                    .font(.title3.weight(.light))
+                    .foregroundStyle(.primary)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("グループを作る")
+            .padding(.trailing, -10)
+        }
+    }
+
     // MARK: - 今日の復習
 
-    private func reviewCard(_ summary: Dashboard.Summary) -> some View {
-        VStack(spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("今日の復習")
-                    .font(.headline)
-                Spacer()
-                Label("\(summary.streak) 日", systemImage: "flame.fill")
-                    .font(.caption.weight(.semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.accent)
-                    .accessibilityLabel("ストリーク \(summary.streak) 日")
-                Text("今日の回答 \(summary.answeredToday) 問")
-                    .font(.caption)
-                    .monospacedDigit()
+    private func reviewSection(_ summary: Dashboard.Summary) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if summary.plan.isEmpty {
+                Text("今日の復習は\n終わりました")
+                    .font(.system(size: 26, weight: .light))
+                    .lineSpacing(4)
+                Text("新しい単語は、グループの「学習する」で始められます。")
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
+            } else {
+                (Text("今日は ")
+                    + Text("\(summary.plan.totalCount)")
+                        .fontWeight(.medium)
+                        .foregroundColor(Theme.accent)
+                    + Text(" 語の\n復習があります"))
+                    .font(.system(size: 26, weight: .light))
+                    .monospacedDigit()
+                    .lineSpacing(4)
             }
 
-            if summary.plan.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Label("今日の復習は終わりました", systemImage: "checkmark.seal.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(Theme.correct)
-                    Text("新しい単語は、グループの「学習する」で始められます。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                Text("期限が来た単語をまとめて復習します。どのグループの単語も出てきます。")
+            HStack(spacing: 12) {
+                Text("\(summary.streak) 日連続・今日 \(summary.answeredToday) 問")
                     .font(.caption)
+                    .monospacedDigit()
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
-                if summary.plan.deferredReviewCount > 0 {
-                    Text("ほかに \(summary.plan.deferredReviewCount) 語たまっています。明日に回します。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                if !summary.plan.isEmpty {
+                    Button {
+                        isSessionPresented = true
+                    } label: {
+                        Text("復習する")
+                            .font(.subheadline.weight(.medium))
+                            .tracking(0.8)
+                            .padding(.horizontal, 22)
+                            .frame(minHeight: 44)
+                            .foregroundStyle(Theme.onAccent)
+                            .background(Theme.accent, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
                 }
+            }
+            .padding(.leading, 18)
+            .padding(.trailing, summary.plan.isEmpty ? 18 : 6)
+            .padding(.vertical, 6)
+            .frame(minHeight: 56)
+            .overlay(Capsule().stroke(Theme.hairline, lineWidth: 1))
 
-                Button {
-                    isSessionPresented = true
-                } label: {
-                    Text("復習する（\(summary.plan.totalCount) 語）")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                }
-                .buttonStyle(.borderedProminent)
+            if summary.plan.deferredReviewCount > 0 {
+                Text("ほかに \(summary.plan.deferredReviewCount) 語たまっています。明日に回します。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
-        .cardStyle()
     }
 
     // MARK: - グループ
 
-    private var groupRows: some View {
+    private func groupSection(_ summary: Dashboard.Summary) -> some View {
         let progressByWordId = progressByWordId
         let answersByGroupId = answersByGroupId
-        return ForEach(groups) { group in
-            NavigationLink(value: group) {
-                GroupRow(
-                    group: group,
-                    summary: GroupStudy.summary(
-                        wordIds: group.wordIds,
-                        progressByWordId: progressByWordId,
-                        now: .now
-                    ),
-                    activity: GroupStudy.activity(
-                        wordIds: group.wordIds,
-                        answers: answersByGroupId[group.id] ?? []
-                    )
-                )
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("グループ")
+                    .sectionLabel()
+                Spacer()
+                Text(stageCountsText(summary))
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
-            .swipeActions {
-                Button("削除", role: .destructive) { pendingDeletion = group }
+            if groups.isEmpty {
+                Text("小テストの範囲や教科書の単元など、覚えたい単語・フレーズをまとめて学習できます。")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom, 4)
+            }
+            LazyVGrid(columns: Self.gridColumns, spacing: 10) {
+                ForEach(groups) { group in
+                    NavigationLink(value: group) {
+                        GroupCard(
+                            group: group,
+                            summary: GroupStudy.summary(
+                                wordIds: group.wordIds,
+                                progressByWordId: progressByWordId,
+                                now: .now
+                            ),
+                            activity: GroupStudy.activity(
+                                wordIds: group.wordIds,
+                                answers: answersByGroupId[group.id] ?? []
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button("グループを削除", systemImage: "trash", role: .destructive) {
+                            pendingDeletion = group
+                        }
+                    }
+                }
+                createCard
             }
         }
     }
 
-    private var emptyGroups: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("グループがありません", systemImage: "folder.badge.plus")
-                .font(.subheadline.weight(.semibold))
-            Text("小テストの範囲や教科書の単元など、覚えたい単語・フレーズをまとめて学習できます。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button("グループを作る") { startCreating() }
-                .buttonStyle(.borderedProminent)
+    private static let gridColumns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
+
+    /// 最後に置く「グループを作る」（点線の枠）
+    private var createCard: some View {
+        Button {
+            startCreating()
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.title3.weight(.light))
+                Text("グループを作る")
+                    .font(.footnote)
+            }
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, minHeight: 190)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cardCorner, style: .continuous)
+                    .strokeBorder(Theme.hairline, style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+            )
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 6)
+        .buttonStyle(.plain)
+    }
+
+    /// 例:「開花 6・つぼみ 9・芽 30」（種は出さない）
+    private func stageCountsText(_ summary: Dashboard.Summary) -> String {
+        [GrowthStage.blossom, .bud, .sprout]
+            .map { "\($0.label) \(count(of: $0, in: summary))" }
+            .joined(separator: "・")
     }
 
     private func startCreating() {
@@ -233,63 +272,10 @@ struct HomeView: View {
         path.append(group)
     }
 
-    // MARK: - 庭
-
-    private func gardenCard(_ summary: Dashboard.Summary) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("あなたの庭")
-                    .font(.headline)
-                Spacer()
-                Text("覚えた語 \(summary.learnedCount) 語")
-                    .font(.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            GardenView(
-                stages: summary.gardenStages,
-                overflow: max(0, summary.learnedCount - summary.gardenStages.count)
-            )
-            HStack(spacing: 12) {
-                ForEach(GrowthStage.allCases.reversed(), id: \.self) { stage in
-                    if stage != .seed {
-                        stageChip(stage, count: count(of: stage, in: summary))
-                    }
-                }
-            }
-        }
-        .cardStyle()
-    }
-
-    private func stageChip(_ stage: GrowthStage, count: Int) -> some View {
-        HStack(spacing: 4) {
-            PlantView(stage: stage, size: 20)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(stage.label)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text("\(count)")
-                    .font(.subheadline.weight(.semibold))
-                    .monospacedDigit()
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(stage.label) \(count) 語")
-    }
-
     private func count(of stage: GrowthStage, in summary: Dashboard.Summary) -> Int {
         summary.stageCounts
             .filter { GrowthStage(stage: $0.key) == stage }
             .values
             .reduce(0, +)
-    }
-}
-
-private extension View {
-    /// カードの見た目のまま List の行に置く（行の背景・余白を消す）
-    func cardRow() -> some View {
-        listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
     }
 }

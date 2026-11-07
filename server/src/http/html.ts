@@ -415,12 +415,12 @@ export function layout({ title, body, nav }: LayoutOptions): SafeHtml {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} | vocab-blossom 管理</title>
+<title>${title} | VocabGarden 管理</title>
 <style>${raw(STYLE)}</style>
 </head>
 <body>
 <header>
-  <a class="brand" href="/admin">vocab-blossom</a>
+  <a class="brand" href="/admin">VocabGarden</a>
   <nav>${NAV.map(
     (item) =>
       html`<a href="${item.href}"${item.key === nav ? raw(' aria-current="page"') : ''}>${item.label}</a>`,

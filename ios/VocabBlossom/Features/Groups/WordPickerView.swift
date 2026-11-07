@@ -371,7 +371,7 @@ struct WordPickerView: View {
                 : "AI が打ち間違いや変化した形を確かめ、単語帳に無い語は意味と例文を下書きします。")
         } actions: {
             Button(action.title) { startCreating(action) }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.capsule)
         }
     }
 

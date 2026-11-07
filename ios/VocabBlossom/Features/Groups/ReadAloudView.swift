@@ -87,7 +87,7 @@ struct ReadAloudView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(word.word)
-                        .font(.largeTitle.weight(.bold))
+                        .font(.system(size: 34, weight: .light))
                         .minimumScaleFactor(0.5)
                         .lineLimit(2)
                         .readingHighlight(isReading(.word))
@@ -101,7 +101,8 @@ struct ReadAloudView: View {
             }
             .frame(maxHeight: 280)
             .fixedSize(horizontal: false, vertical: true)
-            .cardStyle()
+            .padding(6)
+            .cardStyle(Theme.tintBlossom)
             .accessibilityElement(children: .combine)
         } else {
             ContentUnavailableView("単語がありません", systemImage: "speaker.slash")
@@ -113,10 +114,15 @@ struct ReadAloudView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(sense.pos.label)
-                    .font(.caption2.weight(.semibold))
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Theme.accent)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Theme.accent.opacity(0.15), in: Capsule())
+                    // 意味を読んでいる間は白く浮くので、ラベルは色面の色にして見分けられるようにする
+                    .background(
+                        isReading(.meaning, sense: index) ? Theme.tintBlossom : Theme.background,
+                        in: Capsule()
+                    )
                 Text(sense.meaning)
                     .font(.title3.weight(.medium))
             }
@@ -129,7 +135,7 @@ struct ReadAloudView: View {
             if !sense.exampleJa.isEmpty {
                 Text(sense.exampleJa)
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.tintText)
                     .readingHighlight(isReading(.exampleJa, sense: index))
             }
         }
@@ -160,9 +166,9 @@ struct ReadAloudView: View {
             } label: {
                 Image(systemName: "repeat")
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(player.isLooping ? Color.white : Theme.accent)
+                    .foregroundStyle(player.isLooping ? Theme.onAccent : Theme.accent)
                     .frame(width: 44, height: 44)
-                    .background(player.isLooping ? Theme.accent : Theme.accent.opacity(0.12), in: Circle())
+                    .background(player.isLooping ? Theme.accent : Theme.tintBlossom, in: Circle())
             }
             .accessibilityLabel("ループ再生")
             .accessibilityValue(player.isLooping ? "オン" : "オフ")
@@ -184,7 +190,7 @@ struct ReadAloudView: View {
             } label: {
                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                     .font(.title.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.onAccent)
                     .frame(width: 72, height: 72)
                     .background(Theme.accent, in: Circle())
             }
@@ -259,14 +265,16 @@ struct ReadAloudView: View {
 }
 
 private extension View {
-    /// 読んでいる文に薄い色を敷く
+    /// 読んでいる文を白（ダークは地の色）で浮かせる（カードは薄いセージの色面）
     func readingHighlight(_ isReading: Bool) -> some View {
-        padding(.horizontal, 4)
+        padding(.horizontal, 6)
+            .padding(.vertical, 2)
             .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Theme.accent.opacity(isReading ? 0.18 : 0))
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Theme.background.opacity(isReading ? 1 : 0))
             )
-            .padding(.horizontal, -4)
+            .padding(.horizontal, -6)
+            .padding(.vertical, -2)
             .animation(.easeInOut(duration: 0.2), value: isReading)
     }
 }

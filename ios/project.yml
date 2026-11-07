@@ -37,12 +37,13 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.akiraak.VocabBlossom
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
-        INFOPLIST_KEY_CFBundleDisplayName: vocab-blossom
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
     info:
       path: VocabBlossom/Info.plist
       properties:
+        # ホーム画面のアイコンの下に出る名前（Info.plist を xcodegen が作るので、INFOPLIST_KEY_ の設定では効かない）
+        CFBundleDisplayName: VocabGarden
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen:

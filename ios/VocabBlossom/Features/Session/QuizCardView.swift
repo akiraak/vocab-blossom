@@ -36,28 +36,23 @@ struct QuizCardView: View {
             .scrollBounceBehavior(.basedOnSize)
 
             if isAnswered {
-                Button(action: onNext) {
-                    Text("次へ")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                }
-                .buttonStyle(.borderedProminent)
+                Button("次へ", action: onNext)
+                    .buttonStyle(.capsule)
             }
         }
     }
 
     private var headerLabels: some View {
-        HStack {
-            Label(kindLabel, systemImage: kindSymbol)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.accent)
-            Spacer()
+        HStack(spacing: 10) {
             Text(quiz.type.label)
-                .font(.caption2.weight(.semibold))
-                .padding(.horizontal, 8)
+                .sectionLabel()
+            Label(kindLabel, systemImage: kindSymbol)
+                .font(.caption)
+                .foregroundStyle(Theme.accent)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 3)
-                .background(Color(.tertiarySystemFill), in: Capsule())
+                .background(Theme.tintBlossom, in: Capsule())
+            Spacer()
         }
     }
 
@@ -85,14 +80,14 @@ struct QuizCardView: View {
             switch quiz.type {
             case .enToJa:
                 Text(quiz.word.word)
-                    .font(.system(.largeTitle, weight: .bold))
+                    .font(.system(size: 44, weight: .light))
                     .minimumScaleFactor(0.5)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                 SpeakButton(word: quiz.word, size: .title2)
             case .jaToEn:
                 Text(quiz.sense.meaning)
-                    .font(.title.weight(.bold))
+                    .font(.system(size: 28, weight: .regular))
                     .multilineTextAlignment(.center)
             case .fillBlank:
                 Text(quiz.blankedExample ?? quiz.sense.example)
@@ -119,8 +114,8 @@ struct QuizCardView: View {
                 .accessibilityLabel("音声をもう一度聞く")
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 120)
-        .cardStyle()
+        .frame(maxWidth: .infinity, minHeight: 170)
+        .cardStyle(Theme.tintBud)
     }
 
     private var choices: some View {
@@ -147,14 +142,14 @@ struct QuizCardView: View {
                                 .foregroundStyle(Theme.incorrect)
                         }
                     }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
                     .background(background(for: index), in: RoundedRectangle(
-                        cornerRadius: 12, style: .continuous
+                        cornerRadius: 18, style: .continuous
                     ))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(border(for: index), lineWidth: 2)
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(border(for: index), lineWidth: isAnswered ? 1.5 : 1)
                     )
                 }
                 .buttonStyle(.plain)
@@ -164,18 +159,19 @@ struct QuizCardView: View {
         }
     }
 
+    /// 答える前は白地に細い枠線。答えたら正解は色面 ＋ セージの枠、選んだ誤りは赤みの色面 ＋ 枠
     private func background(for index: Int) -> Color {
-        guard isAnswered else { return Color(.secondarySystemGroupedBackground) }
-        if isCorrectChoice(index) { return Theme.correct.opacity(0.15) }
-        if index == selectedIndex { return Theme.incorrect.opacity(0.15) }
-        return Color(.secondarySystemGroupedBackground).opacity(0.6)
+        guard isAnswered else { return Theme.background }
+        if isCorrectChoice(index) { return Theme.tintBlossom }
+        if index == selectedIndex { return Theme.incorrect.opacity(0.1) }
+        return Theme.background
     }
 
     private func border(for index: Int) -> Color {
-        guard isAnswered else { return .clear }
+        guard isAnswered else { return Theme.hairline }
         if isCorrectChoice(index) { return Theme.correct }
         if index == selectedIndex { return Theme.incorrect }
-        return .clear
+        return Theme.hairline
     }
 
     /// 穴埋めに使った文章の全文と和訳
@@ -189,7 +185,7 @@ struct QuizCardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(Theme.tintSprout, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     /// ほかにも正解の語があるときの説明。ほかの正解を選んだときは、出題した語が何だったかも見せる

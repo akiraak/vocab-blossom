@@ -148,6 +148,7 @@ struct SessionView: View {
         VStack(spacing: 6) {
             ProgressView(value: runner.progress)
                 .tint(Theme.accent)
+                .scaleEffect(x: 1, y: 0.6, anchor: .center)
             Text("残り \(runner.remainingCount) 問")
                 .font(.caption)
                 .foregroundStyle(.secondary)

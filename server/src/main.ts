@@ -29,7 +29,7 @@ function main(): void {
 
   server.listen(config.port, () => {
     console.log(
-      `vocab-blossom server: http://localhost:${config.port}` +
+      `VocabGarden server: http://localhost:${config.port}` +
         ` (db: ${config.dbPath}, admin: ${config.adminEnabled ? 'on' : 'off'},` +
         ` ai: ${config.anthropicApiKey ? 'on' : 'off'})`,
     )

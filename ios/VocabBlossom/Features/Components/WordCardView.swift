@@ -13,7 +13,7 @@ struct WordCardView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(word.word)
-                    .font(.title.weight(.bold))
+                    .font(.system(size: 30, weight: .light))
                     .minimumScaleFactor(0.6)
                     .lineLimit(2)
                 SpeakButton(word: word)
@@ -43,10 +43,11 @@ struct WordCardView: View {
 
     private func posCapsule(_ pos: PartOfSpeech) -> some View {
         Text(pos.label)
-            .font(.caption2.weight(.semibold))
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(Theme.accent)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(Theme.accent.opacity(0.15), in: Capsule())
+            .background(Theme.background, in: Capsule())
     }
 
     /// 意味が複数あるときの 1 つ分（品詞・意味・例文）

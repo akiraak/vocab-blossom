@@ -143,6 +143,25 @@ struct GroupAnswerLogTests {
         #expect(GroupActivityText.line(activity) == "回答 5 回・達成 50%")
     }
 
+    @Test("育ち具合: 学習も回答も無ければ種、あとは達成度で 芽（1/3 未満）・つぼみ（2/3 未満）・花")
+    func growthFollowsAchievement() {
+        func growth(learned: Int, answers: Int, achieved: Int, total: Int = 6) -> GrowthStage {
+            GroupStudy.growth(
+                summary: GroupStudy.Summary(total: total, learned: learned),
+                activity: GroupStudy.Activity(answerCount: answers, achieved: achieved, total: total)
+            )
+        }
+        #expect(growth(learned: 0, answers: 0, achieved: 0) == .seed)
+        #expect(growth(learned: 0, answers: 0, achieved: 0, total: 0) == .seed)
+        // 学習を始めたが、グループの問題にはまだ答えていない
+        #expect(growth(learned: 3, answers: 0, achieved: 0) == .sprout)
+        #expect(growth(learned: 6, answers: 10, achieved: 1) == .sprout)
+        #expect(growth(learned: 6, answers: 10, achieved: 2) == .bud)
+        #expect(growth(learned: 6, answers: 10, achieved: 3) == .bud)
+        #expect(growth(learned: 6, answers: 10, achieved: 4) == .blossom)
+        #expect(growth(learned: 6, answers: 10, achieved: 6) == .blossom)
+    }
+
     @Test("グループから外した語は達成度に数えない（回答数には残る）")
     func activityIgnoresRemovedWords() {
         let activity = GroupStudy.activity(

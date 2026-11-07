@@ -1,7 +1,11 @@
-# vocab-blossom
+# VocabGarden
 
 覚えた単語が花になって庭が育つ、英語初学者（CEFR A1〜A2）向けの単語学習 iOS アプリ。
 小テストの範囲などを「グループ」にまとめ、グループごとに学習する・ドリル・穴埋め・読み上げで覚える。
+
+> 2026-11-07 にアプリ名を vocab-blossom から **VocabGarden** に変え、見た目を「白地にセージ 1 色と植物の線画」にした
+> （→ [plan](docs/plans/app-rename-redesign.md)）。リポジトリ・Xcode のプロジェクト（`VocabBlossom`）・バンドル ID・
+> サーバーの名前は vocab-blossom のまま。
 
 コンセプトの詳細は [docs/specs/app-concept.md](docs/specs/app-concept.md) を参照。
 

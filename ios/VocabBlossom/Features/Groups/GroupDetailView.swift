@@ -126,6 +126,8 @@ struct GroupDetailView: View {
             if isSelecting {
                 selectionToolbar(words: words)
             } else {
+                // グループ名は画面の中に細字で大きく出すので、バーには出さない（戻るボタンの文字には使う）
+                ToolbarItem(placement: .principal) { Text("") }
                 ToolbarItem(placement: .topBarTrailing) {
                     moreMenu(isEmpty: words.isEmpty)
                 }
@@ -218,7 +220,7 @@ struct GroupDetailView: View {
             }
             .disabled(isEmpty)
         } label: {
-            Image(systemName: "ellipsis.circle")
+            Image(systemName: "ellipsis")
         }
         .accessibilityLabel("その他")
     }
@@ -255,83 +257,109 @@ struct GroupDetailView: View {
         selection = []
     }
 
+    /// 上の部分: 細字のグループ名と数字、育ち具合の色面に次の学習と「学習する」、ドリル・穴埋め・読み上げ（デザイン B4）
     private func studyCard(
         plan: SessionPlan,
         summary: GroupStudy.Summary,
         activity: GroupStudy.Activity,
         words: [WordEntry]
     ) -> some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 20) {
-                countLabel("単語", summary.total)
-                countLabel("学習済み", summary.learned)
-                countLabel("開花", summary.blossomed)
-                countLabel("回答", activity.answerCount, unit: "回")
-                Spacer()
-            }
-
-            if activity.answerCount > 0 {
-                achievementRow(activity)
-            }
-
-            if !words.isEmpty {
-                Text(planDescription(plan))
+        let growth = GroupStudy.growth(summary: summary, activity: activity)
+        return VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(group.name)
+                    .font(.system(size: 28, weight: .light))
+                    .accessibilityAddTraits(.isHeader)
+                Text(numbersLine(summary: summary, activity: activity))
                     .font(.caption)
+                    .monospacedDigit()
                     .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            Button {
-                session = .learn(plan)
-            } label: {
-                Text(learnButtonTitle(plan: plan, isEmptyGroup: words.isEmpty))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("次の学習")
+                        .font(.caption)
+                        .tracking(1.4)
+                        .foregroundStyle(Theme.tintText)
+                    Text(nextStudyText(plan: plan, isEmptyGroup: words.isEmpty))
+                        .font(.body.weight(.medium))
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.trailing, 90)
+                Button {
+                    session = .learn(plan)
+                } label: {
+                    Text("学習する")
+                        .font(.subheadline.weight(.medium))
+                        .tracking(0.8)
+                        .padding(.horizontal, 26)
+                        .frame(minHeight: 46)
+                        .foregroundStyle(Theme.onAccent)
+                        .background(plan.isEmpty ? Color.secondary.opacity(0.4) : Theme.accent, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .disabled(plan.isEmpty)
+                if !words.isEmpty {
+                    Text(planNote(plan))
+                        .font(.caption2)
+                        .foregroundStyle(Theme.tintText)
+                        .padding(.trailing, 90)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(plan.isEmpty)
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(alignment: .bottomTrailing) {
+                PlantIllustration(stage: growth, height: 120)
+            }
+            .background(growth.tint)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cardCorner, style: .continuous))
 
-            Button {
-                session = .drill(words.map(\.id).shuffled())
-            } label: {
-                Label("ドリル（全 \(words.count) 語）", systemImage: "pencil.and.list.clipboard")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
+            HStack(spacing: 10) {
+                modeButton("ドリル", systemImage: "arrow.triangle.2.circlepath") {
+                    session = .drill(words.map(\.id).shuffled())
+                }
+                // 穴埋め: 文章の空欄に入る語を選ぶドリル。文章の無い語は始める前に AI で作る
+                modeButton("穴埋め", systemImage: "rectangle.and.pencil.and.ellipsis") {
+                    session = .fillBlank(words)
+                }
+                // 読み上げ: 単語 → 品詞と意味 → 例文 → 和訳を順に読む。ループもできる
+                modeButton("読み上げ", systemImage: "speaker.wave.2") {
+                    session = .readAloud(words)
+                }
             }
-            .buttonStyle(.bordered)
             .disabled(words.isEmpty)
-
-            fillBlankButton
-            readAloudButton
         }
-        .cardStyle()
+        .padding(.horizontal, 4)
     }
 
-    /// 穴埋めモード（文章の空欄に入る語を選ぶドリル）。文章の無い語は始める前に AI で作る
-    private var fillBlankButton: some View {
-        Button {
-            session = .fillBlank(words)
-        } label: {
-            Label("穴埋め（全 \(words.count) 語）", systemImage: "questionmark.square.dashed")
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 4)
+    /// ドリル・穴埋め・読み上げのボタン（薄い色面）
+    private func modeButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: systemImage)
+                    .font(.title3.weight(.light))
+                    .foregroundStyle(Theme.accent)
+                Text(title)
+                    .font(.footnote)
+                    .foregroundStyle(.primary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 84)
+            .background(Theme.tintSprout, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
-        .buttonStyle(.bordered)
-        .disabled(words.isEmpty)
+        .buttonStyle(.plain)
     }
 
-    /// 読み上げ（単語 → 意味 → 例文 → 和訳を順に読む。ループもできる）
-    private var readAloudButton: some View {
-        Button {
-            session = .readAloud(words)
-        } label: {
-            Label("読み上げ（全 \(words.count) 語）", systemImage: "speaker.wave.2")
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 4)
+    /// 例:「13 語・学習済み 11・開花 3・達成 72%・回答 41」
+    private func numbersLine(summary: GroupStudy.Summary, activity: GroupStudy.Activity) -> String {
+        var parts = ["\(summary.total) 語", "学習済み \(summary.learned)", "開花 \(summary.blossomed)"]
+        if let percent = GroupActivityText.percent(activity), activity.answerCount > 0 {
+            parts.append("達成 \(percent)%")
         }
-        .buttonStyle(.bordered)
-        .disabled(words.isEmpty)
+        parts.append("回答 \(activity.answerCount)")
+        return parts.joined(separator: "・")
     }
 
     /// 「学習する」で最初に出す 2 語の、先に取っておく文（単語とすべての意味の例文）
@@ -342,19 +370,19 @@ struct GroupDetailView: View {
             .map(ReadAloudScript.learningPrefetchLines)
     }
 
-    private func learnButtonTitle(plan: SessionPlan, isEmptyGroup: Bool) -> String {
-        if isEmptyGroup { return "学習する" }
-        return plan.isEmpty ? "今日の分は完了" : "学習する（\(plan.totalCount) 語）"
-    }
-
-    private func planDescription(_ plan: SessionPlan) -> String {
-        if plan.isEmpty {
-            return "このグループの復習は今日はありません。ドリルならいつでも全部を確認できます（成長には反映されません）。"
-        }
+    private func nextStudyText(plan: SessionPlan, isEmptyGroup: Bool) -> String {
+        if isEmptyGroup { return "単語を追加すると学習できます" }
+        if plan.isEmpty { return "今日の分は完了" }
         var parts: [String] = []
         if !plan.reviewWordIds.isEmpty { parts.append("復習 \(plan.reviewWordIds.count) 語") }
         if !plan.newWordIds.isEmpty { parts.append("新しい単語 \(plan.newWordIds.count) 語") }
-        return parts.joined(separator: "・") + "。学習した単語は庭で育ち、毎日の復習にも出てきます。"
+        return parts.joined(separator: " ＋ ")
+    }
+
+    private func planNote(_ plan: SessionPlan) -> String {
+        plan.isEmpty
+            ? "復習は今日はありません。ドリルならいつでも全部を確認できます（成長には反映されません）。"
+            : "学習した単語は庭で育ち、毎日の復習にも出てきます。"
     }
 
     private var emptyState: some View {
@@ -364,42 +392,7 @@ struct GroupDetailView: View {
             Text("覚えたい単語・フレーズを検索して追加しましょう。単語帳にない語もそのまま作れます。")
         } actions: {
             Button("単語を追加") { isPickingWords = true }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.capsule)
         }
-    }
-
-    private func countLabel(_ title: String, _ count: Int, unit: String = "語") -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text("\(count) \(unit)")
-                .font(.title3.weight(.semibold))
-                .monospacedDigit()
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title) \(count) \(unit)")
-    }
-
-    /// 達成度: 最後に答えたときに正解だった語の割合（学習・ドリル・穴埋めの回答から）
-    private func achievementRow(_ activity: GroupStudy.Activity) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("達成度")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                let percent = GroupActivityText.percent(activity) ?? 0
-                Text("\(activity.achieved) / \(activity.total) 語（\(percent)%）")
-                    .font(.caption.weight(.medium))
-                    .monospacedDigit()
-            }
-            ProgressView(value: activity.achievement ?? 0)
-                .tint(Theme.accent)
-            Text("最後に答えたときに正解だった語の割合です")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .accessibilityElement(children: .combine)
     }
 }

@@ -173,26 +173,22 @@ struct WordDetailView: View {
                 LearningEngine(context: context).forget(wordId: word.id)
             } label: {
                 Label("「知ってる」を取り消して学習し直す", systemImage: "arrow.uturn.left")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.capsuleSecondary)
         } else if progress == nil {
             Button {
                 LearningEngine(context: context).markKnown(wordId: word.id)
             } label: {
                 Label("もう知ってる（学習をとばす）", systemImage: "checkmark.seal")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.capsuleSecondary)
         }
     }
 
     private var historyCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("回答履歴")
-                .font(.headline)
+                .sectionLabel()
             ForEach(logs.prefix(20)) { log in
                 HStack(spacing: 10) {
                     Image(systemName: log.correct ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -204,7 +200,7 @@ struct WordDetailView: View {
                         .font(.caption2)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color(.tertiarySystemFill), in: Capsule())
+                        .background(Theme.tintBlossom, in: Capsule())
                     Spacer()
                     if log.kind == .requeue {
                         Text("再出題")

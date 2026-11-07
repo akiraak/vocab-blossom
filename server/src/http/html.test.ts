@@ -28,7 +28,7 @@ describe('html', () => {
 
   it('layout はタイトルもエスケープする', () => {
     const page = layout({ title: '<b>グループ</b>', body: html`<p>本文</p>` }).value
-    expect(page).toContain('<title>&lt;b&gt;グループ&lt;/b&gt; | vocab-blossom 管理</title>')
+    expect(page).toContain('<title>&lt;b&gt;グループ&lt;/b&gt; | VocabGarden 管理</title>')
     expect(page).toContain('<p>本文</p>')
     expect(page.startsWith('<!doctype html>')).toBe(true)
   })

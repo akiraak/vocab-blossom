@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 覚えた単語を花として並べた「庭」。
+/// 覚えた単語を植物の線画で並べた「庭」（統計の上に置く）。
 struct GardenView: View {
     let stages: [GrowthStage]
     /// 庭に入りきらなかった分（「ほか N 語」として文字で伝える）
@@ -12,7 +12,7 @@ struct GardenView: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack(alignment: .bottom) {
-                sky
+                ground
                 if stages.isEmpty {
                     emptyMessage
                 } else {
@@ -20,7 +20,6 @@ struct GardenView: View {
                 }
             }
             .frame(height: 190)
-            .clipShape(RoundedRectangle(cornerRadius: Theme.cardCorner, style: .continuous))
 
             if overflow > 0 {
                 Text("ほか \(overflow) 語も育っています")
@@ -32,20 +31,13 @@ struct GardenView: View {
         .accessibilityLabel(accessibilityLabel)
     }
 
-    private var sky: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 0.85, green: 0.93, blue: 1.0),
-                Color(red: 0.95, green: 0.98, blue: 0.92),
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color(red: 0.80, green: 0.89, blue: 0.71))
-                .frame(height: 18)
-        }
+    /// 地面の細い線
+    private var ground: some View {
+        Rectangle()
+            .fill(Theme.hairline)
+            .frame(height: 1)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, 10)
     }
 
     private var plants: some View {
@@ -72,8 +64,7 @@ struct GardenView: View {
 
     private var emptyMessage: some View {
         VStack(spacing: 6) {
-            Text("🌱")
-                .font(.system(size: 36))
+            PlantView(stage: .seed, size: 36)
             Text("まだ種だけの庭です")
                 .font(.subheadline.weight(.medium))
             Text("グループで学習すると花が育ちます")

@@ -9,31 +9,24 @@ struct PresentationCardView: View {
     var body: some View {
         VStack(spacing: 16) {
             Label("新しい単語", systemImage: "sparkles")
-                .font(.subheadline.weight(.semibold))
+                .font(.caption)
                 .foregroundStyle(Theme.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 3)
+                .background(Theme.tintBlossom, in: Capsule())
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ScrollView {
                 WordCardView(word: word)
-                    .cardStyle()
+                    .cardStyle(Theme.tintBud)
             }
             .scrollBounceBehavior(.basedOnSize)
 
             VStack(spacing: 10) {
-                Button(action: onNext) {
-                    Text("覚えた！")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                }
-                .buttonStyle(.borderedProminent)
-
-                Button(action: onKnown) {
-                    Text("もう知ってる")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                }
-                .buttonStyle(.bordered)
+                Button("覚えた！", action: onNext)
+                    .buttonStyle(.capsule)
+                Button("もう知ってる", action: onKnown)
+                    .buttonStyle(.capsuleSecondary)
             }
         }
     }

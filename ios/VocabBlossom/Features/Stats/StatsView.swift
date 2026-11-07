@@ -16,6 +16,7 @@ struct StatsView: View {
             ScrollView {
                 let logSnapshots = logSnapshots
                 VStack(spacing: 16) {
+                    gardenCard
                     summaryCard(logSnapshots)
                     dailyChartCard(logSnapshots)
                     stageCard
@@ -27,6 +28,22 @@ struct StatsView: View {
             .navigationTitle("統計")
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    /// 覚えた単語を植物で並べた庭（2026-11-07 にホームから移した）
+    private var gardenCard: some View {
+        let stages = Dashboard.gardenStages(
+            progress: progresses.map(\.snapshot),
+            learnedAtByWordId: Dictionary(
+                progresses.map { ($0.wordId, $0.learnedAt) }, uniquingKeysWith: { first, _ in first }
+            )
+        )
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("あなたの庭")
+                .sectionLabel()
+            GardenView(stages: stages, overflow: max(0, progresses.count - stages.count))
+        }
+        .cardStyle(Theme.tintSprout)
     }
 
     private func summaryCard(_ logs: [Dashboard.LogSnapshot]) -> some View {
@@ -60,7 +77,7 @@ struct StatsView: View {
         VStack(spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value)
-                    .font(.title2.weight(.bold))
+                    .font(.system(size: 28, weight: .light))
                     .monospacedDigit()
                 Text(unit)
                     .font(.caption)
@@ -80,7 +97,7 @@ struct StatsView: View {
         let total = daily.reduce(0) { $0 + $1.count }
         return VStack(alignment: .leading, spacing: 10) {
             Text("この 2 週間の回答数")
-                .font(.headline)
+                .sectionLabel()
             if total == 0 {
                 Text("まだ記録がありません")
                     .font(.subheadline)
@@ -120,7 +137,7 @@ struct StatsView: View {
         let maxCount = max(1, counts.values.max() ?? 1)
         return VStack(alignment: .leading, spacing: 10) {
             Text("成長の内訳")
-                .font(.headline)
+                .sectionLabel()
             ForEach(GrowthStage.allCases.reversed(), id: \.self) { stage in
                 if stage != .seed {
                     let count = counts[stage] ?? 0
@@ -155,7 +172,7 @@ struct StatsView: View {
     private var quizTypeCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("出題形式ごとの正答率")
-                .font(.headline)
+                .sectionLabel()
             ForEach(QuizType.allCases, id: \.self) { type in
                 let target = graded(quizType: type)
                 HStack {

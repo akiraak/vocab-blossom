@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// 初回のみ表示する。使い方を短く伝え、最初のグループを作ってホームへ進む。
+/// 初回のみ表示する。使い方を短く伝え、最初のグループを作ってホームへ進む（デザイン B4）。
 ///
 /// 学習はグループが中心なので、ここでグループを 1 つ作っておけば、ホームからすぐ単語を入れ始められる。
 /// 作らずに進むこともできる（ホームの ＋ でいつでも作れる）
@@ -14,102 +14,107 @@ struct OnboardingView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 28) {
+            VStack(alignment: .leading, spacing: 26) {
                 header
                 steps
                 createGroup
             }
-            .padding(24)
+            .padding(.horizontal, 24)
+            .padding(.top, 28)
+            .padding(.bottom, 24)
         }
         .scrollDismissesKeyboard(.interactively)
         .gardenBackground()
     }
 
     private var header: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 4) {
-                PlantView(stage: .sprout, size: 40)
-                PlantView(stage: .bud, size: 52)
-                PlantView(stage: .blossom, size: 64)
-            }
-            Text("vocab-blossom")
-                .font(.largeTitle.weight(.bold))
-            Text("覚えた単語が花になって庭が育つ、\n英語のことばを増やすアプリ")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: 18) {
+            BrandWordmark()
+            Text("覚えたい単語を、\n自分の庭で育てる。")
+                .font(.system(size: 28, weight: .light))
+                .lineSpacing(6)
+                .accessibilityAddTraits(.isHeader)
         }
-        .padding(.top, 24)
     }
 
+    /// 使い方の 3 つの手順。種 → つぼみ → 花と、進むほど色面が濃くなる
     private var steps: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(spacing: 8) {
             step(
-                systemImage: "folder.badge.plus",
+                number: "01", stage: .seed,
                 title: "グループを作る",
-                detail: "小テストの範囲や教科書の単元など、覚えたい単語・フレーズをまとめます。"
+                detail: "小テストの範囲や教科書の単元など、覚えたい単語をまとめます。"
             )
             step(
-                systemImage: "graduationcap.fill",
+                number: "02", stage: .bud,
                 title: "グループで学習する",
-                detail: "「学習する」・ドリル・穴埋め・読み上げで、くり返し覚えます。"
+                detail: "学習する・ドリル・穴埋め・読み上げで、くり返し覚えます。"
             )
             step(
-                systemImage: "leaf.fill",
+                number: "03", stage: .blossom,
                 title: "庭が育つ",
-                detail: "覚えた単語が花になります。復習はホームの「今日の復習」でまとめてできます。"
+                detail: "覚えた単語が花になります。復習はホームでまとめてできます。"
             )
         }
-        .cardStyle()
     }
 
-    private func step(systemImage: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: systemImage)
-                .font(.title3)
-                .foregroundStyle(Theme.accent)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+    private func step(number: String, stage: GrowthStage, title: String, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(number)
+                .font(.caption2)
+                .tracking(2.4)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(Theme.tintText)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(.leading, 16)
+        .padding(.trailing, 92)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(alignment: .bottomTrailing) {
+            PlantIllustration(stage: stage, height: 64)
+                .padding(.trailing, 14)
+        }
+        .background(stage == .seed ? Theme.tintSeed : stage.tint)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 
     private var createGroup: some View {
-        VStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("最初のグループの名前")
-                    .font(.subheadline.weight(.semibold))
-                TextField("例: 小テスト Unit 3", text: $groupName)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isNameFocused)
-                    .submitLabel(.done)
-            }
+        VStack(alignment: .leading, spacing: 12) {
+            Text("最初のグループの名前")
+                .sectionLabel()
+            TextField("例: 小テスト Unit 3", text: $groupName)
+                .focused($isNameFocused)
+                .submitLabel(.done)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 50)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                )
+                .accessibilityLabel("最初のグループの名前")
 
-            Button {
+            Button("最初のグループを作る") {
                 GroupEditor(context: context).createGroup(name: groupName)
                 finish()
-            } label: {
-                Text("最初のグループを作る")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.capsule)
 
             Button("あとで作る") { finish() }
                 .font(.subheadline)
+                .frame(maxWidth: .infinity, minHeight: 44)
 
             Text("グループはホームの ＋ からいつでも作れます。")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
         }
     }
 

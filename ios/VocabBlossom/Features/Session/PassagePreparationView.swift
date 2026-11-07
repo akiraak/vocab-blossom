@@ -127,12 +127,10 @@ struct PassagePreparationView: View {
                 .multilineTextAlignment(.center)
             Button(action: onRetry) {
                 Label("もう一度作る", systemImage: "arrow.clockwise")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.capsule)
             Button("例文のまま始める", action: onStartWithExamples)
-                .buttonStyle(.bordered)
+                .buttonStyle(.capsuleSecondary)
         }
         .padding(.horizontal, 24)
     }
@@ -177,7 +175,7 @@ struct PassagePreparationView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(
-            item.state == .done ? Theme.correct.opacity(0.12) : Color(.secondarySystemGroupedBackground),
+            item.state == .done ? Theme.tintBlossom : Theme.card,
             in: Capsule()
         )
         .opacity(item.state == .waiting ? 0.7 : 1)

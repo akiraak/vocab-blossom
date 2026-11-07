@@ -61,6 +61,17 @@ enum GroupStudy {
         return result
     }
 
+    /// グループの育ち具合（ホームのカードの植物と色面の濃さ）。
+    ///
+    /// 学習を始めた語も答えた記録も無ければ種。あとは達成度で、1/3 未満は芽・2/3 未満はつぼみ・それ以上は花
+    static func growth(summary: Summary, activity: Activity) -> GrowthStage {
+        guard summary.learned > 0 || activity.answerCount > 0 else { return .seed }
+        let achievement = activity.achievement ?? 0
+        if achievement >= 2.0 / 3.0 { return .blossom }
+        if achievement >= 1.0 / 3.0 { return .bud }
+        return .sprout
+    }
+
     /// グループの問題への 1 回答（`GroupAnswerLog` から集計に要る分だけ取り出した値）
     struct Answer: Equatable {
         var wordId: String
