@@ -6,21 +6,11 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            #if DEBUG
-            if DebugSeed.showsKnownWordsPicker {
-                NavigationStack { KnownWordsPickerView() }
-            } else if settings.hasOnboarded {
-                MainTabView()
-            } else {
-                OnboardingView()
-            }
-            #else
             if settings.hasOnboarded {
                 MainTabView()
             } else {
                 OnboardingView()
             }
-            #endif
         }
         .animation(.default, value: settings.hasOnboarded)
     }

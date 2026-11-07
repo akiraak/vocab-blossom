@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 設定。初学者が迷わないよう、項目は学習・音声・データ（+ サーバーとの同期・AI のモデル）に絞る。
+/// 設定。初学者が迷わないよう、項目は音声・データ（+ サーバーとの同期・AI のモデル）に絞る。
 struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(SyncService.self) private var sync
@@ -30,33 +30,6 @@ struct SettingsView: View {
         @Bindable var settings = settings
         NavigationStack {
             Form {
-                Section {
-                    Picker("レベル", selection: $settings.level) {
-                        ForEach(CefrLevel.allCases) { level in
-                            Text(level.label).tag(level)
-                        }
-                    }
-                    Picker("1日の新しい単語", selection: $settings.newWordsPerDay) {
-                        ForEach(AppSettings.newWordsPerDayChoices, id: \.self) { count in
-                            Text("\(count) 語").tag(count)
-                        }
-                    }
-                    NavigationLink {
-                        KnownWordsPickerView()
-                    } label: {
-                        Label("知っている単語をまとめて登録", systemImage: "checklist")
-                    }
-                } header: {
-                    Text("学習")
-                } footer: {
-                    Text(
-                        """
-                        レベルを変えても、覚えた単語と復習の予定はそのまま残ります。
-                        復習は 1 日最大 \(settings.reviewLimitPerDay) 語まで自動で調整します。
-                        """
-                    )
-                }
-
                 Section {
                     Toggle("自動で読み上げる", isOn: $settings.soundEnabled)
                     Toggle("正解・不正解の音", isOn: $settings.effectSoundEnabled)

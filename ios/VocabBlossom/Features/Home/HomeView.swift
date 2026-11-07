@@ -7,7 +7,6 @@ import SwiftUI
 /// 新しい単語はグループの「学習する」で始める（ここでは出さない）
 struct HomeView: View {
     @Environment(\.modelContext) private var context
-    @Environment(AppSettings.self) private var settings
     @Environment(SyncService.self) private var sync
     @Query private var progresses: [WordProgress]
     @Query private var logs: [AnswerLog]
@@ -30,7 +29,7 @@ struct HomeView: View {
                     uniquingKeysWith: { first, _ in first }
                 ),
                 logs: logs.map(\.snapshot),
-                reviewLimitPerDay: settings.reviewLimitPerDay
+                reviewLimitPerDay: StudyLimits.reviewsPerDay
             )
         )
     }

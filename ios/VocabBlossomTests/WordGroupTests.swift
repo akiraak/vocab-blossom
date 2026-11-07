@@ -36,11 +36,11 @@ struct WordStoreCustomTests {
         #expect(base.word(id: "custom-1") == nil)
     }
 
-    @Test("自作語はレベル別プール・デッキに混ざらない（毎日のおまかせに出ない）")
-    func customWordsStayOutOfDailyPool() {
+    @Test("自作語はレベル別の索引・デッキに混ざらない")
+    func customWordsStayOutOfLevelsAndDecks() {
         let store = base.including(customWords: [customEntry("custom-1", word: "homeroom")])
         #expect(store.words(level: .a1).count == base.words(level: .a1).count)
-        #expect(!store.newWordPool(level: .a1, order: .test).contains { $0.isCustom })
+        #expect(!store.words(level: .a1).contains { $0.isCustom })
         #expect(store.decks == base.decks)
         #expect(store.deck(of: "custom-1") == nil)
     }
@@ -113,6 +113,24 @@ struct GroupStudyTests {
         let ids = ["a1-0010", "a1-0003", "a1-0007", "a1-0001"]
         let result = plan(words: ids, progress: [], limit: 3)
         #expect(result.newWordIds == ["a1-0010", "a1-0003", "a1-0007"])
+    }
+
+    @Test("上限を渡さなければ、新規語は 1 回 10 語・復習は 60 語まで（設定では変わらない固定値）")
+    func defaultLimitsAreFixed() {
+        let words = Array(store.words(level: .a1).prefix(100))
+        let reviewed = words.prefix(70).map { snapshot($0.id, stage: 2, dueOffset: -1) }
+        let unlearned = GroupStudy.plan(
+            GroupStudy.Input(now: now, words: Array(words.dropFirst(70)), progress: [], order: .test)
+        )
+        #expect(unlearned.newWordIds.count == StudyLimits.newWordsPerSession)
+        #expect(StudyLimits.newWordsPerSession == 10)
+
+        let due = GroupStudy.plan(
+            GroupStudy.Input(now: now, words: words, progress: reviewed, order: .test)
+        )
+        #expect(due.reviewWordIds.count == StudyLimits.reviewsPerDay)
+        #expect(due.deferredReviewCount == 70 - StudyLimits.reviewsPerDay)
+        #expect(StudyLimits.reviewsPerDay == 60)
     }
 
     @Test("集計: 語数・学習済み・期限・開花")

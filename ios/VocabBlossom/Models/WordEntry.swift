@@ -1,6 +1,6 @@
 import Foundation
 
-/// 収録レベル（CEFR）。新規学習の出題範囲を決める。
+/// 収録レベル（CEFR）。誤答肢を同じレベルから選ぶのと、単語詳細の表示に使う。
 enum CefrLevel: String, Codable, CaseIterable, Sendable, Identifiable {
     case a1 = "A1"
     case a2 = "A2"
@@ -8,13 +8,6 @@ enum CefrLevel: String, Codable, CaseIterable, Sendable, Identifiable {
     var id: String { rawValue }
 
     var label: String { rawValue }
-
-    var summary: String {
-        switch self {
-        case .a1: "中学基礎レベル（はじめての人向け）"
-        case .a2: "中学卒業〜高校基礎レベル"
-        }
-    }
 }
 
 /// 品詞。誤答肢を同じ品詞から選ぶために使う。

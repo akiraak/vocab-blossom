@@ -10,14 +10,13 @@ import SwiftData
 ///
 /// - `VOCAB_SEED_DEMO=1`: 学習途中の状態を作る
 /// - `VOCAB_DEMO_SCREEN=session`: 起動直後にセッションを開く（復習から始まる）
-/// - `VOCAB_DEMO_SCREEN=session-new`: 復習は無く、新規学習の提示カードから始まる
 /// - `VOCAB_DEMO_SCREEN=session-summary`: 出題が無い状態（締め画面）
-/// - `session` / `session-new` / `group-learn` / `group-drill` の読み上げの声は、偽のサーバーの音
+/// - `session` / `group-learn` / `group-drill` の読み上げの声は、偽のサーバーの音
 ///   （Chobi は低い音・Naruko は高い音。文の長さだけ鳴る）
 /// - `VOCAB_DEMO_SCREEN=stats|settings`: そのタブを開いた状態で起動する
 /// - `VOCAB_DEMO_SCREEN=my-words`: 設定のマイ単語（自作語の入ったグループも作る）を開く
 /// - `VOCAB_DEMO_SCREEN=fresh`: オンボーディング済み・学習記録なしの状態
-/// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面
+/// - `VOCAB_DEMO_SCREEN=onboarding`: 学習記録なしで、初回のオンボーディングを出す
 /// - `VOCAB_DEMO_SCREEN=groups`: ホーム（同梱語 + 自作語のグループ入り）を開く
 /// - `VOCAB_DEMO_SCREEN=group-detail`: 上のグループの詳細を開く
 /// - `VOCAB_DEMO_SCREEN=group-learn` / `group-drill` / `group-fill-blank`: グループの学習 / ドリル / 穴埋めを起動直後に開く
@@ -33,7 +32,6 @@ enum DebugSeed {
     enum Variant: String {
         case none
         case session
-        case sessionNew = "session-new"
         case sessionSummary = "session-summary"
         /// 設定のマイ単語
         case myWords = "my-words"
@@ -41,8 +39,8 @@ enum DebugSeed {
         case settings
         /// オンボーディング済み・学習記録なし（空の庭）
         case fresh
-        /// 既知語の一括登録画面
-        case knownWords = "known-words"
+        /// 学習記録なし・オンボーディング前
+        case onboarding
         /// ホームのグループ
         case groups
         case groupDetail = "group-detail"
@@ -75,11 +73,9 @@ enum DebugSeed {
         }
 
         /// 学習済みの単語を作るか
-        var hasProgress: Bool { self != .fresh && self != .knownWords }
+        var hasProgress: Bool { self != .fresh && self != .onboarding }
         /// 期限切れの復習を作るか
         var hasDueReviews: Bool { self == .none || self == .session }
-        /// 今日の新規語をすでに消化済みにするか
-        var newWordsExhausted: Bool { self == .sessionSummary }
     }
 
     static var isEnabled: Bool {
@@ -93,7 +89,7 @@ enum DebugSeed {
     /// 起動直後にセッションを開く
     static var autoStartSession: Bool {
         switch variant {
-        case .session, .sessionNew, .sessionSummary: true
+        case .session, .sessionSummary: true
         default: false
         }
     }
@@ -106,9 +102,6 @@ enum DebugSeed {
          .wordEditorSenses, .wordDetailSenses, .drillSenses]
             .contains(variant)
     }
-
-    /// 既知語の一括登録画面を最初から出す
-    static var showsKnownWordsPicker: Bool { variant == .knownWords }
 
     /// 起動直後に開くタブ
     static var initialTab: MainTabView.TabId? {
@@ -150,7 +143,7 @@ enum DebugSeed {
     /// 学習途中の状態（庭に花が咲き、復習も溜まっている）を作る。
     static func apply(context: ModelContext, settings: AppSettings, now: Date = .now) {
         let variant = variant
-        settings.hasOnboarded = true
+        settings.hasOnboarded = variant != .onboarding
         // ダミーデータを入れた端末は、この後ふつうに起動してもサーバーと同期しない（本番にダミーを送らない）
         UserDefaults.standard.set(true, forKey: SyncService.Key.disabledByDebugSeed)
 
@@ -165,7 +158,8 @@ enum DebugSeed {
             return
         }
 
-        let pool = WordStore.shared.newWordPool(level: settings.level)
+        // 同梱の A1 の語をインストールごとの並びで使う（ABC 順の先頭に偏らないように）
+        let pool = ShuffleOrder.install.shuffled(WordStore.shared.words(level: .a1), id: \.id)
         // ステージがばらけるよう 45 語を 1〜5 に配り、一部は期限切れにする
         for (offset, word) in pool.prefix(45).enumerated() {
             let stage = offset % 5 + 1
@@ -204,31 +198,6 @@ enum DebugSeed {
             seedGroups(context: context, pool: pool, now: now)
         }
 
-        if variant.newWordsExhausted {
-            // 今日の新規語の枠を使い切った状態にする
-            for word in pool.dropFirst(45).prefix(settings.newWordsPerDay) {
-                context.insert(
-                    AnswerLog(
-                        wordId: word.id,
-                        answeredAt: now,
-                        dateKey: DateUtil.dateKey(now),
-                        correct: true,
-                        quizType: .enToJa,
-                        kind: .new,
-                        stageAfter: 1
-                    )
-                )
-                context.insert(
-                    WordProgress(
-                        wordId: word.id,
-                        stage: 1,
-                        dueAt: DateUtil.startOfDay(DateUtil.addDays(now, 1)),
-                        learnedAt: now,
-                        updatedAt: now
-                    )
-                )
-            }
-        }
         try? context.save()
     }
 

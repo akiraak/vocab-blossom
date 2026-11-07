@@ -14,7 +14,7 @@ final class WordStore {
     static let bundleSubdirectory = "decks"
 
     let decks: [Deck]
-    /// ユーザーの自作語（作成順）。デッキ・レベル別プールには含めない
+    /// ユーザーの自作語（作成順）。デッキ・レベル別の索引には含めない
     let customWords: [WordEntry]
     /// 同梱語 → 自作語 の順
     let allWords: [WordEntry]
@@ -96,14 +96,6 @@ final class WordStore {
     }
 
     func words(level: CefrLevel) -> [WordEntry] { wordsByLevel[level] ?? [] }
-
-    /// 新規学習で出す順番。
-    ///
-    /// デッキの並びは CEFR-J の ABC 順（＝ ID 順）なので、そのまま出すと毎日 a から順に進む
-    /// ことになる。レベル内をまるごとシャッフルして、単語も熟語も満遍なく出会えるようにする。
-    func newWordPool(level: CefrLevel, order: ShuffleOrder = .install) -> [WordEntry] {
-        order.shuffled(words(level: level), id: \.id)
-    }
 
     /// 単語・意味・例文の部分一致検索（大小文字無視）。
     func search(_ query: String) -> [WordEntry] {

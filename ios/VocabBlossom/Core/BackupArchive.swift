@@ -136,7 +136,7 @@ enum BackupService {
             settings: BackupArchive.Settings(
                 level: settings.level,
                 newWordsPerDay: settings.newWordsPerDay,
-                reviewLimitPerDay: settings.reviewLimitPerDay,
+                reviewLimitPerDay: StudyLimits.reviewsPerDay,
                 soundEnabled: settings.soundEnabled
             ),
             progress: progress.map {

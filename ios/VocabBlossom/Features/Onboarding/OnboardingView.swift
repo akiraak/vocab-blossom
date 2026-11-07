@@ -1,33 +1,27 @@
+import SwiftData
 import SwiftUI
 
-/// 初回のみ表示する。レベルを選び、続けて知っている単語をまとめて片付ける。
+/// 初回のみ表示する。使い方を短く伝え、最初のグループを作ってホームへ進む。
 ///
-/// 設定はいつでも変えられるので、ここでは「とりあえず選んで始められる」ことを優先する。
+/// 学習はグループが中心なので、ここでグループを 1 つ作っておけば、ホームからすぐ単語を入れ始められる。
+/// 作らずに進むこともできる（ホームの ＋ でいつでも作れる）
 struct OnboardingView: View {
     @Environment(AppSettings.self) private var settings
+    @Environment(\.modelContext) private var context
 
-    @State private var selected: CefrLevel = .a1
-    @State private var showsKnownWords = false
+    @State private var groupName = ""
+    @FocusState private var isNameFocused: Bool
 
     var body: some View {
-        NavigationStack {
-            levelStep
-                .navigationDestination(isPresented: $showsKnownWords) {
-                    KnownWordsPickerView(onFinish: finish)
-                }
+        ScrollView {
+            VStack(spacing: 28) {
+                header
+                steps
+                createGroup
+            }
+            .padding(24)
         }
-    }
-
-    private var levelStep: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 24)
-            header
-            Spacer(minLength: 24)
-            levelPicker
-            Spacer(minLength: 24)
-            actions
-        }
-        .padding(24)
+        .scrollDismissesKeyboard(.interactively)
         .gardenBackground()
     }
 
@@ -45,74 +39,74 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
+        .padding(.top, 24)
     }
 
-    private var levelPicker: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("学習レベルを選んでください")
-                .font(.headline)
-            Text("あとから設定でいつでも変えられます。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            ForEach(CefrLevel.allCases) { level in
-                Button {
-                    selected = level
-                } label: {
-                    levelRow(level)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    private func levelRow(_ level: CefrLevel) -> some View {
-        let isSelected = selected == level
-        return HStack(spacing: 12) {
-            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                .font(.title3)
-                .foregroundStyle(isSelected ? Theme.accent : Color.secondary)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(level.label)
-                    .font(.headline)
-                Text(level.summary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Text("\(WordStore.shared.words(level: level).count) 語")
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+    private var steps: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            step(
+                systemImage: "folder.badge.plus",
+                title: "グループを作る",
+                detail: "小テストの範囲や教科書の単元など、覚えたい単語・フレーズをまとめます。"
+            )
+            step(
+                systemImage: "graduationcap.fill",
+                title: "グループで学習する",
+                detail: "「学習する」・ドリル・穴埋め・読み上げで、くり返し覚えます。"
+            )
+            step(
+                systemImage: "leaf.fill",
+                title: "庭が育つ",
+                detail: "覚えた単語が花になります。復習はホームの「今日の復習」でまとめてできます。"
+            )
         }
         .cardStyle()
-        .overlay(
-            RoundedRectangle(cornerRadius: Theme.cardCorner, style: .continuous)
-                .stroke(isSelected ? Theme.accent : .clear, lineWidth: 2)
-        )
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
-    private var actions: some View {
-        VStack(spacing: 10) {
+    private func step(systemImage: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.title3)
+                .foregroundStyle(Theme.accent)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var createGroup: some View {
+        VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("最初のグループの名前")
+                    .font(.subheadline.weight(.semibold))
+                TextField("例: 小テスト Unit 3", text: $groupName)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($isNameFocused)
+                    .submitLabel(.done)
+            }
+
             Button {
-                settings.level = selected
-                showsKnownWords = true
+                GroupEditor(context: context).createGroup(name: groupName)
+                finish()
             } label: {
-                Text("次へ")
+                Text("最初のグループを作る")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
 
-            Button("すぐに始める") {
-                settings.level = selected
-                finish()
-            }
-            .font(.subheadline)
+            Button("あとで作る") { finish() }
+                .font(.subheadline)
 
-            Text("次の画面で、すでに知っている単語をまとめてとばせます。")
+            Text("グループはホームの ＋ からいつでも作れます。")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -120,6 +114,7 @@ struct OnboardingView: View {
     }
 
     private func finish() {
+        isNameFocused = false
         settings.hasOnboarded = true
     }
 }
@@ -127,4 +122,5 @@ struct OnboardingView: View {
 #Preview {
     OnboardingView()
         .environment(AppSettings(defaults: UserDefaults(suiteName: "preview")!))
+        .modelContainer(for: [WordGroup.self], inMemory: true)
 }

@@ -38,6 +38,11 @@ struct BackupTests {
         settings.soundEnabled = false
 
         let data = try BackupService.export(context: context, settings: settings, now: now)
+        // 前の版と同じ形で書き出す（復習の上限は固定の 60）
+        let written = try BackupService.decoder.decode(BackupArchive.self, from: data).settings
+        #expect(written == BackupArchive.Settings(
+            level: .a2, newWordsPerDay: 20, reviewLimitPerDay: 60, soundEnabled: false
+        ))
 
         // 別の端末を模して、進捗も設定も違う状態から読み込む
         let other = try ModelContainer(
@@ -75,8 +80,6 @@ struct BackupTests {
 
         #expect(otherSettings.level == .a2)
         #expect(otherSettings.newWordsPerDay == 20)
-        // 復習上限は新規語数からの算出値なので、復元後も自動で追従する
-        #expect(otherSettings.reviewLimitPerDay == 120)
         #expect(otherSettings.soundEnabled == false)
     }
 

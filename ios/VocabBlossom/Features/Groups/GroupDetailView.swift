@@ -62,9 +62,7 @@ struct GroupDetailView: View {
             GroupStudy.Input(
                 now: .now,
                 words: words,
-                progress: progresses.map(\.snapshot),
-                newWordsLimit: settings.newWordsPerDay,
-                reviewLimit: settings.reviewLimitPerDay
+                progress: progresses.map(\.snapshot)
             )
         )
         let summary = GroupStudy.summary(

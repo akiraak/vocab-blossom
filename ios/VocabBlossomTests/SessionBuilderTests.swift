@@ -6,7 +6,7 @@ import Testing
 @Suite("セッション構築")
 struct SessionBuilderTests {
     let now = TestDate.at(2026, 8, 14)
-    let pool = WordStore.shared.newWordPool(level: .a1, order: .test)
+    let pool = ShuffleOrder.test.shuffled(WordStore.shared.words(level: .a1), id: \.id)
 
     private func input(
         progress: [ProgressSnapshot] = [],
@@ -129,10 +129,10 @@ struct SessionBuilderTests {
         #expect(plan.totalCount == 0)
     }
 
-    @Test("新規 50 語/日でも、自動追従した復習上限なら定常状態で新規語が止まらない")
-    func newWordsSurviveSteadyStateAtFiftyPerDay() {
-        let newWordsPerDay = 50
-        let reviewLimit = AppSettings.reviewLimit(forNewWordsPerDay: newWordsPerDay)
+    @Test("固定の上限（新規 10 語・復習 60 語）なら、定常状態でも新規語が止まらない")
+    func newWordsSurviveSteadyStateWithFixedLimits() {
+        let newWordsPerDay = StudyLimits.newWordsPerSession
+        let reviewLimit = StudyLimits.reviewsPerDay
         // 定常状態では 1 語が開花までに 5 回戻ってくるので、期限到来は約 新規語 × 5
         let steadyStateDue = newWordsPerDay * 5
         let items = progress(dueOffsets: Array(repeating: -1, count: steadyStateDue))

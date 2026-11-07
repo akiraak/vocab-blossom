@@ -93,8 +93,8 @@ SIMCTL_CHILD_VOCAB_SEED_DEMO=1 SIMCTL_CHILD_VOCAB_DEMO_SCREEN=session \
   xcrun simctl launch booted com.akiraak.VocabBlossom
 ```
 
-`VOCAB_DEMO_SCREEN` は `session` / `session-new` / `session-summary` /
-`my-words` / `stats` / `settings` / `fresh` を指定できる（詳細は `App/DebugSeed.swift`）。
+`VOCAB_DEMO_SCREEN` は `session` / `session-summary` /
+`my-words` / `stats` / `settings` / `fresh` / `onboarding` など、グループの画面も含めて指定できる（詳細は `App/DebugSeed.swift`）。
 
 ### アプリアイコン
 

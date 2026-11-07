@@ -12,20 +12,7 @@ final class AppSettings {
         static let hasOnboarded = "settings.hasOnboarded"
     }
 
-    static let newWordsPerDayChoices = [5, 10, 15, 20, 30, 50, 100]
     static let defaultNewWordsPerDay = 10
-    static let minReviewLimitPerDay = 60
-    /// 1 語は開花までに 5 回戻ってくるので、定常状態の復習数は新規語 × 5 になる。
-    /// 余裕を持たせて 6 倍を上限にする
-    static let reviewLimitFactor = 6
-
-    /// 復習の 1 日上限。設定項目にはせず、新規語数から決める。
-    ///
-    /// 別々に設定できるようにすると「復習上限 < 新規語 × 5」に設定してしまい、
-    /// `SessionBuilder` の抑制ルールで新規語が出なくなる事故が起きるため。
-    static func reviewLimit(forNewWordsPerDay count: Int) -> Int {
-        max(minReviewLimitPerDay, count * reviewLimitFactor)
-    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -41,18 +28,16 @@ final class AppSettings {
         ttsModel = AIModelPreference.ttsModel(defaults: defaults)
     }
 
-    /// 新規語を出すレベル。変更しても学習済みの進捗・復習スケジュールは保持される
+    /// 前の版の「レベル」。もう学習には使わず、画面にも出さない。
+    /// バックアップの形式を変えないよう、値の保存と書き出し・読み込みだけ残す
     var level: CefrLevel {
         didSet { defaults.set(level.rawValue, forKey: Key.level) }
     }
 
+    /// 前の版の「1 日の新しい単語」。`level` と同じくバックアップのためだけに残す
+    /// （学習の上限は `StudyLimits` の固定値）
     var newWordsPerDay: Int {
         didSet { defaults.set(newWordsPerDay, forKey: Key.newWordsPerDay) }
-    }
-
-    /// 復習の 1 日上限。サボって溜まっても圧殺されないための調整弁
-    var reviewLimitPerDay: Int {
-        Self.reviewLimit(forNewWordsPerDay: newWordsPerDay)
     }
 
     var soundEnabled: Bool {

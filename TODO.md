@@ -27,6 +27,6 @@
     - [x] Step 4: 確かめる（テスト・SwiftLint・シミュレータ）
   - [x] Phase 2: ホームをグループ中心にする → [plan](docs/plans/archive/group-home.md)
   - [x] Phase 3: 単語帳タブを外す → [plan](docs/plans/archive/remove-word-list-tab.md)
-  - [ ] Phase 4: CEFR 学習の機能を外す
+  - [x] Phase 4: CEFR 学習の機能を外す → [plan](docs/plans/archive/remove-cefr-learning.md)
   - [ ] Phase 5: 仕様書を直す
   - [ ] Phase 6: 実機確認

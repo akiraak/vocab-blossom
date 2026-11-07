@@ -9,8 +9,8 @@ enum GroupStudy {
         /// 全単語の進捗。グループ内に絞るのはこちらでやる
         var progress: [ProgressSnapshot]
         /// 1 回のセッションで出す新規語の上限
-        var newWordsLimit: Int
-        var reviewLimit: Int
+        var newWordsLimit: Int = StudyLimits.newWordsPerSession
+        var reviewLimit: Int = StudyLimits.reviewsPerDay
         var order: ShuffleOrder = .install
     }
 
