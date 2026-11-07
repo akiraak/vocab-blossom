@@ -45,6 +45,8 @@ struct WordDetailView: View {
             .padding(16)
         }
         .gardenBackground()
+        // スピーカーのボタンで読んでいる途中に閉じたら止める
+        .onDisappear { GeminiReadAloudSpeaker.quiz.finish() }
         .navigationTitle(word.word)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

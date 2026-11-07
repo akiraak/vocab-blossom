@@ -39,11 +39,12 @@ nonisolated private func toneWAV(seconds: Double, amplitude: Double, sampleRate:
     return wav
 }
 
-/// 頼まれた文を覚えて、無音の WAV を返すサーバーの偽物。決めた文だけ失敗させられる
+/// 頼まれた文を覚えて、無音の WAV を返すサーバーの偽物。決めた文だけ失敗させられる・遅らせられる
 private final class FakeSpeechFetcher: SpeechFetching, @unchecked Sendable {
     private let lock = NSLock()
     private var calls: [SpeechAPI.Request] = []
     private var failingTexts: Set<String> = []
+    private var slowTexts: [String: Duration] = [:]
     private var failAll = false
     private var currentVersion = "v1"
     private let error: WordAssistError
@@ -56,12 +57,14 @@ private final class FakeSpeechFetcher: SpeechFetching, @unchecked Sendable {
 
     func fail(_ texts: Set<String>) { lock.withLock { failingTexts = texts } }
     func failEverything(_ value: Bool) { lock.withLock { failAll = value } }
+    func delay(_ text: String, by duration: Duration) { lock.withLock { slowTexts[text] = duration } }
 
     func fetch(_ request: SpeechAPI.Request) async throws -> SpeechAPI.Audio {
-        let (fails, version) = lock.withLock {
+        let (fails, version, delay) = lock.withLock {
             calls.append(request)
-            return (failAll || failingTexts.contains(request.text), currentVersion)
+            return (failAll || failingTexts.contains(request.text), currentVersion, slowTexts[request.text])
         }
+        if let delay { try? await Task.sleep(for: delay) }
         if fails { throw error }
         return SpeechAPI.Audio(wav: silentWAV(), version: version)
     }
@@ -164,7 +167,9 @@ private struct Harness {
     init(
         fetcher: FakeSpeechFetcher = FakeSpeechFetcher(),
         withFetcher: Bool = true,
-        speakers: [SpeechAPI.Speaker] = [.chobi]
+        speakers: [SpeechAPI.Speaker] = [.chobi],
+        speakerChoice: GeminiReadAloudSpeaker.SpeakerChoice = .random,
+        maxWait: Duration? = nil
     ) {
         let audio = FakeAudioPlayer()
         let fallback = InstantFallbackSpeaker()
@@ -175,6 +180,8 @@ private struct Harness {
         self.speaker = GeminiReadAloudSpeaker(
             fallback: fallback, store: store, audio: audio,
             fetcher: withFetcher ? fetcher : nil,
+            speakerChoice: speakerChoice,
+            maxWait: maxWait,
             randomSpeaker: {
                 // 決めた並びを順に返し、尽きたら最後のものを返し続ける
                 queue.value.count > 1 ? queue.value.removeFirst() : (queue.value.first ?? .chobi)
@@ -427,7 +434,7 @@ struct GeminiReadAloudSpeakerTests {
         let answer = [
             line(.word, "commute"), line(.example, "He has to commute."), line(.example, "It is far."),
         ]
-        harness.speaker.prefetch(answer)
+        harness.speaker.prefetch([answer])
         await waitUntil { harness.fetcher.recorded.count == 3 }
         try? await Task.sleep(for: .milliseconds(50))
         #expect(harness.fetcher.recorded.count == 3)
@@ -451,6 +458,119 @@ struct GeminiReadAloudSpeakerTests {
         #expect(!harness.fetcher.recorded.map(\.text).contains(long))
         #expect(harness.fallback.spoken.map { $0.map(\.text) } == [[long]])
         #expect(harness.audio.played.count == 2)
+    }
+
+    // MARK: 学習の場面（読む人を語ごとに固定・待つ上限）
+
+    /// 学習の場面の読み上げ（`GeminiReadAloudSpeaker.quiz` と同じ決め方）
+    private func learningHarness(
+        fetcher: FakeSpeechFetcher = FakeSpeechFetcher(), maxWait: Duration? = .seconds(3)
+    ) -> Harness {
+        Harness(
+            fetcher: fetcher, speakers: [.chobi, .naruko, .chobi], speakerChoice: .perWord, maxWait: maxWait
+        )
+    }
+
+    private func learning(_ word: String) -> [ReadAloudLine] {
+        ReadAloudScript.learningLines(word: word, example: "I like \(word).")
+    }
+
+    @Test("学習の場面では、同じ単語は何度読んでも同じ人で頼み、綴りが違えば 2 人に分かれる")
+    func perWordSpeakerIsStable() async {
+        let words = ["apple", "banana", "cherry", "dog", "egg", "fish", "grape", "house"]
+        let speakers = Set(words.map { GeminiReadAloudSpeaker.fixedSpeaker(for: learning($0)) })
+        #expect(speakers == [.chobi, .naruko])
+        // 単語の文で決まる（例文が違っても、単語が同じなら同じ人）
+        #expect(GeminiReadAloudSpeaker.fixedSpeaker(for: learning("apple"))
+            == GeminiReadAloudSpeaker.fixedSpeaker(for: ReadAloudScript.learningLines(word: "apple")))
+
+        let harness = learningHarness()
+        for word in ["apple", "banana", "apple", "banana", "apple"] {
+            await harness.speakToEnd(learning(word))
+        }
+        let speakerByWord = Dictionary(grouping: harness.fetcher.recorded, by: \.text)
+            .mapValues { Set($0.map(\.speaker)) }
+        #expect(speakerByWord["apple"] == [GeminiReadAloudSpeaker.fixedSpeaker(for: learning("apple"))])
+        #expect(speakerByWord["banana"] == [GeminiReadAloudSpeaker.fixedSpeaker(for: learning("banana"))])
+        // 2 回目からは残した音声で鳴らす
+        #expect(harness.fetcher.recorded.count == 4)
+        #expect(harness.audio.played.count == 10)
+    }
+
+    @Test("学習の場面でも、決めた人の分が無くもう 1 人の分がそろっていれば、そちらで読む")
+    func perWordUsesOtherSpeakerWhenReady() async throws {
+        let harness = learningHarness()
+        let lines = learning("apple")
+        let fixed = GeminiReadAloudSpeaker.fixedSpeaker(for: lines)
+        let other: SpeechAPI.Speaker = fixed == .chobi ? .naruko : .chobi
+        for line in lines {
+            let request = GeminiReadAloudSpeaker.request(for: line, speaker: other, model: .flash38)
+            _ = try harness.store.save(SpeechAPI.Audio(wav: silentWAV(), version: "v1"), for: request)
+        }
+
+        await harness.speakToEnd(lines)
+        #expect(harness.fetcher.recorded.isEmpty)
+        #expect(harness.audio.played.count == 2)
+
+        // 先読みでも決めた人の分は頼まない
+        harness.speaker.prefetch([lines])
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(harness.fetcher.recorded.isEmpty)
+    }
+
+    @Test("待つ上限を過ぎた文は内蔵の声で読み、届いた音声は残して次から鳴らす")
+    func maxWaitFallsBackAndKeepsAudio() async {
+        let fetcher = FakeSpeechFetcher()
+        fetcher.delay("apple", by: .milliseconds(300))
+        let harness = learningHarness(fetcher: fetcher, maxWait: .milliseconds(50))
+        let lines = learning("apple")
+
+        let started = await harness.speakToEnd(lines)
+        #expect(started == [0, 1])
+        #expect(harness.fallback.spoken.map { $0.map(\.text) } == [["apple"]])
+        #expect(harness.audio.played.count == 1)
+
+        // 遅れて届いた音声は端末に残り、次は Gemini の声で鳴る（サーバーへは頼み直さない）
+        let request = GeminiReadAloudSpeaker.request(
+            for: lines[0], speaker: GeminiReadAloudSpeaker.fixedSpeaker(for: lines), model: .flash38
+        )
+        await waitUntil { harness.store.cachedURL(for: request) != nil }
+        await harness.speakToEnd(lines)
+        #expect(harness.fallback.spoken.count == 1)
+        #expect(harness.audio.played.count == 3)
+        #expect(harness.fetcher.recorded.count == 2)
+    }
+
+    @Test("待つ上限が無ければ、遅くても届くまで待って Gemini の声で鳴らす")
+    func withoutMaxWaitWaitsForAudio() async {
+        let fetcher = FakeSpeechFetcher()
+        fetcher.delay("apple", by: .milliseconds(150))
+        let harness = learningHarness(fetcher: fetcher, maxWait: nil)
+
+        await harness.speakToEnd(learning("apple"))
+        #expect(harness.fallback.spoken.isEmpty)
+        #expect(harness.audio.played.count == 2)
+    }
+
+    @Test("複数の語の先読みは、読む予定の人の分だけを渡した順に頼む")
+    func prefetchesSeveralWordsInOrder() async {
+        let harness = learningHarness()
+        let upcoming = [learning("apple"), learning("banana"), learning("cherry")]
+        harness.speaker.prefetch(upcoming)
+        await waitUntil { harness.fetcher.recorded.count == 6 }
+        try? await Task.sleep(for: .milliseconds(50))
+
+        let expected = upcoming.flatMap { lines in
+            lines.map {
+                GeminiReadAloudSpeaker.request(
+                    for: $0, speaker: GeminiReadAloudSpeaker.fixedSpeaker(for: lines), model: .flash38
+                )
+            }
+        }
+        #expect(harness.fetcher.recorded.count == 6)
+        // 同時に 2 本ずつ取るので、頼んだ順は 2 本の中で入れ替わることがある
+        #expect(Set(harness.fetcher.recorded.prefix(2)) == Set(expected.prefix(2)))
+        #expect(Set(harness.fetcher.recorded) == Set(expected))
     }
 }
 

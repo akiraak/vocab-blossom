@@ -152,6 +152,10 @@ struct GroupDetailView: View {
         .task(id: words.first) {
             // 最初の語の音声を先に取っておき、読み上げを押したらすぐ鳴らす（端末に残っていれば何もしない）
             GeminiReadAloudSpeaker.shared.warmUp(for: words)
+            // 「学習する」で最初に出す語の音声も取っておく（最初のカードが内蔵の声にならないように）
+            if settings.soundEnabled {
+                GeminiReadAloudSpeaker.quiz.prefetch(learningWarmUpLines(plan))
+            }
         }
         .fullScreenCover(item: $session) { session in
             switch session {
@@ -330,6 +334,14 @@ struct GroupDetailView: View {
         }
         .buttonStyle(.bordered)
         .disabled(words.isEmpty)
+    }
+
+    /// 「学習する」で最初に出す 2 語の、先に取っておく文（単語とすべての意味の例文）
+    private func learningWarmUpLines(_ plan: SessionPlan) -> [[ReadAloudLine]] {
+        let words = words
+        return (plan.reviewWordIds + plan.newWordIds).prefix(2)
+            .compactMap { id in words.first { $0.id == id } }
+            .map(ReadAloudScript.learningPrefetchLines)
     }
 
     private func learnButtonTitle(plan: SessionPlan, isEmptyGroup: Bool) -> String {

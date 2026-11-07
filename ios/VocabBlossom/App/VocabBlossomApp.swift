@@ -19,14 +19,15 @@ struct VocabBlossomApp: App {
         self.container = container
         let config = SyncService.appConfig()
         _sync = State(initialValue: SyncService(config: config, context: container.mainContext))
-        // グループの読み上げ・穴埋めの回答後の声（Gemini TTS）。サーバーの設定が無ければ OS 内蔵の声で読む
+        // グループの読み上げ・学習中の読み上げの声（Gemini TTS）。サーバーの設定が無ければ OS 内蔵の声で読む
         GeminiReadAloudSpeaker.shared.fetcher = config.map { SpeechClient(config: $0) }
         GeminiReadAloudSpeaker.quiz.fetcher = config.map { SpeechClient(config: $0) }
         #if DEBUG
         if DebugSeed.variant == .groupReadAloud {
             GeminiReadAloudSpeaker.shared.fetcher = DebugSpeechFetcher()
         }
-        if [.groupReadAloud, .groupFillBlank].contains(DebugSeed.variant) {
+        if [.groupReadAloud, .groupFillBlank, .session, .sessionNew, .groupLearn, .groupDrill]
+            .contains(DebugSeed.variant) {
             GeminiReadAloudSpeaker.quiz.fetcher = DebugSpeechFetcher()
         }
         #endif

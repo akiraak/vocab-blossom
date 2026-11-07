@@ -2,15 +2,13 @@ import AVFoundation
 import Foundation
 import OSLog
 
-/// グループの読み上げで声を出す部分（OS 内蔵 TTS）。
+/// OS 内蔵 TTS で声を出す部分。Gemini の声（`GeminiReadAloudSpeaker`）が取れない文を読む。
 ///
-/// 提示カードなどの 1 語の読み上げ（`SpeechService`）とは分けている。こちらは
-/// 「読み終えたら次の語へ」のために読み終わりを知らせる・日本語の声でも読む・ほかのアプリの音を止める、が違う。
-/// 読み上げを始めるときは `SpeechService` を止め、同時に鳴らないようにする
+/// 「読み終えたら次の語へ」のために読み終わりを知らせ、日本語の声でも読む
 final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
     /// グループの読み上げ（ほかのアプリの音を止める）
     static let shared = ReadAloudSpeechEngine(purpose: .readAloud)
-    /// 穴埋めの回答後の読み上げで、Gemini の声が取れない文を読む（ほかのアプリの音は小さくするだけ）
+    /// 学習中の読み上げで、Gemini の声が取れない文を読む（ほかのアプリの音は小さくするだけ）
     static let quiz = ReadAloudSpeechEngine(purpose: .learning)
 
     /// 音声セッションの使い道
@@ -23,7 +21,7 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
     var onInterruption: (() -> Void)?
 
     /// 読み上げ中のインスタンス。読み終えて次の語へ進むときは使い回し、途中で止めたら作り直す
-    /// （発話が始まる前に止めると詰まることがあるため。`SpeechService.enqueue` を参照）
+    /// （`AVSpeechSynthesizer` は発話が実際に始まる前に止めると、内部状態が詰まって以後鳴らなくなることがあるため）
     private var synthesizer: AVSpeechSynthesizer?
     /// 停止直後に解放すると落ちることがあるので、1 つ前だけ生かしておく
     private var previousSynthesizer: AVSpeechSynthesizer?
@@ -41,7 +39,7 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
         var onFinish: () -> Void
     }
 
-    /// 速さ。英語は提示カードの読み上げ（`SpeechService`）にそろえる。日本語は実機で聞いて決める
+    /// 速さ。英語は既定値だと初学者には速いので少し落とす。日本語は実機で聞いて決める
     private let wordRate: Float = 0.42
     private let sentenceRate: Float = 0.45
     private let japaneseRate: Float = 0.5
@@ -70,7 +68,6 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
         onFinish: @escaping () -> Void
     ) {
         deactivateTask?.cancel()
-        SpeechService.shared.interrupt()
         LearningAudioSession.shared.activate(for: purpose)
 
         // 読んでいる途中で次を頼まれた（前後の語へ動いた）なら、止めて作り直す

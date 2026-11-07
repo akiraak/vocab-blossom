@@ -84,14 +84,16 @@ struct WordCardView: View {
     }
 }
 
-/// 単語 + 例文を読み上げるボタン。
+/// 単語 + 例文を読み上げるボタン（Gemini の声。設定の「自動で読み上げる」に関係なく鳴らす）。
 struct SpeakButton: View {
     let word: WordEntry
     var size: Font = .title3
 
     var body: some View {
         Button {
-            SpeechService.shared.speak(word: word.word, example: word.example)
+            GeminiReadAloudSpeaker.quiz.speak(
+                ReadAloudScript.learningLines(word: word.word, example: word.example)
+            )
         } label: {
             Image(systemName: "speaker.wave.2.fill")
                 .font(size)

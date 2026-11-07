@@ -165,6 +165,25 @@ final class SessionRunner {
 
     // MARK: - 進行状況
 
+    /// このあと出す語（キューの先頭から、同じ語を除いて最大 `limit` 語）。読み上げの先読みに使う
+    func upcomingWords(limit: Int) -> [WordEntry] {
+        var seen = Set<String>()
+        var words: [WordEntry] = []
+        for item in queue {
+            guard words.count < limit else { break }
+            let word: WordEntry?
+            switch item {
+            case .present(let wordId), .quiz(let wordId, _):
+                word = store.word(id: wordId)
+            case .prepared(let index, _):
+                word = preparedQuizzes.indices.contains(index) ? preparedQuizzes[index].word : nil
+            }
+            guard let word, seen.insert(word.id).inserted else { continue }
+            words.append(word)
+        }
+        return words
+    }
+
     var isFinished: Bool {
         if case .summary = step { return true }
         return false

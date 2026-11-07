@@ -30,6 +30,11 @@ protocol ReadAloudSpeaking: AnyObject {
 extension ReadAloudSpeaking {
     /// その場で声を作る（OS 内蔵の）声は、先に用意するものが無い
     func prepare(_ upcoming: [[ReadAloudLine]]) {}
+
+    /// 読み終わりを待たずに読む（学習中のカード・スピーカーのボタン）
+    func speak(_ lines: [ReadAloudLine]) {
+        speak(lines, onLineStart: { _ in }, onFinish: {})
+    }
 }
 
 /// グループの単語を順に読み上げる。再生・一時停止・前後・ループを持つ。

@@ -19,8 +19,17 @@ protocol ReadAloudAudioPlaying: AnyObject {
 /// - サーバーの設定が無ければ（`fetcher == nil`）、すべて内蔵の声で読む
 ///
 /// 設計は docs/plans/archive/read-aloud-gemini-voice.md。
-/// 穴埋めの回答後の読み上げ（`quiz`）にも使う（docs/plans/fill-blank-answer-voice.md）
+/// 学習中の読み上げ（`quiz`。提示カード・出題・回答後・スピーカーのボタン）にも使う。
+/// こちらは読む人を語ごとに固定し、音声を待つのは `maxWait` まで（docs/plans/learning-voice-gemini.md）
 final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
+    /// 読む人の決め方
+    enum SpeakerChoice {
+        /// 1 語ごとにランダム（3 語続けて同じ人にしない）。グループの読み上げ
+        case random
+        /// 単語の綴りで決める（同じ語はいつも同じ人）。学習の場面で、提示カード・出題・回答後の音声を使い回すため
+        case perWord
+    }
+
     /// グループの読み上げ（ほかのアプリの音を止める）
     static let shared = GeminiReadAloudSpeaker(
         fallback: ReadAloudSpeechEngine.shared,
@@ -28,12 +37,15 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         audio: SystemReadAloudAudioPlayer()
     )
 
-    /// 穴埋めの回答後の読み上げ（ほかのアプリの音は小さくするだけ。効果音・提示カードの読み上げと同じ）
+    /// 学習中の読み上げ（ほかのアプリの音は小さくするだけ。効果音と同じ）。
+    /// カードが出たらすぐ読みたいので、音声が 3 秒たってもそろわない文は内蔵の声で読む
     static let quiz = GeminiReadAloudSpeaker(
         fallback: ReadAloudSpeechEngine.quiz,
         store: .shared,
         audio: SystemReadAloudAudioPlayer(),
-        purpose: .learning
+        purpose: .learning,
+        speakerChoice: .perWord,
+        maxWait: .seconds(3)
     )
 
     /// サーバーが 1 回で受け付ける文字数（`MAX_SPEECH_TEXT_LENGTH`）。超える文は頼まずに内蔵の声で読む
@@ -53,6 +65,9 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     private let purpose: LearningAudioSession.Purpose
     private let store: ReadAloudVoiceStore
     private let audio: any ReadAloudAudioPlaying
+    private let speakerChoice: SpeakerChoice
+    /// 1 文の音声を待つ上限。過ぎたらその文は内蔵の声で読む（取りに行った音声は端末に残す）。nil は届くまで待つ
+    private let maxWait: Duration?
     private let randomSpeaker: () -> SpeechAPI.Speaker
     /// 設定画面で選んだ声のモデル。語を読み始めるとき・先読みのときに読む
     private let ttsModel: () -> TTSModel
@@ -89,6 +104,8 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         audio: any ReadAloudAudioPlaying,
         purpose: LearningAudioSession.Purpose = .readAloud,
         fetcher: (any SpeechFetching)? = nil,
+        speakerChoice: SpeakerChoice = .random,
+        maxWait: Duration? = nil,
         randomSpeaker: @escaping () -> SpeechAPI.Speaker = {
             SpeechAPI.Speaker.allCases.randomElement() ?? .chobi
         },
@@ -102,6 +119,8 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         self.store = store
         self.audio = audio
         self.fetcher = fetcher
+        self.speakerChoice = speakerChoice
+        self.maxWait = maxWait
         self.randomSpeaker = randomSpeaker
         self.ttsModel = ttsModel
         self.now = now
@@ -125,7 +144,6 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
 
         cancelRun()
         deactivateTask?.cancel()
-        SpeechService.shared.interrupt()
         LearningAudioSession.shared.activate(for: purpose)
 
         let model = ttsModel()
@@ -156,17 +174,19 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         guard runTask == nil,
               let first = ReadAloudScript.items(for: words, includesJapanese: hasJapaneseVoice).first
         else { return }
-        prefetch(first.lines)
+        prefetch([first.lines])
     }
 
-    /// これから読む 1 回分の文の音声を、読む予定の人の分だけ先に取っておく（もう 1 人の分は取らない）。
-    /// 穴埋めの問題を出したときに、答えたあとに読む文を取っておくのに使う
-    func prefetch(_ lines: [ReadAloudLine]) {
-        guard fetcher != nil, !lines.isEmpty else { return }
+    /// これから読む文の音声を、読む予定の人の分だけ、渡した順に先に取っておく（もう 1 人の分は取らない）。
+    /// 前に頼んだ先読みでまだ始めていない分は取りやめる。
+    /// 学習中にカードを出すたび、今のカード・回答後・このあと出す数語の文を渡す
+    func prefetch(_ upcoming: [[ReadAloudLine]]) {
+        let upcoming = upcoming.filter { !$0.isEmpty }
+        guard fetcher != nil, !upcoming.isEmpty else { return }
         let model = ttsModel()
-        let speakers = plan([lines], model: model)
+        let speakers = plan(upcoming, model: model)
         prefetchQueue = Self.prefetchRequests(
-            [lines], speakers: speakers, model: model, includesAlternates: false
+            upcoming, speakers: speakers, model: model, includesAlternates: false
         )
         pumpPrefetch()
     }
@@ -239,7 +259,7 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         onFinish: @escaping () -> Void
     ) async {
         for (index, line) in lines.enumerated() {
-            let url = await audios[index].value
+            let url = await awaitAudio(audios[index])
             guard generation == current else { return }
             onLineStart(index)
 
@@ -264,6 +284,20 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
         }
         runTask = nil
         onFinish()
+    }
+
+    /// 文の音声を待つ。`maxWait` を過ぎたら nil（取りに行っている分は止めず、届けば端末に残る）
+    private func awaitAudio(_ task: Task<URL?, Never>) async -> URL? {
+        guard let maxWait else { return await task.value }
+        let once = OnceContinuation<URL?>()
+        return await withCheckedContinuation { continuation in
+            once.continuation = continuation
+            Task { once.resume(await task.value) }
+            Task {
+                try? await Task.sleep(for: maxWait)
+                once.resume(nil)
+            }
+        }
     }
 
     private func speakWithFallback(_ line: ReadAloudLine) async {
@@ -294,6 +328,10 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
     /// 1 語を読む人。先読みで決めてあればその人。決めていなければ `pickSpeaker` で選ぶ。
     /// 決めた人の音声がまだそろっておらず、もう 1 人の分がそろっていれば、待たずに読めるそちらで読む
     private func chooseSpeaker(for lines: [ReadAloudLine], model: TTSModel) -> SpeechAPI.Speaker {
+        if speakerChoice == .perWord {
+            speakingLines = lines
+            return wordSpeaker(for: lines, model: model)
+        }
         var speaker = plannedSpeakers[lines] ?? pickSpeaker(for: lines, recent: recentSpeakers, model: model)
         let other = Self.other(than: speaker)
         if !isCached(lines, speaker: speaker, model: model), isCached(lines, speaker: other, model: model) {
@@ -307,6 +345,9 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
 
     /// これから読む語の人を決める（決めてある語はそのまま）。今の語のあとに続けて読む順で、3 語続けて同じ人にしない
     private func plan(_ upcoming: [[ReadAloudLine]], model: TTSModel) -> [SpeechAPI.Speaker] {
+        if speakerChoice == .perWord {
+            return upcoming.map { wordSpeaker(for: $0, model: model) }
+        }
         var recent = recentSpeakers
         var plans: [[ReadAloudLine]: SpeechAPI.Speaker] = [:]
         let speakers = upcoming.map { lines in
@@ -339,6 +380,29 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
             return Self.other(than: last)
         }
         return speaker
+    }
+
+    /// 語ごとに決まった人（`fixedSpeaker`）。その人の分がまだ無く、もう 1 人の分がそろっていればそちら
+    /// （グループの読み上げで残した音声を使い、待たずに鳴らすため）
+    private func wordSpeaker(for lines: [ReadAloudLine], model: TTSModel) -> SpeechAPI.Speaker {
+        let fixed = Self.fixedSpeaker(for: lines)
+        let other = Self.other(than: fixed)
+        if !isCached(lines, speaker: fixed, model: model), isCached(lines, speaker: other, model: model) {
+            return other
+        }
+        return fixed
+    }
+
+    /// 単語の綴り（単語の文が無ければ最初の文）の FNV-1a ハッシュの偶奇で決める。
+    /// `hashValue` は起動ごとに変わるので使わない
+    static func fixedSpeaker(for lines: [ReadAloudLine]) -> SpeechAPI.Speaker {
+        let text = (lines.first { $0.kind == .word } ?? lines.first)?.spokenText ?? ""
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in text.utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x0000_0100_0000_01b3
+        }
+        return hash.isMultiple(of: 2) ? .chobi : .naruko
     }
 
     private func isCached(_ lines: [ReadAloudLine], speaker: SpeechAPI.Speaker, model: TTSModel) -> Bool {
@@ -413,6 +477,17 @@ final class GeminiReadAloudSpeaker: ReadAloudSpeaking {
                 pumpPrefetch()
             }
         }
+    }
+}
+
+/// 2 か所から呼ばれても 1 回だけ再開する（音声が届く・待つ上限が来る、の早い方）
+private final class OnceContinuation<Value: Sendable> {
+    var continuation: CheckedContinuation<Value, Never>?
+
+    func resume(_ value: Value) {
+        let continuation = continuation
+        self.continuation = nil
+        continuation?.resume(returning: value)
     }
 }
 

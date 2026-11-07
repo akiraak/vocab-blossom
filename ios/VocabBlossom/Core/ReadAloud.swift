@@ -75,6 +75,20 @@ enum ReadAloudScript {
         return [line(.word, quiz.word.word, senseIndex: 0)].compactMap { $0 } + sentences
     }
 
+    /// 学習中に読む文: 単語 → 例文（例文が空なら単語だけ）。提示カード・出題・回答後・スピーカーのボタンで使う
+    static func learningLines(word: String, example: String = "") -> [ReadAloudLine] {
+        [line(.word, word, senseIndex: 0), line(.example, example, senseIndex: 0)].compactMap { $0 }
+    }
+
+    /// 学習で先に取っておく文: 単語 → すべての意味の例文。
+    /// 出題する意味は出す直前に決まるので、どの意味で出してもすぐ鳴るように全部取る
+    static func learningPrefetchLines(for word: WordEntry) -> [ReadAloudLine] {
+        let examples = word.senses.enumerated().compactMap { index, sense in
+            line(.example, sense.example, senseIndex: index)
+        }
+        return [line(.word, word.word, senseIndex: 0)].compactMap { $0 } + examples
+    }
+
     /// 英文を文ごとに分ける（「. ! ?」のあとの空白で切る）。A1〜A2 の文章なので略語はほぼ出ない前提
     static func sentences(in text: String) -> [String] {
         text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)

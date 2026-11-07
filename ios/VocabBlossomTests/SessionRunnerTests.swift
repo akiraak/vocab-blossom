@@ -84,6 +84,31 @@ struct SessionRunnerTests {
         #expect(firstQuiz.type == .enToJa, "新規の直後クイズは英→日")
     }
 
+    @Test("このあと出す語は、キューの先頭から同じ語を除いて上限まで（締めでは空）")
+    func upcomingWords() throws {
+        let plan = SessionPlan(
+            reviewWordIds: ["a1-0001"],
+            newWordIds: ["a1-0010", "a1-0011"]
+        )
+        let runner = runner(plan)
+        // 今の問題（a1-0001）は含めない。新しい単語は提示とクイズの 2 回出るが 1 語に数える
+        #expect(runner.upcomingWords(limit: 5).map(\.id) == ["a1-0010", "a1-0011"])
+        #expect(runner.upcomingWords(limit: 1).map(\.id) == ["a1-0010"])
+
+        try answerIncorrectly(runner)
+        // 間違えた語は末尾で再出題されるので、このあと出す語に入る
+        #expect(runner.upcomingWords(limit: 5).map(\.id) == ["a1-0011", "a1-0010", "a1-0001"])
+
+        while !runner.isFinished {
+            if case .present = runner.step {
+                runner.next()
+            } else {
+                try answerCorrectly(runner)
+            }
+        }
+        #expect(runner.upcomingWords(limit: 5).isEmpty)
+    }
+
     @Test("復習の出題形式はステージに連動する")
     func reviewQuizTypeFollowsStage() throws {
         context.insert(

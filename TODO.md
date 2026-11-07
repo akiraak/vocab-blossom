@@ -19,3 +19,14 @@
   - [x] 読み上げの声（Gemini）: 声・速さ・日本語の自然さ、スピーカーで割れないこと、オフラインで内蔵の声に落ちること（2026-11-04 問題なし）→ [plan](docs/plans/archive/read-aloud-gemini-voice.md)
   - [x] 読み上げの待ち時間: グループ詳細を開いてから読み上げを押すとすぐ鳴る・2 語目の頭で待たない（2026-11-04 問題なし）→ [plan](docs/plans/archive/read-aloud-start-delay.md)
   - [ ] AI のモデル: 設定画面から切り替えて、AI チェック・穴埋め・読み上げが動く → [plan](docs/plans/archive/ai-model-settings.md)
+- [ ] グループ機能をメインに使っているので、アプリ全体の設計をグループ機能を中心に使うものに変更する（全ての音声読み上げを Gemini の TTS に変更するのも同時に行う）→ [plan](docs/plans/group-centric-redesign.md)
+  - [x] Phase 1: 学習中の読み上げを Gemini の声にする → [plan](docs/plans/archive/learning-voice-gemini.md)
+    - [x] Step 1: `GeminiReadAloudSpeaker` に学習用の動きを足す（読む人を語ごとに固定・待つのは 3 秒まで・複数の語の先読み）
+    - [x] Step 2: 学習画面の読み上げを置き換え、セッションで先読みする
+    - [x] Step 3: `SpeechService` を消す
+    - [x] Step 4: 確かめる（テスト・SwiftLint・シミュレータ）
+  - [ ] Phase 2: ホームをグループ中心にする
+  - [ ] Phase 3: 単語帳タブを外す
+  - [ ] Phase 4: CEFR 学習の機能を外す
+  - [ ] Phase 5: 仕様書を直す
+  - [ ] Phase 6: 実機確認

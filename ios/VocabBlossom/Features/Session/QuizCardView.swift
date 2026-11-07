@@ -103,7 +103,9 @@ struct QuizCardView: View {
                     .foregroundStyle(.secondary)
             case .listening:
                 Button {
-                    SpeechService.shared.speak(word: quiz.word.word, example: quiz.sense.example)
+                    GeminiReadAloudSpeaker.quiz.speak(
+                        ReadAloudScript.learningLines(word: quiz.word.word, example: quiz.sense.example)
+                    )
                 } label: {
                     VStack(spacing: 8) {
                         Image(systemName: "speaker.wave.3.fill")

@@ -12,6 +12,8 @@ import SwiftData
 /// - `VOCAB_DEMO_SCREEN=session`: 起動直後にセッションを開く（復習から始まる）
 /// - `VOCAB_DEMO_SCREEN=session-new`: 復習は無く、新規学習の提示カードから始まる
 /// - `VOCAB_DEMO_SCREEN=session-summary`: 出題が無い状態（締め画面）
+/// - `session` / `session-new` / `group-learn` / `group-drill` の読み上げの声は、偽のサーバーの音
+///   （Chobi は低い音・Naruko は高い音。文の長さだけ鳴る）
 /// - `VOCAB_DEMO_SCREEN=words|stats|settings`: そのタブを開いた状態で起動する
 /// - `VOCAB_DEMO_SCREEN=fresh`: オンボーディング済み・学習記録なしの状態
 /// - `VOCAB_DEMO_SCREEN=known-words`: 既知語の一括登録画面

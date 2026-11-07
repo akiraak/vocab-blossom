@@ -179,6 +179,36 @@ struct FillBlankAnswerLinesTests {
     }
 }
 
+@Suite("学習中に読む文")
+struct LearningLinesTests {
+    @Test("単語 → 例文。例文が空なら単語だけ")
+    func lines() {
+        let lines = ReadAloudScript.learningLines(word: "apple", example: " I eat an apple. ")
+        #expect(lines.map(\.kind) == [.word, .example])
+        #expect(lines.map(\.text) == ["apple", "I eat an apple."])
+        #expect(ReadAloudScript.learningLines(word: "apple", example: "").map(\.text) == ["apple"])
+        #expect(ReadAloudScript.learningLines(word: "apple").map(\.text) == ["apple"])
+    }
+
+    @Test("先読みは 単語 → すべての意味の例文（空の例文は飛ばす）")
+    func prefetchLines() {
+        let word = entry(
+            "commute", meaning: "通勤する", example: "I commute by bus.", exampleJa: "バスで通勤する。",
+            extraSenses: [
+                WordSense(pos: .noun, meaning: "通勤", example: "My commute is long.", exampleJa: "通勤が長い。"),
+                WordSense(pos: .noun, meaning: "通勤距離", example: "", exampleJa: ""),
+            ]
+        )
+        let lines = ReadAloudScript.learningPrefetchLines(for: word)
+        #expect(lines.map(\.text) == ["commute", "I commute by bus.", "My commute is long."])
+        #expect(lines.map(\.senseIndex) == [0, 0, 1])
+        // 出題時・回答後に読む文と、種類・声に出す文が同じになる（サーバーへ頼む鍵が同じなので音声を使い回せる）
+        let answer = ReadAloudScript.learningLines(word: word.word, example: word.senses[1].example)
+        let keys = Set(lines.map { "\($0.kind)/\($0.spokenText)" })
+        #expect(answer.allSatisfy { keys.contains("\($0.kind)/\($0.spokenText)") })
+    }
+}
+
 @Suite("読み上げの再生")
 struct ReadAloudPlayerTests {
     private func makePlayer(_ words: [String] = ["a", "b", "c"]) -> (ReadAloudPlayer, FakeReadAloudSpeaker) {

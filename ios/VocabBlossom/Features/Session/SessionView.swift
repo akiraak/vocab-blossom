@@ -112,7 +112,7 @@ struct SessionView: View {
                 .padding(16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .task(id: runner.step.id) { speakIfNeeded(runner.step) }
+        .task(id: runner.step.id) { speakIfNeeded(runner) }
         .task(id: runner.selectedIndex) { await feedbackAfterAnswer(runner) }
     }
 
@@ -158,8 +158,8 @@ struct SessionView: View {
     }
 
     /// 回答直後のフィードバック。正誤の効果音を鳴らし、少し置いてから
-    /// 単語と例文を読み上げて定着を促す（正誤にかかわらず読む）。
-    /// 穴埋めは、単語と出題した文章を Gemini の声で読む（取れなければ内蔵の声）。
+    /// 単語と例文を読み上げて定着を促す（正誤にかかわらず読む）。穴埋めは単語と出題した文章を読む。
+    /// 読み上げはすべて Gemini の声（`GeminiReadAloudSpeaker.quiz`。取れなければ内蔵の声）。
     /// 読み上げ前に「次へ」で進んだら読み上げは取りやめる（次のカードと衝突させない）
     private func feedbackAfterAnswer(_ runner: SessionRunner) async {
         guard let correct = runner.lastAnswerWasCorrect,
@@ -170,52 +170,63 @@ struct SessionView: View {
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
         }
-        if quiz.type == .fillBlank {
-            speakFillBlankAnswer(quiz)
-        } else {
-            // 意味が複数ある語は、出題した意味の例文を読む
-            speak(word: quiz.word.word, example: quiz.sense.example)
-        }
-    }
-
-    private func speakIfNeeded(_ step: SessionRunner.Step) {
-        // 前の問題の回答後の読み上げ（Gemini の声）が残っていれば止める
-        GeminiReadAloudSpeaker.quiz.stop()
-        switch step {
-        case .present(let word):
-            speak(word: word.word, example: word.example)
-        case .quiz(let quiz, _):
-            if quiz.type == .fillBlank, settings.soundEnabled {
-                // 考えている間に、答えたあとに読む文の音声を取っておく（答えたらすぐ鳴らすため）
-                GeminiReadAloudSpeaker.quiz.prefetch(ReadAloudScript.fillBlankAnswerLines(for: quiz))
-            }
-            guard let speech = quiz.speechOnPrompt else { return }
-            speak(word: speech.word, example: speech.example)
-        case .summary:
-            SpeechService.shared.stop()
-        }
-    }
-
-    /// 穴埋めの回答後: 単語 → 出題した文章（文章で出したときはその全文、例文で出したときは例文）
-    private func speakFillBlankAnswer(_ quiz: Quiz) {
         guard settings.soundEnabled else { return }
-        GeminiReadAloudSpeaker.quiz.speak(
-            ReadAloudScript.fillBlankAnswerLines(for: quiz), onLineStart: { _ in }, onFinish: {}
-        )
+        GeminiReadAloudSpeaker.quiz.speak(answerLines(for: quiz))
+    }
+
+    /// このあと出す語のうち、音声を先に取っておく数
+    private static let prefetchWordCount = 5
+
+    private func speakIfNeeded(_ runner: SessionRunner) {
+        let speaker = GeminiReadAloudSpeaker.quiz
+        // 前のカードの読み上げが残っていれば止める
+        speaker.stop()
+        var prefetch: [[ReadAloudLine]] = []
+        switch runner.step {
+        case .present(let word):
+            prefetch.append(speak(word: word.word, example: word.example))
+        case .quiz(let quiz, _):
+            if let speech = quiz.speechOnPrompt {
+                prefetch.append(speak(word: speech.word, example: speech.example))
+            }
+            // 考えている間に、答えたあとに読む文の音声を取っておく（答えたらすぐ鳴らすため）
+            prefetch.append(answerLines(for: quiz))
+        case .summary:
+            speaker.finish()
+            return
+        }
+        // カードが出たらすぐ鳴るよう、このあと出す数語の音声も取っておく
+        prefetch += runner.upcomingWords(limit: Self.prefetchWordCount)
+            .map(ReadAloudScript.learningPrefetchLines)
+        if settings.soundEnabled {
+            speaker.prefetch(prefetch)
+        }
+    }
+
+    /// 回答後に読む文。穴埋めは単語 → 出題した文章（文章で出したときはその全文、例文で出したときは例文）。
+    /// ほかの形式は単語 → 出題した意味の例文（意味が複数ある語は、出題した意味の例文を読む）
+    private func answerLines(for quiz: Quiz) -> [ReadAloudLine] {
+        quiz.type == .fillBlank
+            ? ReadAloudScript.fillBlankAnswerLines(for: quiz)
+            : ReadAloudScript.learningLines(word: quiz.word.word, example: quiz.sense.example)
+    }
+
+    private func speakFillBlankAnswer(_ quiz: Quiz) {
+        GeminiReadAloudSpeaker.quiz.speak(answerLines(for: quiz))
     }
 
     /// 読み上げをすべて止め、少し待ってから音声セッションを無効化する（閉じるとき）
     private func stopSpeaking() {
-        GeminiReadAloudSpeaker.quiz.stop()
-        SpeechService.shared.stop()
+        GeminiReadAloudSpeaker.quiz.finish()
     }
 
-    private func speak(word: String, example: String) {
-        guard settings.soundEnabled else { return }
-        if example.isEmpty {
-            SpeechService.shared.speak(word: word)
-        } else {
-            SpeechService.shared.speak(word: word, example: example)
+    /// 自動の読み上げ。設定でオフなら読まない。読む（読む予定だった）文を返す（先読みに使う）
+    @discardableResult
+    private func speak(word: String, example: String) -> [ReadAloudLine] {
+        let lines = ReadAloudScript.learningLines(word: word, example: example)
+        if settings.soundEnabled {
+            GeminiReadAloudSpeaker.quiz.speak(lines)
         }
+        return lines
     }
 }
