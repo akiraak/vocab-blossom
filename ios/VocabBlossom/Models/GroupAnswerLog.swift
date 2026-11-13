@@ -7,8 +7,10 @@ enum GroupAnswerSource: String, Codable, CaseIterable, Sendable {
     case learning
     /// グループのドリル（進捗を動かさない）
     case drill
-    /// グループの穴埋めモード（進捗を動かさない）
+    /// グループの穴埋めモード・4 択（進捗を動かさない）
     case fillBlank
+    /// グループの穴埋めモード・キーボードで入力（進捗を動かさない）
+    case fillBlankTyping
 }
 
 /// どのグループのどの入口から始めたか。回答を `GroupAnswerLog` に残すのに使う

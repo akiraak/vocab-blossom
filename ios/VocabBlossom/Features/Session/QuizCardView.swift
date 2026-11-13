@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 4 択クイズ 1 問。回答後は正誤と単語カードをそのまま下に見せる。
+/// クイズ 1 問。4 択か、穴埋めをキーボードで入力（`quiz.input == .typing`）。回答後は正誤と単語カードをそのまま下に見せる。
 struct QuizCardView: View {
     let quiz: Quiz
     let kind: AnswerKind
@@ -11,9 +11,22 @@ struct QuizCardView: View {
     let onNext: () -> Void
     /// 答えたあとの「もう一度聞く」（穴埋めだけ。単語 → 出題した文章を読む）。nil ならボタンを出さない
     var onReplay: (() -> Void)?
+    /// 入力の問題で回答済みなら打った綴り（「わからない」は空）。未回答は nil
+    var typedAnswer: String?
+    /// 入力の問題に答える（「わからない」は空で呼ぶ）
+    var onSubmitTyped: (String) -> Void = { _ in }
 
-    private var isAnswered: Bool { selectedIndex != nil }
-    private var isCorrect: Bool { selectedIndex.map { quiz.isCorrect(choiceIndex: $0) } ?? false }
+    /// 入力の問題で打っている途中の綴り
+    @State private var draft = ""
+
+    private var isTyping: Bool { quiz.input == .typing }
+    private var isAnswered: Bool { selectedIndex != nil || typedAnswer != nil }
+    private var isCorrect: Bool {
+        if let typedAnswer { return quiz.isCorrect(typed: typedAnswer) }
+        return selectedIndex.map { quiz.isCorrect(choiceIndex: $0) } ?? false
+    }
+
+    private var trimmedDraft: String { draft.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     /// 正解の色にする選択肢（出題した語と、ほかにも正解の語）
     private func isCorrectChoice(_ index: Int) -> Bool { quiz.isCorrect(choiceIndex: index) }
@@ -27,7 +40,11 @@ struct QuizCardView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     prompt
-                    choices
+                    if !isTyping {
+                        choices
+                    } else if let typedAnswer {
+                        typedResult(typedAnswer)
+                    }
                     if isAnswered {
                         feedback
                     }
@@ -38,8 +55,81 @@ struct QuizCardView: View {
             if isAnswered {
                 Button("次へ", action: onNext)
                     .buttonStyle(.capsule)
+            } else if isTyping {
+                // 入力欄はスクロールの外に置く（キーボードが出ても、長い文章に押し出されないように）
+                typingEntry
             }
         }
+        .onChange(of: quiz.id) { draft = "" }
+    }
+
+    // MARK: - 入力の問題
+
+    private func submitDraft() {
+        guard !trimmedDraft.isEmpty else { return }
+        onSubmitTyped(trimmedDraft)
+    }
+
+    /// 入力欄と「わからない」「答える」
+    private var typingEntry: some View {
+        VStack(spacing: 10) {
+            TypingAnswerField(text: $draft, onSubmit: submitDraft)
+                .frame(height: 56)
+                .padding(.horizontal, 16)
+                .background(Theme.background, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(Theme.accent, lineWidth: 1.5)
+                )
+            HStack(spacing: 10) {
+                Button("わからない") { onSubmitTyped("") }
+                    .buttonStyle(.capsuleSecondary)
+                Button("答える", action: submitDraft)
+                    .buttonStyle(.capsule)
+                    .disabled(trimmedDraft.isEmpty)
+            }
+        }
+    }
+
+    /// 答えたあと: 打った綴りと、間違えたときは正解の綴り
+    private func typedResult(_ typed: String) -> some View {
+        VStack(spacing: 10) {
+            typedRow(label: "あなたの答え", text: typed.isEmpty ? "わからない" : typed, correct: isCorrect)
+            if !isCorrect, let answer = quiz.typedAnswer {
+                typedRow(label: "正解", text: answer, correct: true)
+            }
+            if quiz.isHeadwordInOtherForm(typed: typed), let answer = quiz.typedAnswer {
+                Label("この文では「\(answer)」の形で入ります", systemImage: "lightbulb")
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func typedRow(label: String, text: String, correct: Bool) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(text)
+                    .font(.body.weight(.medium))
+            }
+            Spacer(minLength: 8)
+            Image(systemName: correct ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundStyle(correct ? Theme.correct : Theme.incorrect)
+        }
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+        .background(
+            correct ? Theme.tintBlossom : Theme.incorrect.opacity(0.1),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(correct ? Theme.correct : Theme.incorrect, lineWidth: 1.5)
+        )
+        .accessibilityElement(children: .combine)
     }
 
     private var headerLabels: some View {
@@ -93,7 +183,7 @@ struct QuizCardView: View {
                 Text(quiz.blankedExample ?? quiz.sense.example)
                     .font(.title3.weight(.medium))
                     .multilineTextAlignment(.center)
-                Text("空欄に入る語は？")
+                Text(isTyping ? "空欄に入る語を入力" : "空欄に入る語は？")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             case .listening:

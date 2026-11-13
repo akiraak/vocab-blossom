@@ -28,7 +28,7 @@ struct GroupDetailView: View {
     enum GroupSession: Identifiable {
         case learn(SessionPlan)
         case drill([String])
-        /// 形式を穴埋めに固定したドリル。文章の無い語は始める前に作る
+        /// 形式を穴埋めに固定したドリル。開くと答え方（4 択 / 入力）を選び、文章を作り直してから出す
         case fillBlank([WordEntry])
         /// グループの単語を順に読み上げる（学習の記録には残さない）
         case readAloud([WordEntry])
@@ -172,10 +172,15 @@ struct GroupDetailView: View {
                     group: GroupAnswerContext(groupId: group.id, source: .drill)
                 )
             case .fillBlank(let words):
+                #if DEBUG
+                FillBlankSessionView(
+                    words: words, closeTitle: "グループにもどる", groupId: group.id,
+                    initialInput: DebugSeed.fillBlankInput
+                )
+                .debugPassagePreparation()
+                #else
                 FillBlankSessionView(words: words, closeTitle: "グループにもどる", groupId: group.id)
-                    #if DEBUG
-                    .debugPassagePreparation()
-                    #endif
+                #endif
             case .readAloud(let words):
                 ReadAloudView(groupName: group.name, words: words)
             }
@@ -188,7 +193,8 @@ struct GroupDetailView: View {
             switch DebugSeed.variant {
             case .groupLearn: session = .learn(plan)
             case .groupDrill: session = .drill(words.map(\.id))
-            case .groupFillBlank, .fillBlankPreparing: session = .fillBlank(words)
+            case .groupFillBlank, .fillBlankPreparing, .fillBlankChoose, .groupFillBlankTyping:
+                session = .fillBlank(words)
             case .groupReadAloud: session = .readAloud(words)
             case .drillSenses: session = .drill(words.filter { !$0.extraSenses.isEmpty }.map(\.id))
             case .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult, .wordEditorSenses:
@@ -321,7 +327,7 @@ struct GroupDetailView: View {
                 modeButton("ドリル", systemImage: "arrow.triangle.2.circlepath") {
                     session = .drill(words.map(\.id).shuffled())
                 }
-                // 穴埋め: 文章の空欄に入る語を選ぶドリル。文章の無い語は始める前に AI で作る
+                // 穴埋め: 文章の空欄に入る語を答えるドリル。開いてから 4 択か入力かを選び、文章は毎回 AI で作り直す
                 modeButton("穴埋め", systemImage: "rectangle.and.pencil.and.ellipsis") {
                     session = .fillBlank(words)
                 }

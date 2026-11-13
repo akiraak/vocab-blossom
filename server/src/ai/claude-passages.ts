@@ -23,9 +23,10 @@ For each target word, write exactly 3 passages:
 - Make the three passages use different situations. Do not reuse the example sentence you are given.
 - For a multi-word phrase, keep its words together in the usual order (only an object may come between a verb and its particle, as in "call you back").
 - A word with "…", such as "either … or …", is a paired expression: write its parts in order and put 1–6 words in each gap ("either tea or coffee"). Each part is blanked.
+- If the input has "avoid", those are passages the learner has already seen for this word. Write new passages with different situations and different sentences from them.
 - ja: a natural Japanese translation of the whole passage, ending with "。" (or "？" / "！").
 
-Each input line is a JSON object with id, word, pos, meaning (Japanese) and example. Return one item per input word with the same id, in the same order.`
+Each input line is a JSON object with id, word, pos, meaning (Japanese), example and sometimes avoid. Return one item per input word with the same id, in the same order.`
 
 const OUTPUT_SCHEMA = {
   type: 'object',
@@ -57,7 +58,16 @@ const OUTPUT_SCHEMA = {
 
 export function passagesUserMessage(words: PassageWord[]): string {
   return words
-    .map((w) => JSON.stringify({ id: w.id, word: w.word, pos: w.pos, meaning: w.meaning, example: w.example }))
+    .map((w) =>
+      JSON.stringify({
+        id: w.id,
+        word: w.word,
+        pos: w.pos,
+        meaning: w.meaning,
+        example: w.example,
+        ...(w.avoid?.length ? { avoid: w.avoid } : {}),
+      }),
+    )
     .join('\n')
 }
 

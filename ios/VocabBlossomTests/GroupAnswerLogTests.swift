@@ -227,6 +227,23 @@ struct GroupAnswerLogTests {
 
     // MARK: - バックアップ
 
+    @Test("入力の穴埋めの記録も、バックアップに入れて読み込める")
+    func backupTypingSource() throws {
+        let settings = AppSettings(defaults: UserDefaults(suiteName: "group-answer-\(UUID().uuidString)")!)
+        engine.recordGroupAnswer(
+            GroupAnswerContext(groupId: groupId, source: .fillBlankTyping),
+            wordId: "a1-0001", correct: true, quizType: .fillBlank, kind: .review, now: now
+        )
+        let data = try BackupService.export(context: context, settings: settings, now: now)
+        let other = ModelContext(
+            try ModelContainer(
+                for: AppModel.schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
+        )
+        _ = try BackupService.restore(from: data, context: other, settings: settings)
+        #expect(try other.fetch(FetchDescriptor<GroupAnswerLog>()).map(\.source) == [.fillBlankTyping])
+    }
+
     @Test("バックアップに入り、読み込むと戻る")
     func backupRoundTrip() throws {
         let settings = AppSettings(defaults: UserDefaults(suiteName: "group-answer-\(UUID().uuidString)")!)

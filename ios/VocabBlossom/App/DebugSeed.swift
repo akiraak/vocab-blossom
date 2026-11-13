@@ -24,6 +24,8 @@ import SwiftData
 ///   声は偽のサーバーの音（Chobi は低い音・Naruko は高い音）で、文の長さだけ鳴る）
 /// - `VOCAB_DEMO_SCREEN=fill-blank-preparing`: 穴埋めの文章を作る画面（空のキャッシュ・偽のサーバーでゆっくり作る）。
 ///   作り終えると選択肢を確かめる画面になり、偽のサーバーが各問の 1 つ目の誤答肢を「ほかの正解」にする
+/// - `VOCAB_DEMO_SCREEN=fill-blank-choose`: 穴埋めの最初の、答え方（4 択 / 入力）を選ぶ画面（選ぶと偽のサーバーで作る）
+/// - `VOCAB_DEMO_SCREEN=group-fill-blank-typing`: 穴埋めをキーボードで入力する問題（偽のサーバーで作ってから出す）
 /// - `VOCAB_DEMO_SCREEN=word-picker`: グループの「単語を追加」を、単語帳に無い語で検索した状態で開く
 ///   （`VOCAB_DEMO_QUERY=proper` を足すと、その語で検索欄に入力中の状態で開く）
 /// - `VOCAB_DEMO_SCREEN=word-editor`: グループの「単語を追加」から、例文に単語が無い下書きで自作語のエディタを開く
@@ -49,6 +51,8 @@ enum DebugSeed {
         case groupFillBlank = "group-fill-blank"
         case groupReadAloud = "group-read-aloud"
         case fillBlankPreparing = "fill-blank-preparing"
+        case fillBlankChoose = "fill-blank-choose"
+        case groupFillBlankTyping = "group-fill-blank-typing"
         case groupSelect = "group-select"
         case wordPicker = "word-picker"
         case wordEditor = "word-editor"
@@ -64,7 +68,7 @@ enum DebugSeed {
         var seedsGroups: Bool {
             switch self {
             case .groups, .myWords, .groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud,
-                 .fillBlankPreparing, .groupSelect,
+                 .fillBlankPreparing, .fillBlankChoose, .groupFillBlankTyping, .groupSelect,
                  .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
                  .wordEditorSenses, .wordDetailSenses, .drillSenses:
                 true
@@ -97,6 +101,7 @@ enum DebugSeed {
     /// グループ詳細を最初から開く
     static var opensFirstGroup: Bool {
         [.groupDetail, .groupLearn, .groupDrill, .groupFillBlank, .groupReadAloud, .fillBlankPreparing,
+         .fillBlankChoose, .groupFillBlankTyping,
                  .groupSelect,
          .wordPicker, .wordEditor, .wordEditorLoading, .wordAssistResult,
          .wordEditorSenses, .wordDetailSenses, .drillSenses]
@@ -269,7 +274,7 @@ nonisolated struct DebugPassageFetcher: PassageFetching {
     /// 画面を描き直しても同じものを使う（作った文章が消えないように）
     static let cache = PassageCache(fileURL: nil)
 
-    func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result] {
+    func fetch(_ words: [PassageAPI.Word], refresh: Bool) async throws -> [PassageAPI.Result] {
         try await Task.sleep(for: .milliseconds(1500))
         return words.map { word in
             let passages = (1...3).map { number in
@@ -334,11 +339,22 @@ nonisolated struct DebugSpeechFetcher: SpeechFetching {
     }
 }
 
+extension DebugSeed {
+    /// 穴埋めを起動直後に開くとき、答え方を選ぶ画面を飛ばして始める答え方（選ぶ画面を見るときは nil）
+    static var fillBlankInput: QuizInput? {
+        switch variant {
+        case .groupFillBlank, .fillBlankPreparing: .choice
+        case .groupFillBlankTyping: .typing
+        default: nil
+        }
+    }
+}
+
 extension View {
-    /// `fill-blank-preparing` のときだけ、空のキャッシュと偽のサーバーに差し替える
+    /// 穴埋めの画面確認（`fill-blank-preparing` など）のときだけ、空のキャッシュと偽のサーバーに差し替える
     @ViewBuilder
     func debugPassagePreparation() -> some View {
-        if DebugSeed.variant == .fillBlankPreparing {
+        if [.fillBlankPreparing, .fillBlankChoose, .groupFillBlankTyping].contains(DebugSeed.variant) {
             environment(\.passageCache, DebugPassageFetcher.cache)
                 .environment(\.passageFetcher, DebugPassageFetcher())
                 .environment(\.fillBlankChecker, DebugFillBlankChecker())

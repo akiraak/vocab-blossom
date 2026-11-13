@@ -59,14 +59,17 @@ const lendPassages: Passage[] = [
 /** 呼ばれた語を記録し、決めた順に返事を返す偽物（足りなくなったら最後の返事を繰り返す） */
 function fakeWriter(
   ...responses: (Record<string, Passage[]> | Error)[]
-): PassageWriter & { calls: string[][]; models: (string | undefined)[] } {
+): PassageWriter & { calls: string[][]; models: (string | undefined)[]; avoids: (string[] | undefined)[][] } {
   const calls: string[][] = []
   const models: (string | undefined)[] = []
+  const avoids: (string[] | undefined)[][] = []
   return {
     calls,
     models,
+    avoids,
     async write(words, model) {
       calls.push(words.map((w) => w.id))
+      avoids.push(words.map((w) => w.avoid))
       models.push(model)
       const response = responses[Math.min(calls.length - 1, responses.length - 1)]
       if (response instanceof Error) throw response
@@ -75,9 +78,25 @@ function fakeWriter(
   }
 }
 
-function passagesReq(words: unknown, model?: unknown): Request {
-  return apiReq('/api/passages', { method: 'POST', body: JSON.stringify({ words, model }) })
+function passagesReq(words: unknown, model?: unknown, refresh?: unknown): Request {
+  return apiReq('/api/passages', { method: 'POST', body: JSON.stringify({ words, model, refresh }) })
 }
+
+/** 作り直した文章（showerPassages と違う 3 パターン） */
+const newShowerPassages: Passage[] = [
+  {
+    text: 'Ken played in the park all afternoon and came home covered in sand. His mother told him to take a shower before dinner.',
+    ja: 'ケンは午後ずっと公園で遊び、砂だらけで帰ってきた。母は夕食の前にシャワーを浴びるように言った。',
+  },
+  {
+    text: 'It was a very hot night, and I could not sleep. I got up to take a shower, and the cool water felt great.',
+    ja: 'とても暑い夜で、眠れなかった。起きてシャワーを浴びると、冷たい水が気持ちよかった。',
+  },
+  {
+    text: 'Our hotel room has no bath, only a small bathroom. We take a shower there every evening after the beach.',
+    ja: 'ホテルの部屋にお風呂は無く、小さな浴室だけがある。毎晩、海のあとにそこでシャワーを浴びる。',
+  },
+]
 
 describe('穴埋めの文章の検証', () => {
   it('見出し語の数を活用形・熟語も含めて数える', () => {
@@ -158,6 +177,12 @@ describe('AI への入力と返事', () => {
     })
   })
 
+  it('作り直す語には、前の文章を avoid で添える', () => {
+    const lines = passagesUserMessage([{ ...shower, avoid: ['Old passage.'] }, { ...lend, avoid: [] }]).split('\n')
+    expect(JSON.parse(lines[0]).avoid).toEqual(['Old passage.'])
+    expect(JSON.parse(lines[1])).not.toHaveProperty('avoid')
+  })
+
   it('返事の形を確かめ、壊れた項目は捨てる', () => {
     expect(
       parsePassagesOutput({
@@ -212,6 +237,46 @@ describe('POST /api/passages', () => {
       { id: 'a2-0620', passages: lendPassages },
     ])
     expect(db.prepare('SELECT count(*) AS n FROM word_passages').get()).toEqual({ n: 1 })
+  })
+
+  it('refresh なら、ためた文章があっても前の文章を渡して作り直し、上書きする', async () => {
+    const writer = fakeWriter({ 'ph-0004': showerPassages }, { 'ph-0004': newShowerPassages })
+    const { handle } = createTestApp({}, { passageWriter: writer })
+    await handle(passagesReq([shower]))
+
+    const res = await handle(passagesReq([shower], undefined, true))
+    const body = (await res.json()) as PassagesResponse
+    expect(body.results[0].passages).toEqual(newShowerPassages)
+    expect(writer.calls).toHaveLength(2)
+    expect(writer.avoids).toEqual([[undefined], [showerPassages.map((p) => p.text)]])
+
+    // 上書きしたので、refresh 無しでは新しい文章が返る（AI は呼ばない）
+    const again = (await (await handle(passagesReq([shower]))).json()) as PassagesResponse
+    expect(again.results[0].passages).toEqual(newShowerPassages)
+    expect(writer.calls).toHaveLength(2)
+  })
+
+  it('refresh で前と同じ文章が返ったら作り直し、それでも駄目なら空で返して前の文章を残す', async () => {
+    const mixed = [showerPassages[0], newShowerPassages[1], newShowerPassages[2]]
+    const writer = fakeWriter({ 'ph-0004': showerPassages }, { 'ph-0004': mixed })
+    const { handle } = createTestApp({}, { passageWriter: writer })
+    await handle(passagesReq([shower]))
+
+    const res = await handle(passagesReq([shower], undefined, true))
+    expect(((await res.json()) as PassagesResponse).results[0].passages).toEqual([])
+    expect(writer.calls).toHaveLength(3)
+
+    const kept = (await (await handle(passagesReq([shower]))).json()) as PassagesResponse
+    expect(kept.results[0].passages).toEqual(showerPassages)
+  })
+
+  it('refresh でも、ためた文章の無い語はふつうに作る。refresh が真偽値でなければ 400', async () => {
+    const writer = fakeWriter({ 'ph-0004': showerPassages })
+    const { handle } = createTestApp({}, { passageWriter: writer })
+    const body = (await (await handle(passagesReq([shower], undefined, true))).json()) as PassagesResponse
+    expect(body.results[0].passages).toEqual(showerPassages)
+    expect(writer.avoids).toEqual([[undefined]])
+    expect((await handle(passagesReq([shower], undefined, 'yes'))).status).toBe(400)
   })
 
   it('作り直しで通れば、その文章を返す', async () => {

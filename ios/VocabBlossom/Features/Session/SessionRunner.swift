@@ -68,8 +68,13 @@ final class SessionRunner {
     let drillQuizType: QuizType?
     private(set) var step: Step = .summary
     private(set) var stats = Stats()
-    /// 回答済みなら選んだ選択肢の位置。未回答は nil
+    /// 4 択で回答済みなら選んだ選択肢の位置。未回答・入力の問題は nil
     private(set) var selectedIndex: Int?
+    /// 入力の問題で回答済みなら打った綴り（「わからない」は空）。未回答・4 択は nil
+    private(set) var typedAnswer: String?
+
+    /// 今の問題に答えたか（4 択・入力のどちらでも）
+    var isAnswered: Bool { selectedIndex != nil || typedAnswer != nil }
 
     private var queue: [Item]
     /// 表示中のステップの元になったキューの項目
@@ -217,20 +222,31 @@ final class SessionRunner {
 
     /// 回答後の正誤。未回答は nil
     var lastAnswerWasCorrect: Bool? {
-        guard let selectedIndex, case .quiz(let quiz, _) = step else { return nil }
-        return quiz.isCorrect(choiceIndex: selectedIndex)
+        guard case .quiz(let quiz, _) = step else { return nil }
+        if let typedAnswer { return quiz.isCorrect(typed: typedAnswer) }
+        return selectedIndex.map { quiz.isCorrect(choiceIndex: $0) }
     }
 
     // MARK: - 操作
 
     /// 4 択を選ぶ。同じ問題への 2 回目以降の選択は無視する
     func answer(choiceIndex: Int) {
-        guard selectedIndex == nil, case .quiz(let quiz, let kind) = step else { return }
+        guard !isAnswered, case .quiz(let quiz, let kind) = step, quiz.input == .choice else { return }
         selectedIndex = choiceIndex
-
-        let wordId = quiz.word.id
         // ほかにも正解の語（AI の判定。グループの穴埋めモードだけ）を選んでも正解
-        let correct = quiz.isCorrect(choiceIndex: choiceIndex)
+        record(quiz, kind: kind, correct: quiz.isCorrect(choiceIndex: choiceIndex))
+    }
+
+    /// 入力の問題に、打った綴りで答える（「わからない」は空で答える = 不正解）。2 回目以降は無視する
+    func answer(text: String) {
+        guard !isAnswered, case .quiz(let quiz, let kind) = step, quiz.input == .typing else { return }
+        typedAnswer = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        record(quiz, kind: kind, correct: quiz.isCorrect(typed: text))
+    }
+
+    /// 回答を数え、記録し、間違えたら再出題に積む（4 択・入力で同じ）
+    private func record(_ quiz: Quiz, kind: AnswerKind, correct: Bool) {
+        let wordId = quiz.word.id
 
         stats.answered += 1
         if correct { stats.correct += 1 }
@@ -300,6 +316,7 @@ final class SessionRunner {
         guard !isFinished else { return }
         completed += 1
         selectedIndex = nil
+        typedAnswer = nil
         advance()
     }
 

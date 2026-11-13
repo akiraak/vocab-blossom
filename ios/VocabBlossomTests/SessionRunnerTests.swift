@@ -260,4 +260,77 @@ struct SessionRunnerTests {
         #expect(logs[0].wordId == "a1-0001")
         #expect(engine.progress(for: "a1-0001") != nil)
     }
+
+    // MARK: - 穴埋めをキーボードで入力
+
+    private func typingQuiz() -> Quiz {
+        let word = WordEntry(
+            id: "custom-adapt", word: "adapt", pos: .verb, level: nil, meaning: "適応する", example: "",
+            exampleJa: ""
+        )
+        let passage = Passage(text: "Mia moved to Japan. She adapted quickly to her new school.", ja: "訳。")
+        var builder = QuizBuilder(store: store, passages: { _, _ in [passage] }, rng: SeededRNG(seed: 1))
+        return builder.make(for: word, type: .fillBlank, input: .typing)
+    }
+
+    @Test("入力で答えると数え、グループの記録と出した文章を残す。間違えたらもう一度出す")
+    func typingAnswers() throws {
+        let groupId = UUID()
+        let history = PassageHistory(fileURL: nil)
+        let quiz = typingQuiz()
+        let runner = SessionRunner(
+            drillQuizzes: [quiz], engine: engine, store: store, passageHistory: history,
+            group: GroupAnswerContext(groupId: groupId, source: .fillBlankTyping),
+            rng: SeededRNG(seed: 42), clock: { now }
+        )
+        #expect(!runner.isAnswered)
+
+        // 4 択の答え方は効かない
+        runner.answer(choiceIndex: 0)
+        #expect(!runner.isAnswered)
+
+        // 見出し語は文中の形（adapted）と違うので不正解
+        runner.answer(text: " adapt ")
+        #expect(runner.isAnswered)
+        #expect(runner.typedAnswer == "adapt")
+        #expect(runner.selectedIndex == nil)
+        #expect(runner.lastAnswerWasCorrect == false)
+        #expect(history.lastShownIndex(word: "adapt", sense: quiz.sense) == 0)
+
+        // 同じ問題への 2 回目の回答は無視する
+        runner.answer(text: "adapted")
+        #expect(runner.typedAnswer == "adapt")
+        #expect(runner.stats.answered == 1)
+
+        runner.next()
+        #expect(!runner.isAnswered)
+        let (again, kind) = try currentQuiz(runner)
+        #expect(kind == .requeue)
+        #expect(again.input == .typing)
+
+        runner.answer(text: "Adapted")
+        #expect(runner.lastAnswerWasCorrect == true)
+        runner.next()
+        #expect(runner.isFinished)
+        #expect(runner.stats.answered == 2)
+        #expect(runner.stats.correct == 1)
+        #expect(runner.stats.missedWordIds == ["custom-adapt"])
+
+        let logs = try context.fetch(FetchDescriptor<GroupAnswerLog>(sortBy: [SortDescriptor(\.answeredAt)]))
+        #expect(logs.count == 2)
+        #expect(logs.allSatisfy { $0.source == .fillBlankTyping && $0.quizType == .fillBlank })
+        #expect(logs.allSatisfy { $0.groupId == groupId })
+        #expect(Set(logs.map(\.correct)) == [false, true])
+        // 進捗・いつもの回答ログは動かさない
+        #expect(try context.fetch(FetchDescriptor<AnswerLog>()).isEmpty)
+    }
+
+    @Test("「わからない」は空で答えて不正解になる")
+    func typingGiveUp() {
+        let runner = SessionRunner(drillQuizzes: [typingQuiz()], engine: engine, store: store)
+        runner.answer(text: "")
+        #expect(runner.isAnswered)
+        #expect(runner.typedAnswer == "")
+        #expect(runner.lastAnswerWasCorrect == false)
+    }
 }

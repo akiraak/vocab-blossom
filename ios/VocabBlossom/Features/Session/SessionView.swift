@@ -117,7 +117,7 @@ struct SessionView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .task(id: runner.step.id) { speakIfNeeded(runner) }
-        .task(id: runner.selectedIndex) { await feedbackAfterAnswer(runner) }
+        .task(id: runner.isAnswered) { await feedbackAfterAnswer(runner) }
     }
 
     @ViewBuilder
@@ -137,7 +137,9 @@ struct SessionView: View {
                 selectedIndex: runner.selectedIndex,
                 onSelect: { runner.answer(choiceIndex: $0) },
                 onNext: { runner.next() },
-                onReplay: quiz.type == .fillBlank ? { speakFillBlankAnswer(quiz) } : nil
+                onReplay: quiz.type == .fillBlank ? { speakFillBlankAnswer(quiz) } : nil,
+                typedAnswer: runner.typedAnswer,
+                onSubmitTyped: { runner.answer(text: $0) }
             )
         case .summary:
             SessionSummaryView(

@@ -8,7 +8,8 @@ import type { RateLimiter } from './word-assist.ts'
 import { CLAUDE_MODELS, type ClaudeModel, ModelInputError, parseModel } from './models.ts'
 
 // 穴埋め用の文章（POST /api/passages）。1 語につき 3 パターンを AI で作り、「綴り・品詞・意味」を鍵にためる。
-// iOS はグループで穴埋めを始めるとき、端末に文章の無い語だけを送る。設計は docs/plans/fill-blank-passages.md。
+// iOS はグループで穴埋めを始めるたびに、全語を refresh 付きで送って作り直す（同じ文章を出さないため）。
+// refresh が無ければ、ためた文章を返し、無い語だけ作る。設計は docs/plans/fill-blank-passages.md・fill-blank-typing.md。
 
 export const PASSAGES_BODY_LIMIT = 16 * 1024
 /** 1 回に送れる語数。AI の 1 回の呼び出しが iOS の待てる時間に収まる量 */
@@ -28,6 +29,8 @@ export type PassageWord = {
   pos: PartOfSpeech
   meaning: string
   example: string
+  /** 作り直すとき、前にためてあった文章（サーバーが入れる）。AI にこれと違う文章を書かせ、同じなら検証で落とす */
+  avoid?: string[]
 }
 
 /** AI が返す 1 語分 */
@@ -68,7 +71,10 @@ export function sentenceCount(text: string): number {
 }
 
 /** 1 語分の文章の問題点。問題が無ければ空配列 */
-export function passageProblems(word: { word: string; example: string }, passages: Passage[]): string[] {
+export function passageProblems(
+  word: { word: string; example: string; avoid?: string[] },
+  passages: Passage[],
+): string[] {
   const problems: string[] = []
   if (passages.length !== PASSAGES_PER_WORD) {
     problems.push(`パターンが ${passages.length} 個（${PASSAGES_PER_WORD} 個にする）`)
@@ -89,6 +95,7 @@ export function passageProblems(word: { word: string; example: string }, passage
     if (example !== '' && text.includes(example)) problems.push(`${label}: 単語カードの例文をそのまま使っている`)
     if (!/[。？！]$/.test(passage.ja.trim())) problems.push(`${label}: 和訳が句点で終わっていない`)
     if (seen.has(text)) problems.push(`${label}: ほかのパターンと同じ文章`)
+    if (word.avoid?.some((previous) => previous.trim() === text)) problems.push(`${label}: 前の文章と同じ`)
     seen.add(text)
   })
   return problems
@@ -131,6 +138,14 @@ export function parsePassagesInput(body: unknown): PassageWord[] {
       example: requireString(item, 'example', index, true),
     }
   })
+}
+
+/** 作り直すか（refresh）。無ければ false、真偽値でなければ弾く */
+export function parseRefresh(body: unknown): boolean {
+  const refresh = (body as Record<string, unknown>).refresh
+  if (refresh === undefined || refresh === null) return false
+  if (typeof refresh !== 'boolean') throw new PassagesInputError('refresh が真偽値ではありません')
+  return refresh
 }
 
 // MARK: - ためる
@@ -199,9 +214,11 @@ export function passagesHandler({ writer, store, limiter, now, logError }: Passa
   return async (request) => {
     let words: PassageWord[]
     let model: ClaudeModel | undefined
+    let refresh: boolean
     try {
       const body = await readJson(request, PASSAGES_BODY_LIMIT)
       words = parsePassagesInput(body)
+      refresh = parseRefresh(body)
       model = parseModel(body, CLAUDE_MODELS)
     } catch (error) {
       if (error instanceof PayloadTooLargeError) return json({ error: 'payload too large' }, 413)
@@ -211,11 +228,18 @@ export function passagesHandler({ writer, store, limiter, now, logError }: Passa
       throw error
     }
 
+    // refresh なら、ためた文章があっても作り直す。前の文章は AI に渡して、違う文章を書かせる。
+    // 作れなかった語は空で返し、ためた文章は消さない（端末は手元の前の文章で出す）
     const found = new Map<string, Passage[]>()
-    for (const word of words) {
+    words = words.map((word) => {
       const cached = store.get(passageKey(word))
-      if (cached) found.set(word.id, cached)
-    }
+      if (!cached) return word
+      if (!refresh) {
+        found.set(word.id, cached)
+        return word
+      }
+      return { ...word, avoid: cached.map((passage) => passage.text) }
+    })
 
     let missing = words.filter((word) => !found.has(word.id))
     if (missing.length > 0) {

@@ -16,6 +16,8 @@ nonisolated enum PassageAPI {
         var words: [Word]
         /// 設定画面で選んだモデル（サーバーの許可リストにあるもの）
         var model: String
+        /// true なら、サーバーにためた文章があっても作り直す（前と違う文章にする）
+        var refresh: Bool
     }
 
     struct Result: Decodable, Equatable, Sendable {
@@ -31,7 +33,8 @@ nonisolated enum PassageAPI {
 
 /// 文章を取ってくる。本番は `PassageClient`、テストと画面確認は偽物
 protocol PassageFetching: Sendable {
-    func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result]
+    /// `refresh` が true なら、ためた文章のある語も作り直してもらう。作り直せなかった語は空で返る
+    func fetch(_ words: [PassageAPI.Word], refresh: Bool) async throws -> [PassageAPI.Result]
 }
 
 /// `POST /api/passages` を呼ぶ。エラーは AI チェックと同じ `WordAssistError` で返す
@@ -55,13 +58,15 @@ nonisolated struct PassageClient: PassageFetching {
         self.model = model
     }
 
-    func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result] {
+    func fetch(_ words: [PassageAPI.Word], refresh: Bool) async throws -> [PassageAPI.Result] {
         var request = URLRequest(url: config.url(path: Self.path), timeoutInterval: Self.timeout)
         request.httpMethod = "POST"
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.httpBody = try JSONEncoder().encode(PassageAPI.Request(words: words, model: model().rawValue))
+        request.httpBody = try JSONEncoder().encode(
+            PassageAPI.Request(words: words, model: model().rawValue, refresh: refresh)
+        )
 
         let data: Data
         let response: URLResponse

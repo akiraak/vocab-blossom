@@ -8,7 +8,7 @@ import SwiftUI
 struct PassagePreparationView: View {
     let preparation: PassagePreparation
     let onRetry: () -> Void
-    /// 例文のまま始める（作れなかったとき）
+    /// 作れなかったとき、今ある文章（無ければ例文）で始める
     let onStartWithExamples: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -96,13 +96,17 @@ struct PassagePreparationView: View {
     private var subtitle: String {
         switch preparation.phase {
         case .working:
-            "AI が単語ごとに、答えの手がかりになる文章を 3 つずつ書いています"
+            preparation.refresh
+                ? "AI が単語ごとに、前とは違う新しい文章を書いています"
+                : "AI が単語ごとに、答えの手がかりになる文章を 3 つずつ書いています"
         case .finished(let failedCount) where failedCount > 0:
-            "\(failedCount) 語は文章を作れなかったので、例文で出します"
+            preparation.refresh
+                ? "\(failedCount) 語は新しい文章を作れなかったので、前の文章か例文で出します"
+                : "\(failedCount) 語は文章を作れなかったので、例文で出します"
         case .finished:
             "まもなく始まります"
         case .failed:
-            "例文のまま始めることもできます"
+            preparation.refresh ? "今ある文章で始めることもできます" : "例文のまま始めることもできます"
         }
     }
 
@@ -129,7 +133,7 @@ struct PassagePreparationView: View {
                 Label("もう一度作る", systemImage: "arrow.clockwise")
             }
             .buttonStyle(.capsule)
-            Button("例文のまま始める", action: onStartWithExamples)
+            Button(preparation.refresh ? "今ある文章で始める" : "例文のまま始める", action: onStartWithExamples)
                 .buttonStyle(.capsuleSecondary)
         }
         .padding(.horizontal, 24)

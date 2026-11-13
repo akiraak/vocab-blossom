@@ -218,6 +218,7 @@ struct PassageCacheTests {
 private final class FakeFetcher: PassageFetching, @unchecked Sendable {
     private let lock = NSLock()
     private var calls: [[String]] = []
+    private var refreshes: [Bool] = []
     let respond: @Sendable ([PassageAPI.Word]) throws -> [PassageAPI.Result]
 
     init(respond: @escaping @Sendable ([PassageAPI.Word]) throws -> [PassageAPI.Result]) {
@@ -226,9 +227,109 @@ private final class FakeFetcher: PassageFetching, @unchecked Sendable {
 
     var recordedCalls: [[String]] { lock.withLock { calls } }
 
-    func fetch(_ words: [PassageAPI.Word]) async throws -> [PassageAPI.Result] {
-        lock.withLock { calls.append(words.map(\.id)) }
+    var recordedRefreshes: [Bool] { lock.withLock { refreshes } }
+
+    func fetch(_ words: [PassageAPI.Word], refresh: Bool) async throws -> [PassageAPI.Result] {
+        lock.withLock {
+            calls.append(words.map(\.id))
+            refreshes.append(refresh)
+        }
         return try respond(words)
+    }
+}
+
+@Suite("穴埋め: キーボードで入力")
+struct TypingQuizTests {
+    let store = WordStore.shared
+
+    private func custom(_ word: String, example: String = "") -> WordEntry {
+        WordEntry(
+            id: "custom-\(word)", word: word, pos: .verb, level: nil, meaning: "意味", example: example,
+            exampleJa: ""
+        )
+    }
+
+    private let adaptText = "Mia moved to Japan. She adapted quickly to her new school."
+
+    private func typingQuiz(_ word: WordEntry, text: String) -> Quiz {
+        let lookup: PassageLookup = { entry, _ in
+            entry.id == word.id ? [Passage(text: text, ja: "訳。")] : []
+        }
+        var builder = QuizBuilder(store: store, passages: lookup, rng: SeededRNG(seed: 1))
+        return builder.make(for: word, type: .fillBlank, input: .typing)
+    }
+
+    @Test("入力の問題は選択肢を持たず、正解は文中で空欄にした形")
+    func surfaceFormIsAnswer() {
+        let quiz = typingQuiz(custom("adapt"), text: adaptText)
+        #expect(quiz.type == .fillBlank)
+        #expect(quiz.input == .typing)
+        #expect(quiz.choices.isEmpty)
+        #expect(quiz.typedAnswer == "adapted")
+        let blanked = adaptText.replacingOccurrences(of: "adapted", with: Quiz.blankPlaceholder)
+        #expect(quiz.blankedExample == blanked)
+        #expect(quiz.passageIndex == 0)
+        // 選択肢が無いので、AI の判定には送らない
+        #expect(FillBlankCheck.items(for: [quiz]).isEmpty)
+    }
+
+    @Test("大文字小文字・空白・アポストロフィの違いは正解。綴り違い・活用違い・空は不正解")
+    func judgesTyped() {
+        let quiz = typingQuiz(custom("adapt"), text: adaptText)
+        #expect(quiz.isCorrect(typed: "adapted"))
+        #expect(quiz.isCorrect(typed: "  Adapted "))
+        #expect(!quiz.isCorrect(typed: "adapt"))
+        #expect(!quiz.isCorrect(typed: "adaptid"))
+        #expect(!quiz.isCorrect(typed: ""))
+        #expect(!quiz.isCorrect(typed: "   "))
+        // 見出し語を打って、文中の形と違うときだけ「この文では…」と添える
+        #expect(quiz.isHeadwordInOtherForm(typed: "Adapt"))
+        #expect(!quiz.isHeadwordInOtherForm(typed: "adapted"))
+        #expect(!quiz.isHeadwordInOtherForm(typed: "adopt"))
+
+        let phrase = typingQuiz(custom("point of view"), text: "I see. I understand your point of view.")
+        #expect(phrase.typedAnswer == "point of view")
+        #expect(phrase.isCorrect(typed: "Point  of   view"))
+        #expect(!phrase.isCorrect(typed: "pointofview"))
+
+        let apostrophe = typingQuiz(custom("can't wait"), text: "The trip is tomorrow. I can't wait to go.")
+        #expect(apostrophe.isCorrect(typed: "can\u{2019}t wait"))
+    }
+
+    @Test("空欄が 2 か所の語は、空白で区切って打つ")
+    func twoBlanks() {
+        let quiz = typingQuiz(custom("either … or …"), text: "I am thirsty. Either tea or coffee is fine.")
+        #expect(quiz.typedAnswer == "Either or")
+        #expect(quiz.isCorrect(typed: "either or"))
+        #expect(!quiz.isCorrect(typed: "either"))
+    }
+
+    @Test("文章が無ければ例文で出し、空欄にできない語は 4 択の英→日になる")
+    func fallsBack() {
+        var builder = QuizBuilder(store: store, rng: SeededRNG(seed: 1))
+        let fromExample = builder.make(
+            for: custom("adapt", example: "Cats adapt to new homes."), type: .fillBlank, input: .typing
+        )
+        #expect(fromExample.input == .typing)
+        #expect(fromExample.typedAnswer == "adapt")
+        #expect(fromExample.passage == nil)
+
+        let noWord = custom("adapt", example: "No word here.")
+        let notBlankable = builder.make(for: noWord, type: .fillBlank, input: .typing)
+        #expect(notBlankable.type == .enToJa)
+        #expect(notBlankable.input == .choice)
+        #expect(notBlankable.typedAnswer == nil)
+        #expect(notBlankable.choices.count == QuizBuilder.choiceCount)
+    }
+
+    @Test("再出題用に作り直しても、答え方と正解の綴りは変わらない")
+    func keepsInputWhenReshuffled() {
+        let quiz = typingQuiz(custom("adapt"), text: adaptText)
+        var rng = SeededRNG(seed: 2)
+        let again = quiz.reshuffled(using: &rng)
+        #expect(again.id != quiz.id)
+        #expect(again.input == .typing)
+        #expect(again.typedAnswer == "adapted")
     }
 }
 
@@ -289,6 +390,44 @@ struct PassagePreparationTests {
         #expect(preparation.items.map(\.state) == [.done])
     }
 
+    @Test("作り直すときは文章のある語も全部送り、返った文章で上書きする。作り直せなかった語は前の文章が残る")
+    func refreshesAll() async throws {
+        let action = try #require(store.word(id: "a1-0004"))
+        let cache = PassageCache(fileURL: nil)
+        let old = passages("commute")
+        cache.store([
+            Passages.key(word: "commute", sense: commute.primarySense): old,
+            Passages.key(word: "commute", sense: commute.senses[1]): old,
+        ])
+        let fresh = [Passage(text: "New story. I commute by train now.", ja: "新しい話。")]
+
+        let requests = PassagePreparation.allWords([action, commute])
+        #expect(requests.map(\.id) == ["a1-0004#0", "custom-commute#0", "custom-commute#1"])
+
+        let fetcher = FakeFetcher { words in
+            // 名詞の意味（#1）だけ作り直せなかった
+            words.map { PassageAPI.Result(id: $0.id, passages: $0.id == "custom-commute#1" ? [] : fresh) }
+        }
+        let preparation = PassagePreparation(requests: requests, refresh: true)
+        await preparation.run(fetcher: fetcher, cache: cache)
+
+        #expect(fetcher.recordedRefreshes == [true])
+        #expect(preparation.phase == .finished(failedCount: 1))
+        #expect(cache.passages(word: "commute", sense: commute.primarySense) == fresh)
+        #expect(cache.passages(word: "commute", sense: commute.senses[1]) == old)
+        #expect(cache.passages(word: action.word, sense: action.primarySense) == fresh)
+    }
+
+    @Test("作り直さないときは refresh を付けない")
+    func noRefreshByDefault() async {
+        let requests = [PassageAPI.Word(id: "a#0", word: "apple", pos: .noun, meaning: "りんご", example: "")]
+        let fetcher = FakeFetcher { words in
+            words.map { PassageAPI.Result(id: $0.id, passages: passages("apple")) }
+        }
+        await PassagePreparation(requests: requests).run(fetcher: fetcher, cache: PassageCache(fileURL: nil))
+        #expect(fetcher.recordedRefreshes == [false])
+    }
+
     @Test("意味が複数ある語のチップには意味を添える")
     func detailForMultiSense() {
         let missing = PassagePreparation.missingWords([commute], cache: PassageCache(fileURL: nil))
@@ -313,7 +452,7 @@ struct PassageClientTests {
             PassageAPI.Word(id: "b#0", word: "run", pos: .verb, meaning: "走る", example: ""),
         ]
         let client = PassageClient(config: config, session: session, model: { .sonnet55 })
-        let results = try await client.fetch(words)
+        let results = try await client.fetch(words, refresh: true)
 
         let (request, body) = try #require(sent.value)
         #expect(request.url?.absoluteString == "https://vocab.example.com/api/passages")
@@ -321,8 +460,10 @@ struct PassageClientTests {
         struct SentBody: Decodable {
             var words: [PassageAPI.Word]
             var model: String
+            var refresh: Bool
         }
         let sentBody = try JSONDecoder().decode(SentBody.self, from: body)
+        #expect(sentBody.refresh)
         #expect(sentBody.words == words)
         #expect(sentBody.model == "claude-sonnet-5-5")
         #expect(results == [
@@ -335,7 +476,7 @@ struct PassageClientTests {
     func mapsStatus() async {
         let session = StubURLProtocol.session { _, _ in (503, Data("{}".utf8)) }
         await #expect(throws: WordAssistError.unavailable) {
-            _ = try await PassageClient(config: config, session: session).fetch([])
+            _ = try await PassageClient(config: config, session: session).fetch([], refresh: false)
         }
     }
 }

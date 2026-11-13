@@ -26,7 +26,7 @@ struct VocabBlossomApp: App {
         if DebugSeed.variant == .groupReadAloud {
             GeminiReadAloudSpeaker.shared.fetcher = DebugSpeechFetcher()
         }
-        if [.groupReadAloud, .groupFillBlank, .session, .groupLearn, .groupDrill]
+        if [.groupReadAloud, .groupFillBlank, .groupFillBlankTyping, .session, .groupLearn, .groupDrill]
             .contains(DebugSeed.variant) {
             GeminiReadAloudSpeaker.quiz.fetcher = DebugSpeechFetcher()
         }

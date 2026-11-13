@@ -1,7 +1,10 @@
 import Foundation
 import Observation
 
-/// 穴埋めを始める前に、端末に文章の無い語の分をサーバーで作ってもらう。作る画面（`PassagePreparationView`）の中身。
+/// 穴埋めを始める前に、文章をサーバーで作ってもらう。作る画面（`PassagePreparationView`）の中身。
+///
+/// グループの穴埋めモードは、同じ文章を出さないよう、始めるたびに全語を作り直す（`refresh`）。
+/// 作り直せなかった語は、端末にある前の文章のまま出す（キャッシュは上書きしない）
 ///
 /// 3 語ずつ、3 本まで並べて送る（サーバーは 1 回 5 語まで。1 回の AI の呼び出しが短く済み、進み具合もこまめに出せる）。
 /// 一部の語が作れなくても続ける（その語は例文で出す）。すべて失敗したときだけ `failed` にする
@@ -30,11 +33,14 @@ final class PassagePreparation {
     }
 
     let requests: [PassageAPI.Word]
+    /// ためた文章のある語も作り直すか
+    let refresh: Bool
     private(set) var items: [Item]
     private(set) var phase: Phase = .working
 
-    init(requests: [PassageAPI.Word]) {
+    init(requests: [PassageAPI.Word], refresh: Bool = false) {
         self.requests = requests
+        self.refresh = refresh
         let multiSense = Dictionary(grouping: requests) { Self.wordId(of: $0) }.filter { $0.value.count > 1 }
         items = requests.map { request in
             let detail = multiSense[Self.wordId(of: request)] != nil ? request.meaning : nil
@@ -53,9 +59,17 @@ final class PassagePreparation {
 
     /// 文章の無い語・意味の一覧（意味ごとに 1 件。id は「単語 ID#意味の番号」）
     nonisolated static func missingWords(_ words: [WordEntry], cache: PassageCache) -> [PassageAPI.Word] {
+        allWords(words) { !cache.contains(word: $0.word, sense: $1) }
+    }
+
+    /// すべての語・意味の一覧（意味ごとに 1 件。id は「単語 ID#意味の番号」）。`include` で絞れる
+    nonisolated static func allWords(
+        _ words: [WordEntry],
+        where include: (WordEntry, WordSense) -> Bool = { _, _ in true }
+    ) -> [PassageAPI.Word] {
         words.flatMap { word in
             word.senses.enumerated().compactMap { index, sense -> PassageAPI.Word? in
-                guard !cache.contains(word: word.word, sense: sense) else { return nil }
+                guard include(word, sense) else { return nil }
                 return PassageAPI.Word(
                     id: "\(word.id)#\(index)", word: word.word, pos: sense.pos,
                     meaning: sense.meaning, example: sense.example
@@ -74,6 +88,7 @@ final class PassagePreparation {
         var firstError: (any Error)?
 
         typealias ChunkResult = (chunk: [PassageAPI.Word], result: Result<[PassageAPI.Result], any Error>)
+        let refresh = refresh
         await withTaskGroup(of: ChunkResult.self) { group in
             var next = 0
             func addNext() {
@@ -82,7 +97,7 @@ final class PassagePreparation {
                 next += 1
                 group.addTask {
                     do {
-                        return (chunk, .success(try await fetcher.fetch(chunk)))
+                        return (chunk, .success(try await fetcher.fetch(chunk, refresh: refresh)))
                     } catch {
                         return (chunk, .failure(error))
                     }

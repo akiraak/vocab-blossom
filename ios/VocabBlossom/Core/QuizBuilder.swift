@@ -1,5 +1,13 @@
 import Foundation
 
+/// 穴埋めの答え方
+enum QuizInput: Equatable, Sendable {
+    /// 4 択から選ぶ
+    case choice
+    /// 空欄に入る語をキーボードで打つ（グループの穴埋めモードだけ）
+    case typing
+}
+
 /// 1 問分の出題内容。
 ///
 /// 意味が複数ある語（自作語）は、1 問ごとに意味を 1 つ選んで出す（`sense`）。
@@ -10,7 +18,9 @@ struct Quiz: Identifiable {
     /// 出題する意味（意味が 1 つの語は 1 つ目の意味）
     let sense: WordSense
     let type: QuizType
-    /// 正解を含む 4 択（並びはシャッフル済み）
+    /// 答え方。入力（`.typing`）は穴埋めだけで、選択肢を持たない
+    let input: QuizInput
+    /// 正解を含む 4 択（並びはシャッフル済み）。入力の問題は空
     let choices: [WordEntry]
     /// 穴埋めの問題文（`type == .fillBlank` のときだけ入る）
     let blankedExample: String?
@@ -20,6 +30,9 @@ struct Quiz: Identifiable {
     let passageIndex: Int?
     /// 誤答肢のうち、空欄に入れても正しい文になる語（AI の判定。グループの穴埋めモードだけ）。選ぶと正解にする
     let alsoCorrectWordIds: Set<String>
+    /// 入力の問題の正解の綴り: 文中で空欄にした形（見出し語 adapt でも文中が adapted なら adapted）。
+    /// 空欄が 2 か所の語（either … or …）は空白でつなぐ（either or）
+    let typedAnswer: String?
 
     static let blankPlaceholder = "＿＿＿＿"
 
@@ -31,8 +44,12 @@ struct Quiz: Identifiable {
         blankedExample: String?,
         passage: Passage? = nil,
         passageIndex: Int? = nil,
-        alsoCorrectWordIds: Set<String> = []
+        alsoCorrectWordIds: Set<String> = [],
+        input: QuizInput = .choice,
+        typedAnswer: String? = nil
     ) {
+        self.input = input
+        self.typedAnswer = input == .typing ? typedAnswer : nil
         self.word = word
         self.sense = sense ?? word.primarySense
         self.type = type
@@ -52,6 +69,28 @@ struct Quiz: Identifiable {
         return choiceIndex == answerIndex || alsoCorrectWordIds.contains(choices[choiceIndex].id)
     }
 
+    /// 打った綴りが正解か。前後・連続の空白、大文字小文字、アポストロフィの形の違いは見ない。
+    /// 綴りや活用が違えば不正解（文中が adapted なら adapt は不正解）
+    func isCorrect(typed: String) -> Bool {
+        guard let typedAnswer else { return false }
+        let normalized = Self.normalizedTyped(typed)
+        return !normalized.isEmpty && normalized == Self.normalizedTyped(typedAnswer)
+    }
+
+    /// 打った綴りが、見出し語そのもので、文中の形とは違うか（「この文では adapted の形」と添える）
+    func isHeadwordInOtherForm(typed: String) -> Bool {
+        !isCorrect(typed: typed) && Self.normalizedTyped(typed) == Self.normalizedTyped(word.word)
+    }
+
+    /// 比べる前にそろえる: 空白をまとめる・小文字にする・「’」を「'」にする
+    static func normalizedTyped(_ text: String) -> String {
+        text.replacingOccurrences(of: "\u{2019}", with: "'")
+            .replacingOccurrences(of: "\u{2018}", with: "'")
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+            .lowercased()
+    }
+
     /// ほかにも正解の語（選択肢の並び順）
     var alsoCorrectChoices: [WordEntry] {
         choices.filter { alsoCorrectWordIds.contains($0.id) }
@@ -67,7 +106,8 @@ struct Quiz: Identifiable {
     func with(alsoCorrectWordIds ids: Set<String>) -> Quiz {
         Quiz(
             word: word, sense: sense, type: type, choices: choices, blankedExample: blankedExample,
-            passage: passage, passageIndex: passageIndex, alsoCorrectWordIds: ids
+            passage: passage, passageIndex: passageIndex, alsoCorrectWordIds: ids,
+            input: input, typedAnswer: typedAnswer
         )
     }
 
@@ -76,7 +116,7 @@ struct Quiz: Identifiable {
         Quiz(
             word: word, sense: sense, type: type, choices: choices.shuffled(using: &rng),
             blankedExample: blankedExample, passage: passage, passageIndex: passageIndex,
-            alsoCorrectWordIds: alsoCorrectWordIds
+            alsoCorrectWordIds: alsoCorrectWordIds, input: input, typedAnswer: typedAnswer
         )
     }
 
@@ -134,11 +174,17 @@ struct QuizGroup: Equatable, Sendable {
     }
 }
 
-/// 穴埋めに選んだ文章（その意味の文章の何番目か・空欄にした文・元の文章）
+/// 穴埋めに選んだ文章（その意味の文章の何番目か・空欄にした文と元の綴り・元の文章）
 private struct PickedPassage {
     let index: Int
-    let text: String
+    let blanked: BlankedText
     let passage: Passage
+}
+
+/// 見出し語を空欄にした文と、空欄にした元の綴り（2 か所なら空白でつなぐ）
+struct BlankedText: Equatable {
+    let text: String
+    let surface: String
 }
 
 /// ステージに応じた出題を組み立てる。
@@ -179,9 +225,13 @@ struct QuizBuilder {
     /// 意味が複数ある語は、出題する意味を 1 つ選ぶ。穴埋めは空欄にできる文章のある意味を選び、その意味の文章を
     /// 前回出した文章の次から順に出す（`nextPassage`）。文章が無ければ例文を使い、どの意味でも空欄にできなければ
     /// 英→日にフォールバックする
-    mutating func make(for word: WordEntry, type requestedType: QuizType) -> Quiz {
+    ///
+    /// `input` が `.typing` なら、選択肢を作らず、空欄にした綴りを正解に持つ問題にする（穴埋めにできたときだけ）
+    mutating func make(
+        for word: WordEntry, type requestedType: QuizType, input: QuizInput = .choice
+    ) -> Quiz {
         var type = requestedType
-        var blanked: String?
+        var blanked: BlankedText?
         var passage: Passage?
         var passageIndex: Int?
         var sense = pickSense(from: word.senses)
@@ -191,11 +241,11 @@ struct QuizBuilder {
                 nextPassage(for: word, sense: sense).map { (sense: sense, picked: $0) }
             }
             let fromExamples = word.senses.compactMap { sense in
-                blankedExample(for: word, sense: sense).map { (sense: sense, text: $0) }
+                Self.blankedText(sense.example, headword: word.word).map { (sense: sense, text: $0) }
             }
             if let chosen = pickSense(from: fromPassages) {
                 sense = chosen.sense
-                blanked = chosen.picked.text
+                blanked = chosen.picked.blanked
                 passage = chosen.picked.passage
                 passageIndex = chosen.picked.index
             } else if let picked = pickSense(from: fromExamples) {
@@ -207,10 +257,16 @@ struct QuizBuilder {
             }
         }
 
+        if input == .typing, type == .fillBlank, let blanked {
+            return Quiz(
+                word: word, sense: sense, type: type, choices: [], blankedExample: blanked.text,
+                passage: passage, passageIndex: passageIndex, input: .typing, typedAnswer: blanked.surface
+            )
+        }
         let choices = (distractors(for: word, sense: sense) + [word]).shuffled(using: &rng)
         return Quiz(
-            word: word, sense: sense, type: type, choices: choices, blankedExample: blanked, passage: passage,
-            passageIndex: passageIndex
+            word: word, sense: sense, type: type, choices: choices, blankedExample: blanked?.text,
+            passage: passage, passageIndex: passageIndex
         )
     }
 
@@ -222,8 +278,8 @@ struct QuizBuilder {
         let start = max(0, passageHistory?.lastShownIndex(word: word.word, sense: sense).map { $0 + 1 } ?? 0)
         for offset in candidates.indices {
             let index = (start + offset) % candidates.count
-            if let text = Self.blank(candidates[index].text, headword: word.word) {
-                return PickedPassage(index: index, text: text, passage: candidates[index])
+            if let blanked = Self.blankedText(candidates[index].text, headword: word.word) {
+                return PickedPassage(index: index, blanked: blanked, passage: candidates[index])
             }
         }
         return nil
@@ -250,13 +306,19 @@ struct QuizBuilder {
     /// 文中の見出し語（活用形を含む）を空欄にする。見つからなければ nil。
     /// 「either … or …」は区切りごとに空欄にする（「＿＿＿＿ tea ＿＿＿＿ coffee is fine.」のように 2 か所になる）
     static func blank(_ text: String, headword: String) -> String? {
+        blankedText(text, headword: headword)?.text
+    }
+
+    /// 空欄にした文と、空欄にした元の綴り（入力の問題の正解になる）。見つからなければ nil
+    static func blankedText(_ text: String, headword: String) -> BlankedText? {
         guard let ranges = Inflector.findHeadwordRanges(in: text, headword: headword) else { return nil }
+        let surface = ranges.map { String(text[$0]) }.joined(separator: " ")
         var blanked = text
         // 後ろから置き換えて、前の範囲がずれないようにする
         for range in ranges.reversed() {
             blanked.replaceSubrange(range, with: Quiz.blankPlaceholder)
         }
-        return blanked
+        return BlankedText(text: blanked, surface: surface)
     }
 
     /// 例文中の該当語を空欄にする。見つからなければ nil
