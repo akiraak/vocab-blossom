@@ -37,4 +37,4 @@ injuries, determined, recover, empower, reputation, punish, feel responsible, pr
 - Step 2（2026-11-12）: DB をバックアップ（`/home/ubuntu/vocab-blossom/server/data/backup-20261112-before-unit-3-part-1-words.db`）
   → `--dry-run`（既存の「Unit 3 Part 1」に足す 11・マイ単語を作る 9・置き換える 0）→ 取り込み（同じ結果）
   → もう一度 `--dry-run` で 0 件 → 本番 DB で「Unit 3 Part 1」に 11 語が並びどおり入ったことを確認（マイ単語 98 → 107、グループは 14 のまま）
-- Step 3: 未（ユーザーが iPhone で同期して確認する）
+- Step 3（2026-11-12）: ユーザーが iPhone で同期して確認した
