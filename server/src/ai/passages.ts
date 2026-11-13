@@ -9,7 +9,7 @@ import { CLAUDE_MODELS, type ClaudeModel, ModelInputError, parseModel } from './
 
 // 穴埋め用の文章（POST /api/passages）。1 語につき 3 パターンを AI で作り、「綴り・品詞・意味」を鍵にためる。
 // iOS はグループで穴埋めを始めるたびに、全語を refresh 付きで送って作り直す（同じ文章を出さないため）。
-// refresh が無ければ、ためた文章を返し、無い語だけ作る。設計は docs/plans/fill-blank-passages.md・fill-blank-typing.md。
+// refresh が無ければ、ためた文章を返し、無い語だけ作る。設計は docs/plans/archive/fill-blank-passages.md・fill-blank-typing.md。
 
 export const PASSAGES_BODY_LIMIT = 16 * 1024
 /** 1 回に送れる語数。AI の 1 回の呼び出しが iOS の待てる時間に収まる量 */

@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// 選ぶ画面・作る画面・出題を 1 つのフルスクリーンの中で切り替える（閉じてから開き直すと画面が 2 回動くため）。
 /// サーバーの設定が無いときは、今ある文章（無ければ例文）ですぐ出題する。作り直せなかった語も同じ。
-/// 判定できなかったときは、正解は出題した語だけで出題する。設計は docs/plans/fill-blank-typing.md
+/// 判定できなかったときは、正解は出題した語だけで出題する。設計は docs/plans/archive/fill-blank-typing.md
 struct FillBlankSessionView: View {
     let words: [WordEntry]
     let closeTitle: String
