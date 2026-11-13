@@ -36,10 +36,15 @@ struct SettingsView: View {
                 Section {
                     Toggle("自動で読み上げる", isOn: $settings.soundEnabled)
                     Toggle("正解・不正解の音", isOn: $settings.effectSoundEnabled)
+                    Picker("読み上げの速さ", selection: $settings.readAloudSpeed) {
+                        ForEach(ReadAloudSpeed.allCases) { speed in
+                            Text(speed.label).tag(speed)
+                        }
+                    }
                 } header: {
                     Text("音声")
                 } footer: {
-                    Text("読み上げをオフにしても、スピーカーのボタンからいつでも聞けます。")
+                    Text("読み上げをオフにしても、スピーカーのボタンからいつでも聞けます。速さは次に読む文から変わります。")
                 }
 
                 Section {

@@ -491,15 +491,25 @@ private final class OnceContinuation<Value: Sendable> {
     }
 }
 
-/// `AVAudioPlayer` で 1 ファイルずつ鳴らす
+/// `AVAudioPlayer` で 1 ファイルずつ鳴らす。速さは設定画面で選んだ倍率（音程は変わらない）
 final class SystemReadAloudAudioPlayer: NSObject, ReadAloudAudioPlaying, AVAudioPlayerDelegate {
     private var player: AVAudioPlayer?
     private var continuation: CheckedContinuation<Bool, Never>?
+    /// 鳴らすたびに読む（設定を変えたら次の文から効く）
+    private let speed: () -> ReadAloudSpeed
+
+    init(speed: @escaping () -> ReadAloudSpeed = { ReadAloudSpeed.current() }) {
+        self.speed = speed
+        super.init()
+    }
 
     func play(_ url: URL) async -> Bool {
         stop()
         guard let player = try? AVAudioPlayer(contentsOf: url) else { return false }
         player.delegate = self
+        // `enableRate` は `play` の前に立てる
+        player.enableRate = true
+        player.rate = Float(speed().rawValue)
         self.player = player
         return await withCheckedContinuation { continuation in
             self.continuation = continuation

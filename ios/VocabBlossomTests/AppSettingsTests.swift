@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import Testing
 
@@ -31,6 +32,7 @@ struct AppSettingsTests {
         settings.hasOnboarded = true
         settings.claudeModel = .sonnet55
         settings.ttsModel = .flashLite38
+        settings.readAloudSpeed = .fast
 
         let restored = AppSettings(defaults: UserDefaults(suiteName: name)!)
         #expect(restored.level == .a2)
@@ -40,6 +42,9 @@ struct AppSettingsTests {
         #expect(restored.hasOnboarded)
         #expect(restored.claudeModel == .sonnet55)
         #expect(restored.ttsModel == .flashLite38)
+        #expect(restored.readAloudSpeed == .fast)
+        // 鳴らすときも同じ値を読む
+        #expect(ReadAloudSpeed.current(defaults: UserDefaults(suiteName: name)!) == .fast)
         // サーバーへ送るときも同じ値を読む
         #expect(AIModelPreference.claudeModel(defaults: UserDefaults(suiteName: name)!) == .sonnet55)
         #expect(AIModelPreference.ttsModel(defaults: UserDefaults(suiteName: name)!) == .flashLite38)
@@ -57,5 +62,24 @@ struct AppSettingsTests {
         defaults.set("gemini-2.5-pro-preview-tts", forKey: AIModelPreference.Key.ttsModel)
         #expect(AIModelPreference.claudeModel(defaults: defaults) == .opus55)
         #expect(AIModelPreference.ttsModel(defaults: defaults) == .flash38)
+    }
+
+    @Test("読み上げの速さの既定は「ふつう」（等速）。知らない値なら既定に戻す")
+    func readAloudSpeedDefaults() {
+        let defaults = UserDefaults(suiteName: "settings-tests-\(UUID().uuidString)")!
+        #expect(AppSettings(defaults: defaults).readAloudSpeed == .normal)
+        #expect(ReadAloudSpeed.normal.rawValue == 1.0)
+
+        defaults.set(2.5, forKey: ReadAloudSpeed.key)
+        #expect(ReadAloudSpeed.current(defaults: defaults) == .normal)
+    }
+
+    @Test("内蔵の声は、設定の速さをかけた速さで読む（上限・下限は超えない）")
+    func builtInVoiceRate() {
+        let base = ReadAloudSpeechEngine.sentenceRate
+        #expect(ReadAloudSpeechEngine.utteranceRate(base, speed: .normal) == base)
+        #expect(ReadAloudSpeechEngine.utteranceRate(base, speed: .fast) > base)
+        #expect(ReadAloudSpeechEngine.utteranceRate(base, speed: .slow) < base)
+        #expect(ReadAloudSpeechEngine.utteranceRate(0.9, speed: .veryFast) == AVSpeechUtteranceMaximumSpeechRate)
     }
 }

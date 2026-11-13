@@ -35,7 +35,9 @@ nonisolated final class ReadAloudVoiceStore: @unchecked Sendable {
 
     /// 残し方（大きさのそろえ方・AAC の設定）の版。変えたら上げると、残してある音声をすべて消して作り直す
     /// 3: 鍵と版にモデルを入れた（設定画面で TTS のモデルを選べるようにした）
-    static let formatVersion = "3"
+    /// 4: 例文のスタイルを速くした（2026-11-12）。版が変わったことは次にサーバーへ頼むまで端末に伝わらず、
+    ///    残してある遅い音声と新しい速い音声が混ざるので、一度すべて消す。docs/plans/read-aloud-faster.md
+    static let formatVersion = "4"
 
     /// 大きさのそろえ方: 平均（RMS）を -20 dBFS に、ただしピークは -4 dBFS を超えない、上げるのは +6 dB まで
     static let targetRMS: Float = 0.1

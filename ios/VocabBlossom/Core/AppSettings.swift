@@ -24,6 +24,7 @@ final class AppSettings {
         soundEnabled = defaults.object(forKey: Key.soundEnabled) as? Bool ?? true
         effectSoundEnabled = defaults.object(forKey: Key.effectSoundEnabled) as? Bool ?? true
         hasOnboarded = defaults.bool(forKey: Key.hasOnboarded)
+        readAloudSpeed = ReadAloudSpeed.current(defaults: defaults)
         claudeModel = AIModelPreference.claudeModel(defaults: defaults)
         ttsModel = AIModelPreference.ttsModel(defaults: defaults)
     }
@@ -49,6 +50,11 @@ final class AppSettings {
         didSet { defaults.set(effectSoundEnabled, forKey: Key.effectSoundEnabled) }
     }
 
+    /// 読み上げの速さ。自動の読み上げにも、スピーカーのボタンにも効く
+    var readAloudSpeed: ReadAloudSpeed {
+        didSet { defaults.set(readAloudSpeed.rawValue, forKey: ReadAloudSpeed.key) }
+    }
+
     var hasOnboarded: Bool {
         didSet { defaults.set(hasOnboarded, forKey: Key.hasOnboarded) }
     }
@@ -61,5 +67,36 @@ final class AppSettings {
     /// 読み上げの声のモデル（サーバーがあるときだけ使う）
     var ttsModel: TTSModel {
         didSet { defaults.set(ttsModel.rawValue, forKey: AIModelPreference.Key.ttsModel) }
+    }
+}
+
+/// 読み上げの速さ。rawValue は再生の倍率（音程は変えない）。
+/// 音声は作り直さず、鳴らすときに速める。docs/plans/read-aloud-faster.md
+nonisolated enum ReadAloudSpeed: Double, CaseIterable, Identifiable, Sendable {
+    case slow = 0.85
+    case normal = 1.0
+    case littleFast = 1.15
+    case fast = 1.3
+    case veryFast = 1.5
+
+    static let defaultSpeed: ReadAloudSpeed = .normal
+    static let key = "settings.readAloudSpeed"
+
+    var id: Double { rawValue }
+
+    var label: String {
+        switch self {
+        case .slow: "ゆっくり"
+        case .normal: "ふつう"
+        case .littleFast: "少し速い"
+        case .fast: "速い"
+        case .veryFast: "とても速い"
+        }
+    }
+
+    /// 設定画面で選んだ速さ。鳴らすときに読む（`AppSettings` と同じ UserDefaults の値）。知らない値なら既定に戻す
+    static func current(defaults: UserDefaults = .standard) -> ReadAloudSpeed {
+        (defaults.object(forKey: key) as? Double)
+            .flatMap(ReadAloudSpeed.init(rawValue:)) ?? .defaultSpeed
     }
 }

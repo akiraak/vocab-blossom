@@ -39,10 +39,18 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
         var onFinish: () -> Void
     }
 
-    /// 速さ。英語は既定値だと初学者には速いので少し落とす。日本語は実機で聞いて決める
-    private let wordRate: Float = 0.42
-    private let sentenceRate: Float = 0.45
-    private let japaneseRate: Float = 0.5
+    /// 「ふつう」のときの速さ。見出し語は既定値（0.5）だと初学者には速いので少し落とす。
+    /// 例文は Gemini の声を速くしたのに合わせて既定値にした（2026-11-12）。日本語は実機で聞いて決める
+    static let wordRate: Float = 0.42
+    static let sentenceRate: Float = 0.5
+    static let japaneseRate: Float = 0.5
+    /// 設定画面で選んだ速さ。文を読み始めるたびに読む
+    private let speed: () -> ReadAloudSpeed = { ReadAloudSpeed.current() }
+
+    /// 設定の速さをかけた `AVSpeechUtterance.rate`。内蔵の声の rate は倍率と比例しないので、だいたいの合わせ方
+    nonisolated static func utteranceRate(_ base: Float, speed: ReadAloudSpeed) -> Float {
+        min(max(base * Float(speed.rawValue), AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate)
+    }
     /// 文と文の間・語と語の間（秒）
     private let lineGap: TimeInterval = 0.25
     private let itemGap: TimeInterval = 0.8
@@ -129,13 +137,13 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
         switch line.kind {
         case .word:
             utterance.voice = englishVoice
-            utterance.rate = wordRate
+            utterance.rate = Self.utteranceRate(Self.wordRate, speed: speed())
         case .example:
             utterance.voice = englishVoice
-            utterance.rate = sentenceRate
+            utterance.rate = Self.utteranceRate(Self.sentenceRate, speed: speed())
         case .meaning, .exampleJa:
             utterance.voice = japaneseVoice
-            utterance.rate = japaneseRate
+            utterance.rate = Self.utteranceRate(Self.japaneseRate, speed: speed())
         }
         utterance.postUtteranceDelay = isLast ? itemGap : lineGap
         return utterance
