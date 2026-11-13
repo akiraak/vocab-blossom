@@ -47,6 +47,7 @@ struct SessionView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.wordStore) private var store
     @Environment(\.passageCache) private var passageCache
+    @Environment(\.passageHistory) private var passageHistory
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
 
@@ -86,16 +87,19 @@ struct SessionView: View {
                 case .plan(let plan):
                     runner = SessionRunner(
                         plan: plan, engine: engine, store: store, groups: groups, passages: passages,
-                        group: group
+                        passageHistory: passageHistory, group: group
                     )
                 case .drill(let wordIds, let quizType):
                     runner = SessionRunner(
                         drillWordIds: wordIds, quizType: quizType,
                         engine: engine, store: store, groups: groups, passages: passages,
-                        group: group
+                        passageHistory: passageHistory, group: group
                     )
                 case .prepared(let quizzes):
-                    runner = SessionRunner(drillQuizzes: quizzes, engine: engine, store: store, group: group)
+                    runner = SessionRunner(
+                        drillQuizzes: quizzes, engine: engine, store: store, passageHistory: passageHistory,
+                        group: group
+                    )
                 }
             }
         }

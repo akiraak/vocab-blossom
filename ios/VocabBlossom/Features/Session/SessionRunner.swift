@@ -82,6 +82,8 @@ final class SessionRunner {
     private let engine: LearningEngine
     private let store: WordStore
     private var builder: QuizBuilder
+    /// 穴埋めで出した文章を残す先（次は別の文章を出すため）。nil なら残さない
+    private let passageHistory: PassageHistory?
     private let clock: () -> Date
 
     init(
@@ -90,6 +92,7 @@ final class SessionRunner {
         store: WordStore = .shared,
         groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
+        passageHistory: PassageHistory? = nil,
         group: GroupAnswerContext? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
@@ -101,7 +104,10 @@ final class SessionRunner {
         mode = .learning
         drillQuizType = nil
         preparedQuizzes = []
-        builder = QuizBuilder(store: store, groups: groups, passages: passages, rng: rng)
+        self.passageHistory = passageHistory
+        builder = QuizBuilder(
+            store: store, groups: groups, passages: passages, passageHistory: passageHistory, rng: rng
+        )
 
         var items: [Item] = plan.reviewWordIds.map { .quiz(wordId: $0, kind: .review) }
         // 新規学習は 5 語ずつ「まとめて提示 → まとめて直後クイズ」
@@ -124,6 +130,7 @@ final class SessionRunner {
         store: WordStore = .shared,
         groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
+        passageHistory: PassageHistory? = nil,
         group: GroupAnswerContext? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
@@ -135,7 +142,10 @@ final class SessionRunner {
         mode = .drill
         drillQuizType = quizType
         preparedQuizzes = []
-        builder = QuizBuilder(store: store, groups: groups, passages: passages, rng: rng)
+        self.passageHistory = passageHistory
+        builder = QuizBuilder(
+            store: store, groups: groups, passages: passages, passageHistory: passageHistory, rng: rng
+        )
         queue = drillWordIds.map { .quiz(wordId: $0, kind: .review) }
         advance()
     }
@@ -147,6 +157,7 @@ final class SessionRunner {
         drillQuizzes: [Quiz],
         engine: LearningEngine,
         store: WordStore = .shared,
+        passageHistory: PassageHistory? = nil,
         group: GroupAnswerContext? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator(),
         clock: @escaping () -> Date = { .now }
@@ -155,6 +166,7 @@ final class SessionRunner {
         self.store = store
         self.clock = clock
         self.group = group
+        self.passageHistory = passageHistory
         mode = .drill
         drillQuizType = drillQuizzes.first?.type
         preparedQuizzes = drillQuizzes
@@ -226,6 +238,8 @@ final class SessionRunner {
             stats.missedWordIds.append(wordId)
         }
 
+        recordPassage(of: quiz)
+
         if let group {
             engine.recordGroupAnswer(
                 group, wordId: wordId, correct: correct, quizType: quiz.type, kind: kind, now: clock()
@@ -262,6 +276,12 @@ final class SessionRunner {
                 }
             }
         }
+    }
+
+    /// 穴埋めで出した文章を残し、次にこの語を出すときは別の文章にする
+    private func recordPassage(of quiz: Quiz) {
+        guard let passageIndex = quiz.passageIndex else { return }
+        passageHistory?.markShown(word: quiz.word.word, sense: quiz.sense, index: passageIndex)
     }
 
     /// 「もう知ってる」。直後クイズを飛ばして次へ進む

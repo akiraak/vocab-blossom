@@ -16,6 +16,8 @@ struct Quiz: Identifiable {
     let blankedExample: String?
     /// 穴埋めに使った文章（例文で出したときは nil）。答えたあと全文と和訳を見せる
     let passage: Passage?
+    /// 使った文章が、その意味の文章の何番目か（0 始まり）。回答したら `PassageHistory` に残し、次は別の文章を出す
+    let passageIndex: Int?
     /// 誤答肢のうち、空欄に入れても正しい文になる語（AI の判定。グループの穴埋めモードだけ）。選ぶと正解にする
     let alsoCorrectWordIds: Set<String>
 
@@ -28,6 +30,7 @@ struct Quiz: Identifiable {
         choices: [WordEntry],
         blankedExample: String?,
         passage: Passage? = nil,
+        passageIndex: Int? = nil,
         alsoCorrectWordIds: Set<String> = []
     ) {
         self.word = word
@@ -36,6 +39,7 @@ struct Quiz: Identifiable {
         self.choices = choices
         self.blankedExample = blankedExample
         self.passage = passage
+        self.passageIndex = passage == nil ? nil : passageIndex
         self.alsoCorrectWordIds = alsoCorrectWordIds.subtracting([word.id])
     }
 
@@ -63,7 +67,7 @@ struct Quiz: Identifiable {
     func with(alsoCorrectWordIds ids: Set<String>) -> Quiz {
         Quiz(
             word: word, sense: sense, type: type, choices: choices, blankedExample: blankedExample,
-            passage: passage, alsoCorrectWordIds: ids
+            passage: passage, passageIndex: passageIndex, alsoCorrectWordIds: ids
         )
     }
 
@@ -71,7 +75,8 @@ struct Quiz: Identifiable {
     func reshuffled(using rng: inout some RandomNumberGenerator) -> Quiz {
         Quiz(
             word: word, sense: sense, type: type, choices: choices.shuffled(using: &rng),
-            blankedExample: blankedExample, passage: passage, alsoCorrectWordIds: alsoCorrectWordIds
+            blankedExample: blankedExample, passage: passage, passageIndex: passageIndex,
+            alsoCorrectWordIds: alsoCorrectWordIds
         )
     }
 
@@ -129,6 +134,13 @@ struct QuizGroup: Equatable, Sendable {
     }
 }
 
+/// 穴埋めに選んだ文章（その意味の文章の何番目か・空欄にした文・元の文章）
+private struct PickedPassage {
+    let index: Int
+    let text: String
+    let passage: Passage
+}
+
 /// ステージに応じた出題を組み立てる。
 struct QuizBuilder {
     /// 4 択の選択肢数
@@ -139,17 +151,21 @@ struct QuizBuilder {
     let groups: [QuizGroup]
     /// 穴埋め用の文章（端末にためたもの）。あれば例文より優先して使う
     let passages: PassageLookup
+    /// 最後に出した文章。あれば前回の次の文章から出す（nil なら毎回 1 つ目から）
+    let passageHistory: PassageHistory?
     var rng: any RandomNumberGenerator
 
     init(
         store: WordStore,
         groups: [QuizGroup] = [],
         passages: @escaping PassageLookup = Passages.none,
+        passageHistory: PassageHistory? = nil,
         rng: any RandomNumberGenerator = SystemRandomNumberGenerator()
     ) {
         self.store = store
         self.groups = groups
         self.passages = passages
+        self.passageHistory = passageHistory
         self.rng = rng
     }
 
@@ -160,28 +176,28 @@ struct QuizBuilder {
 
     /// 形式を指定して 1 問作る（新規学習の直後クイズは常に英→日）。
     ///
-    /// 意味が複数ある語は、出題する意味を 1 つ選ぶ。穴埋めは空欄にできる文章（無ければ例文）から 1 つ選び、
-    /// どの意味でも空欄にできなければ英→日にフォールバックする
+    /// 意味が複数ある語は、出題する意味を 1 つ選ぶ。穴埋めは空欄にできる文章のある意味を選び、その意味の文章を
+    /// 前回出した文章の次から順に出す（`nextPassage`）。文章が無ければ例文を使い、どの意味でも空欄にできなければ
+    /// 英→日にフォールバックする
     mutating func make(for word: WordEntry, type requestedType: QuizType) -> Quiz {
         var type = requestedType
         var blanked: String?
         var passage: Passage?
+        var passageIndex: Int?
         var sense = pickSense(from: word.senses)
 
         if type == .fillBlank {
-            let fromPassages = word.senses.flatMap { sense in
-                passages(word, sense).compactMap { candidate in
-                    Self.blank(candidate.text, headword: word.word)
-                        .map { (sense: sense, text: $0, passage: candidate) }
-                }
+            let fromPassages = word.senses.compactMap { sense in
+                nextPassage(for: word, sense: sense).map { (sense: sense, picked: $0) }
             }
             let fromExamples = word.senses.compactMap { sense in
                 blankedExample(for: word, sense: sense).map { (sense: sense, text: $0) }
             }
-            if let picked = pickSense(from: fromPassages) {
-                sense = picked.sense
-                blanked = picked.text
-                passage = picked.passage
+            if let chosen = pickSense(from: fromPassages) {
+                sense = chosen.sense
+                blanked = chosen.picked.text
+                passage = chosen.picked.passage
+                passageIndex = chosen.picked.index
             } else if let picked = pickSense(from: fromExamples) {
                 sense = picked.sense
                 blanked = picked.text
@@ -193,8 +209,24 @@ struct QuizBuilder {
 
         let choices = (distractors(for: word, sense: sense) + [word]).shuffled(using: &rng)
         return Quiz(
-            word: word, sense: sense, type: type, choices: choices, blankedExample: blanked, passage: passage
+            word: word, sense: sense, type: type, choices: choices, blankedExample: blanked, passage: passage,
+            passageIndex: passageIndex
         )
+    }
+
+    /// その意味の文章のうち、前回出した文章の次から順に見て、最初に空欄にできるもの（最後の次は最初に戻る）。
+    /// 出したことが無ければ 1 つ目から見る。空欄にできる文章が無ければ nil
+    private func nextPassage(for word: WordEntry, sense: WordSense) -> PickedPassage? {
+        let candidates = passages(word, sense)
+        guard !candidates.isEmpty else { return nil }
+        let start = max(0, passageHistory?.lastShownIndex(word: word.word, sense: sense).map { $0 + 1 } ?? 0)
+        for offset in candidates.indices {
+            let index = (start + offset) % candidates.count
+            if let text = Self.blank(candidates[index].text, headword: word.word) {
+                return PickedPassage(index: index, text: text, passage: candidates[index])
+            }
+        }
+        return nil
     }
 
     /// 選択肢の並びだけ変えた問題（組み立て済みの問題の再出題用）

@@ -14,6 +14,7 @@ struct FillBlankSessionView: View {
     @Environment(\.passageFetcher) private var fetcher
     @Environment(\.fillBlankChecker) private var checker
     @Environment(\.passageCache) private var cache
+    @Environment(\.passageHistory) private var history
     @Environment(\.modelContext) private var context
     @Environment(\.wordStore) private var store
     @Environment(\.dismiss) private var dismiss
@@ -92,7 +93,9 @@ struct FillBlankSessionView: View {
     private func start() {
         guard startedQuizzes == nil, checkingQuizzes == nil else { return }
         let lookup = cache.lookup
-        var builder = QuizBuilder(store: store, groups: WordGroup.quizGroups(in: context), passages: lookup)
+        var builder = QuizBuilder(
+            store: store, groups: WordGroup.quizGroups(in: context), passages: lookup, passageHistory: history
+        )
         let quizzes = words.filter { QuizBuilder.canFillBlank($0, passages: lookup) }
             .shuffled()
             .map { builder.make(for: $0, type: .fillBlank) }
@@ -140,4 +143,6 @@ struct FillBlankSessionView: View {
 extension EnvironmentValues {
     /// 端末にためた穴埋めの文章。画面確認では空のキャッシュに差し替える
     @Entry var passageCache: PassageCache = .shared
+    /// 穴埋めで最後に出した文章。次は前回の次の文章から出す
+    @Entry var passageHistory: PassageHistory = .shared
 }

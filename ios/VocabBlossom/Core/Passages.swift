@@ -75,3 +75,48 @@ nonisolated final class PassageCache: @unchecked Sendable {
         { [self] word, sense in passages(word: word.word, sense: sense) }
     }
 }
+
+/// 穴埋めで最後に出した文章の位置（鍵ごとに 0〜2）。次は前回の次の文章から出す（`QuizBuilder`）。
+///
+/// Application Support の JSON 1 ファイルに持つ。消えても 1 つ目から出し直すだけなので、同期・バックアップには入れない
+nonisolated final class PassageHistory: @unchecked Sendable {
+    static let shared = PassageHistory(fileURL: PassageHistory.defaultFileURL)
+
+    static var defaultFileURL: URL? {
+        try? FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appending(path: "passage-history.json")
+    }
+
+    private let fileURL: URL?
+    private let lock = NSLock()
+    private var lastShown: [String: Int]
+
+    /// `fileURL` が nil なら保存しない（テスト用）
+    init(fileURL: URL?) {
+        self.fileURL = fileURL
+        if let fileURL, let data = try? Data(contentsOf: fileURL),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: data) {
+            lastShown = decoded
+        } else {
+            lastShown = [:]
+        }
+    }
+
+    /// 最後に出した文章の位置。出したことが無ければ nil
+    func lastShownIndex(word: String, sense: WordSense) -> Int? {
+        lock.withLock { lastShown[Passages.key(word: word, sense: sense)] }
+    }
+
+    /// 出した文章の位置を残して保存する
+    func markShown(word: String, sense: WordSense, index: Int) {
+        let key = Passages.key(word: word, sense: sense)
+        let snapshot: [String: Int]? = lock.withLock {
+            guard lastShown[key] != index else { return nil }
+            lastShown[key] = index
+            return lastShown
+        }
+        guard let snapshot, let fileURL, let data = try? JSONEncoder().encode(snapshot) else { return }
+        try? data.write(to: fileURL, options: .atomic)
+    }
+}

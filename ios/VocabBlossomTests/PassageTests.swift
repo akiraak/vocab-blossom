@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 
 @testable import VocabBlossom
@@ -73,6 +74,115 @@ struct PassageQuizTests {
         #expect(!QuizBuilder.canFillBlank(commute))
         #expect(QuizBuilder.canFillBlank(commute) { _, _ in passages("commute") })
         #expect(!QuizBuilder.canFillBlank(commute) { _, _ in [Passage(text: "Nothing here.", ja: "なし。")] })
+    }
+}
+
+@Suite("穴埋めの文章: 順番に出す")
+struct PassageRotationTests {
+    /// commute の動詞の意味だけに 3 パターンの文章がある（2 つ目は空欄にできない）
+    private let lookup: PassageLookup = { _, sense in
+        guard sense.pos == .verb else { return [] }
+        var items = passages("commute")
+        items[1] = Passage(text: "Nothing here. No headword at all.", ja: "なし。")
+        return items
+    }
+
+    private var store: WordStore { WordStore.shared.including(customWords: [commute]) }
+
+    private func make(history: PassageHistory?) -> Quiz {
+        var builder = QuizBuilder(
+            store: store, passages: lookup, passageHistory: history, rng: SeededRNG(seed: 1)
+        )
+        return builder.make(for: commute, type: .fillBlank)
+    }
+
+    @Test("出したことが無ければ 1 つ目、残すたびに次の文章（空欄にできないものは飛ばし、最後の次は最初）")
+    func rotates() {
+        let history = PassageHistory(fileURL: nil)
+        var shown: [Int?] = []
+        for _ in 0..<4 {
+            let quiz = make(history: history)
+            shown.append(quiz.passageIndex)
+            #expect(quiz.passage == quiz.passageIndex.map { lookup(commute, commute.primarySense)[$0] })
+            if let index = quiz.passageIndex {
+                history.markShown(word: commute.word, sense: quiz.sense, index: index)
+            }
+        }
+        #expect(shown == [0, 2, 0, 2])
+    }
+
+    @Test("残さなければ毎回同じ文章、履歴が無ければ 1 つ目")
+    func withoutHistory() {
+        let history = PassageHistory(fileURL: nil)
+        #expect(make(history: history).passageIndex == 0)
+        #expect(make(history: history).passageIndex == 0)
+        #expect(make(history: nil).passageIndex == 0)
+    }
+
+    @Test("文章の数より大きい位置が残っていても、最初に戻って出す")
+    func outOfRangeHistory() {
+        let history = PassageHistory(fileURL: nil)
+        history.markShown(word: commute.word, sense: commute.primarySense, index: 7)
+        #expect(make(history: history).passageIndex == 2)  // (7 + 1) % 3 = 2
+    }
+
+    @Test("例文で出した問題は位置を持たない")
+    func exampleHasNoIndex() throws {
+        let target = try #require(WordStore.shared.word(id: "a1-0004"))
+        var builder = QuizBuilder(
+            store: .shared, passageHistory: PassageHistory(fileURL: nil), rng: SeededRNG(seed: 1)
+        )
+        let quiz = builder.make(for: target, type: .fillBlank)
+        #expect(quiz.passage == nil)
+        #expect(quiz.passageIndex == nil)
+    }
+
+    @Test("回答すると出した文章の位置が残り、次のセッションでは次の文章が出る")
+    func runnerRecordsOnAnswer() throws {
+        let container = try ModelContainer(
+            for: AppModel.schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let engine = LearningEngine(context: ModelContext(container))
+        let history = PassageHistory(fileURL: nil)
+        let store = store
+
+        func runOnce() throws -> Int? {
+            let runner = SessionRunner(
+                drillWordIds: [commute.id], quizType: .fillBlank, engine: engine, store: store,
+                passages: lookup, passageHistory: history, rng: SeededRNG(seed: 1)
+            )
+            guard case .quiz(let quiz, _) = runner.step else {
+                Issue.record("クイズが出ていない")
+                return nil
+            }
+            #expect(history.lastShownIndex(word: commute.word, sense: quiz.sense) != quiz.passageIndex
+                || quiz.passageIndex == nil)
+            runner.answer(choiceIndex: quiz.answerIndex)
+            #expect(history.lastShownIndex(word: commute.word, sense: quiz.sense) == quiz.passageIndex)
+            return quiz.passageIndex
+        }
+
+        #expect(try runOnce() == 0)
+        #expect(try runOnce() == 2)
+    }
+}
+
+@Suite("穴埋めの文章: 出した文章の履歴")
+struct PassageHistoryTests {
+    @Test("残した位置は保存され、開き直しても残っている")
+    func persists() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: "passage-history-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let sense = commute.primarySense
+
+        let history = PassageHistory(fileURL: url)
+        #expect(history.lastShownIndex(word: "commute", sense: sense) == nil)
+        history.markShown(word: "Commute", sense: sense, index: 1)
+
+        let reopened = PassageHistory(fileURL: url)
+        #expect(reopened.lastShownIndex(word: "commute", sense: sense) == 1)
+        #expect(reopened.lastShownIndex(word: "commute", sense: commute.senses[1]) == nil)
     }
 }
 
