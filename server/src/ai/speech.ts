@@ -8,6 +8,7 @@ import { ModelInputError, TTS_MODELS, type TtsModel, parseModel } from './models
 // グループの読み上げの声（POST /api/speech）。1 文を Gemini TTS で読ませて WAV で返す。
 // 声（キャラ）と文の種類ごとのスタイルはサーバーが持つ（アプリの更新なしで直せる）。
 // 決めた値は Phase 1 の試聴によるもの。docs/plans/archive/read-aloud-gemini-voice.md
+// 例文は遅すぎたので 2026-11-12 に速い読み方へ変えた（試聴の faster-b）。docs/plans/read-aloud-faster.md
 
 export const SPEECH_BODY_LIMIT = 4 * 1024
 export const MAX_SPEECH_TEXT_LENGTH = 300
@@ -29,7 +30,7 @@ export const VOICES: Record<Speaker, Voice> = {
     voice: 'Leda',
     styles: {
       word: 'warm and clear, like a friendly teacher, speaking slowly',
-      example: 'warm and friendly, like a teacher reading to a beginner, calm natural pace',
+      example: 'warm and friendly, natural conversational pace, not slow',
       japanese: 'warm and friendly, like a teacher explaining, calm natural pace',
     },
   },
@@ -37,7 +38,7 @@ export const VOICES: Record<Speaker, Voice> = {
     voice: 'Aoede',
     styles: {
       word: 'bright and cheerful, clear, speaking slowly',
-      example: 'bright and cheerful, like a classmate reading to a friend, calm natural pace',
+      example: 'bright and cheerful, natural conversational pace, not slow',
       japanese: 'bright and cheerful, like a classmate explaining to a friend, calm natural pace',
     },
   },

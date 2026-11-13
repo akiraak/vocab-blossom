@@ -6,6 +6,7 @@
 // 使い方（キーは git 管理外の .env.local に GEMINI_API_KEY=... と書いておく。見本は .env.example）:
 //   node --env-file=.env.local scripts/tts-audition.mjs
 //   node --env-file=.env.local scripts/tts-audition.mjs --models gemini-3.8-flash-tts --chars chobi --styles readaloud,original --words a1-0002,ph-0012
+//   例文だけ聞き比べる: --kinds example --styles readaloud,faster-a,faster-b,faster-c
 //   マイ単語など単語帳に無い語は --extra <json>（{ "words": [{ id, word, meaning, example, exampleJa }] }）で足し、--words で id を指定する
 //
 // 出力は tts-audition.local/（git 管理外）。summary.tsv に秒数と英語の話速（words/sec）を出す。
@@ -24,6 +25,8 @@ const MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts', 'gemini-3.1
  * - original: esl-speaking-coach の ChatCharacter.speechStyle（3.1 向けの長い前置文）
  * - readaloud: 読み上げ用に短くした案（3.8 は「style は短く。年齢・性別・名前は書かない」が推奨）
  * - plain: style なし（公式の推奨は「まず style なしで試す」）
+ * - faster-a / -b / -c: 例文を速くする案（docs/plans/read-aloud-faster.md の Step 1）。例文のほかは readaloud と同じ
+ *   - a: 「落ち着いた」だけ外す　b: 「初学者に読む」も外して会話の速さ　c: はっきり速めと書く
  */
 const CHARACTERS = {
   chobi: {
@@ -38,6 +41,9 @@ const CHARACTERS = {
         japanese: 'warm and friendly, like a teacher explaining, calm natural pace',
       },
       plain: { all: '' },
+      'faster-a': { example: 'warm and friendly, like a teacher reading aloud, natural pace' },
+      'faster-b': { example: 'warm and friendly, natural conversational pace, not slow' },
+      'faster-c': { example: 'warm and friendly, at a brisk conversational pace' },
     },
   },
   naruko: {
@@ -52,6 +58,9 @@ const CHARACTERS = {
         japanese: 'bright and cheerful, like a classmate explaining to a friend, calm natural pace',
       },
       plain: { all: '' },
+      'faster-a': { example: 'bright and cheerful, like a classmate reading aloud, natural pace' },
+      'faster-b': { example: 'bright and cheerful, natural conversational pace, not slow' },
+      'faster-c': { example: 'bright and cheerful, at a brisk conversational pace' },
     },
   },
 }
@@ -69,6 +78,7 @@ function parseArgs(argv) {
     chars: ['chobi', 'naruko'],
     styles: ['readaloud'],
     words: DEFAULT_WORDS,
+    kinds: ['word', 'meaning', 'example', 'exampleJa'],
     extra: null,
     out: path.join(ROOT, 'tts-audition.local'),
   }
@@ -80,7 +90,7 @@ function parseArgs(argv) {
   }
   for (const m of args.models) if (!MODELS.includes(m)) console.warn(`知らないモデル（そのまま試す）: ${m}`)
   for (const c of args.chars) if (!CHARACTERS[c]) throw new Error(`知らないキャラ: ${c}`)
-  for (const s of args.styles) if (!['original', 'readaloud', 'plain'].includes(s)) throw new Error(`知らない前置文: ${s}`)
+  for (const s of args.styles) if (!CHARACTERS.chobi.styles[s]) throw new Error(`知らない前置文: ${s}`)
   return args
 }
 
@@ -120,7 +130,8 @@ function linesFor(word) {
 }
 
 function styleFor(char, styleName, kind) {
-  const style = CHARACTERS[char].styles[styleName]
+  // 書いていない種類は readaloud（今の本番）と同じ
+  const style = { ...CHARACTERS[char].styles.readaloud, ...CHARACTERS[char].styles[styleName] }
   if (style.all !== undefined) return style.all
   if (kind === 'word') return style.word
   if (kind === 'example') return style.example
@@ -257,7 +268,7 @@ async function main() {
         for (const word of words) {
           const pieces = []
           let rate = 24000
-          for (const line of linesFor(word)) {
+          for (const line of linesFor(word).filter((l) => args.kinds.includes(l.kind))) {
             const label = `${model} / ${char} / ${styleName} / ${word.word} / ${line.kind}`
             try {
               const result = await synthesize({
