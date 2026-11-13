@@ -80,6 +80,7 @@ struct AppSettingsTests {
         #expect(ReadAloudSpeechEngine.utteranceRate(base, speed: .normal) == base)
         #expect(ReadAloudSpeechEngine.utteranceRate(base, speed: .fast) > base)
         #expect(ReadAloudSpeechEngine.utteranceRate(base, speed: .slow) < base)
-        #expect(ReadAloudSpeechEngine.utteranceRate(0.9, speed: .veryFast) == AVSpeechUtteranceMaximumSpeechRate)
+        let fastest = ReadAloudSpeechEngine.utteranceRate(0.9, speed: .veryFast)
+        #expect(fastest == AVSpeechUtteranceMaximumSpeechRate)
     }
 }

@@ -49,7 +49,8 @@ final class ReadAloudSpeechEngine: NSObject, ReadAloudSpeaking {
 
     /// 設定の速さをかけた `AVSpeechUtterance.rate`。内蔵の声の rate は倍率と比例しないので、だいたいの合わせ方
     nonisolated static func utteranceRate(_ base: Float, speed: ReadAloudSpeed) -> Float {
-        min(max(base * Float(speed.rawValue), AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate)
+        let rate = base * Float(speed.rawValue)
+        return min(max(rate, AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate)
     }
     /// 文と文の間・語と語の間（秒）
     private let lineGap: TimeInterval = 0.25
