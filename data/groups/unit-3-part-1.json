@@ -1,0 +1,21 @@
+{
+  "description": "グループ「Unit 3 Part 1」に足す語（2026-11-12 にユーザーが挙げた 11 語）。docs/plans/group-unit-3-part-1-words.md を参照。bundled は単語帳の語、それ以外はマイ単語として作る（meanwhile は本番にある同じ中身のマイ単語をそのまま使う）",
+  "groups": [
+    {
+      "name": "Unit 3 Part 1",
+      "words": [
+        { "word": "injury", "pos": "noun", "meaning": "けが、負傷", "example": "He could not play because of a knee injury.", "exampleJa": "彼はひざのけがのせいで試合に出られませんでした。" },
+        { "word": "determined", "pos": "adjective", "meaning": "決意の固い、やり抜くつもりの", "example": "She is determined to pass the test.", "exampleJa": "彼女はテストに合格すると固く決めています。" },
+        { "word": "recover", "pos": "verb", "meaning": "回復する、取り戻す", "example": "It took him a week to recover from the cold.", "exampleJa": "彼がかぜから回復するのに 1 週間かかりました。" },
+        { "word": "empower", "pos": "verb", "meaning": "力を与える、自信を持たせる", "example": "Good teachers empower their students.", "exampleJa": "よい先生は生徒に力と自信を与えます。" },
+        { "word": "reputation", "pos": "noun", "meaning": "評判", "example": "This restaurant has a good reputation.", "exampleJa": "このレストランは評判がよいです。" },
+        { "word": "punish", "pos": "verb", "meaning": "罰する", "example": "The teacher did not punish the boy.", "exampleJa": "先生はその男の子を罰しませんでした。" },
+        { "word": "feel responsible", "pos": "phrase", "meaning": "責任を感じる", "example": "I feel responsible for the accident.", "exampleJa": "私はその事故に責任を感じています。" },
+        { "word": "prohibit", "pos": "verb", "meaning": "禁止する", "example": "The rules prohibit smoking in this building.", "exampleJa": "規則でこの建物の中での喫煙は禁止されています。" },
+        { "word": "meanwhile", "pos": "adverb", "meaning": "その間に（同じころ別の場面で）", "example": "I cooked dinner. Meanwhile, my brother cleaned the room.", "exampleJa": "私は夕食を作りました。その間に、弟は部屋を掃除しました。" },
+        { "bundled": "a2-0876", "word": "regret" },
+        { "word": "anonymous", "pos": "adjective", "meaning": "匿名の、名前を出さない", "example": "The school got an anonymous letter.", "exampleJa": "学校に匿名の手紙が届きました。" }
+      ]
+    }
+  ]
+}
