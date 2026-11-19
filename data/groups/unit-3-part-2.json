@@ -1,0 +1,23 @@
+{
+  "description": "グループ「Unit 3 Part 2」を作って入れる語（2026-11-19 にユーザーが挙げた 12 語）。docs/plans/group-unit-3-part-2-words.md を参照。bundled は単語帳の語、それ以外はマイ単語として作る",
+  "groups": [
+    {
+      "name": "Unit 3 Part 2",
+      "words": [
+        { "word": "reluctantly", "pos": "adverb", "meaning": "しぶしぶ、いやいやながら", "example": "He reluctantly agreed to help me.", "exampleJa": "彼はしぶしぶ私を手伝うことに同意しました。" },
+        { "word": "demand", "pos": "verb", "meaning": "（強く）要求する", "example": "The customers demand better service.", "exampleJa": "客はもっとよいサービスを要求しています。",
+          "extraSenses": [ { "pos": "noun", "meaning": "要求、需要", "example": "There is a big demand for small cars.", "exampleJa": "小型車には大きな需要があります。" } ] },
+        { "word": "persistence", "pos": "noun", "meaning": "粘り強さ、あきらめないこと", "example": "Her persistence helped her win the race.", "exampleJa": "粘り強さのおかげで彼女はレースに勝てました。" },
+        { "word": "a wide range of", "pos": "phrase", "meaning": "幅広い〜、さまざまな〜", "example": "This shop sells a wide range of books.", "exampleJa": "この店は幅広い種類の本を売っています。" },
+        { "word": "restricted", "pos": "adjective", "meaning": "制限された、限られた", "example": "Parking is restricted on this street.", "exampleJa": "この通りでは駐車が制限されています。" },
+        { "bundled": "a2-1150", "word": "uncomfortable" },
+        { "word": "blunt", "pos": "adjective", "meaning": "ぶっきらぼうな、遠慮なくはっきり言う", "example": "His blunt answer made her sad.", "exampleJa": "彼のぶっきらぼうな答えに彼女は悲しくなりました。" },
+        { "word": "ignite", "pos": "verb", "meaning": "火をつける、（興味・気持ちを）かき立てる", "example": "A good teacher can ignite your interest in science.", "exampleJa": "よい先生は理科への興味をかき立ててくれます。" },
+        { "word": "confidently", "pos": "adverb", "meaning": "自信を持って", "example": "She spoke confidently in front of the class.", "exampleJa": "彼女はクラスの前で自信を持って話しました。" },
+        { "word": "weakness", "pos": "noun", "meaning": "弱点、弱さ", "example": "Math is my biggest weakness.", "exampleJa": "数学は私のいちばんの弱点です。" },
+        { "word": "exceptionally", "pos": "adverb", "meaning": "並外れて、非常に", "example": "The weather was exceptionally cold last winter.", "exampleJa": "去年の冬は並外れて寒かったです。" },
+        { "word": "introverted", "pos": "adjective", "meaning": "内向的な", "example": "My brother is introverted and likes to stay home.", "exampleJa": "兄は内向的で、家にいるのが好きです。" }
+      ]
+    }
+  ]
+}
