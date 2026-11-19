@@ -4,6 +4,8 @@ options:
   bundleIdPrefix: com.akiraak
   deploymentTarget:
     iOS: "18.0"
+  # 日本語のアプリだと宣言する。無いと、iPhone の言語で日本語が先頭でないとき漢字が中国語のフォントになる
+  developmentLanguage: ja
   createIntermediateGroups: true
   generateEmptyDirectories: true
 
@@ -44,6 +46,10 @@ targets:
       properties:
         # ホーム画面のアイコンの下に出る名前（Info.plist を xcodegen が作るので、INFOPLIST_KEY_ の設定では効かない）
         CFBundleDisplayName: VocabGarden
+        # 開発言語（options.developmentLanguage と同じ）。漢字を日本語の字形で出すため
+        CFBundleDevelopmentRegion: ja
+        CFBundleLocalizations:
+          - ja
         # いつも白い画面にする（iPhone がダークモードでも暗くしない。デザイン B4 は白地。2026-11-07 にユーザーと決定）
         UIUserInterfaceStyle: Light
         CFBundleShortVersionString: $(MARKETING_VERSION)

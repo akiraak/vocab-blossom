@@ -24,14 +24,20 @@ export type SpeechKind = (typeof SPEECH_KINDS)[number]
 
 type Voice = { voice: string; styles: Record<SpeechKind, string> }
 
-/** esl-speaking-coach の Chobi（Leda）/ Naruko（Aoede）。スタイルは読み上げ用に短くしたもの */
+/**
+ * esl-speaking-coach の Chobi（Leda）/ Naruko（Aoede）。スタイルは読み上げ用に短くしたもの。
+ *
+ * japanese の「speaking in Japanese」は外さない。Gemini は言語を自動で判定するので、かなの無い意味
+ * （「要求、需要」など）は中国語で読まれる（2026-11-19）。speech_config の language は効かなかった。
+ * docs/plans/archive/japanese-font-and-voice.md
+ */
 export const VOICES: Record<Speaker, Voice> = {
   chobi: {
     voice: 'Leda',
     styles: {
       word: 'warm and clear, like a friendly teacher, speaking slowly',
       example: 'warm and friendly, natural conversational pace, not slow',
-      japanese: 'warm and friendly, like a teacher explaining, calm natural pace',
+      japanese: 'warm and friendly, like a teacher explaining, calm natural pace, speaking in Japanese',
     },
   },
   naruko: {
@@ -39,7 +45,7 @@ export const VOICES: Record<Speaker, Voice> = {
     styles: {
       word: 'bright and cheerful, clear, speaking slowly',
       example: 'bright and cheerful, natural conversational pace, not slow',
-      japanese: 'bright and cheerful, like a classmate explaining to a friend, calm natural pace',
+      japanese: 'bright and cheerful, like a classmate explaining to a friend, calm natural pace, speaking in Japanese',
     },
   },
 }

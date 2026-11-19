@@ -10,6 +10,7 @@ struct VocabBlossomApp: App {
     private let container: ModelContainer
 
     init() {
+        Self.preferJapanese()
         let container: ModelContainer
         do {
             container = try ModelContainer(for: AppModel.schema)
@@ -31,6 +32,18 @@ struct VocabBlossomApp: App {
             GeminiReadAloudSpeaker.quiz.fetcher = DebugSpeechFetcher()
         }
         #endif
+    }
+
+    /// このアプリの言語の並びの先頭を日本語にする（iPhone の「設定 > アプリ > 言語」で日本語を選んだのと同じ）。
+    ///
+    /// 漢字は日本語と中国語で同じ文字コードなので、iPhone の言語で日本語が先頭でないと、iOS は中国語のフォントで描く
+    /// （「骨」「直」などの字形が変わる）。言語の並びは起動時に読まれるので、書きかえた回は次の起動から効く。
+    /// docs/plans/archive/japanese-font-and-voice.md
+    static func preferJapanese(defaults: UserDefaults = .standard) {
+        let key = "AppleLanguages"
+        let current = defaults.stringArray(forKey: key) ?? []
+        guard current.first?.hasPrefix("ja") != true else { return }
+        defaults.set(["ja-JP"] + current.filter { !$0.hasPrefix("ja") }, forKey: key)
     }
 
     var body: some Scene {

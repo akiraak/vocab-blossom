@@ -83,4 +83,17 @@ struct AppSettingsTests {
         let fastest = ReadAloudSpeechEngine.utteranceRate(0.9, speed: .veryFast)
         #expect(fastest == AVSpeechUtteranceMaximumSpeechRate)
     }
+
+    @Test("言語の並びの先頭が日本語でなければ、日本語を先頭に足す（漢字を日本語の字形で出すため）")
+    func prefersJapanese() throws {
+        let defaults = try #require(UserDefaults(suiteName: "prefer-ja-\(UUID().uuidString)"))
+        defaults.set(["en-US", "zh-Hans-US", "ja-US"], forKey: "AppleLanguages")
+        VocabBlossomApp.preferJapanese(defaults: defaults)
+        #expect(defaults.stringArray(forKey: "AppleLanguages") == ["ja-JP", "en-US", "zh-Hans-US"])
+
+        // すでに日本語が先頭なら変えない
+        defaults.set(["ja-US", "en-US"], forKey: "AppleLanguages")
+        VocabBlossomApp.preferJapanese(defaults: defaults)
+        #expect(defaults.stringArray(forKey: "AppleLanguages") == ["ja-US", "en-US"])
+    }
 }
